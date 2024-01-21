@@ -1,0 +1,15 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "L2 Finality",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "samtin0x",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.2.4"
+  }
+}
