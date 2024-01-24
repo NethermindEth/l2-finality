@@ -1,12 +1,7 @@
+import { dropdownMenuOptions } from '@/components/ui/DropdownMenu'
+
 export const getValueLabel = (value: string) => {
-  const valueToLabel: Record<string, string> = {
-    base: 'Base',
-    optimism: 'Optimism',
-    scroll: 'Scroll',
-    starknet: 'Starknet',
-    'zksync-era': 'zkSync Era',
-  }
-  return valueToLabel[value]
+  return dropdownMenuOptions[value]
 }
 
 export const formatNumber = (num: number, prefix: string = ''): string => {

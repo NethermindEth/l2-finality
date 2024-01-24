@@ -12,8 +12,9 @@ import AssetsAtRiskChart from '@/components/charts/AssetsAtRiskChart'
 import { graphPaperStyle } from '@/styles/graphCardStyles'
 import LastReorgsTable from '@/components/charts/LastReorgsTable'
 
-const pageTitle: string = 'L2 Finality Index'
-const pageDescription: string = 'Layer 2 finality dashboard description'
+const pageTitle: string = 'L2 Finality Dashboard'
+const pageDescription: string =
+  'Access up-to-date Layer 2 blockchain analytics with the L2 Finality Dashboard. Compare network performance, track transaction speeds, and get insights into blockchain efficiency. Suitable for blockchain professionals and enthusiasts'
 
 const Index = () => {
   return (

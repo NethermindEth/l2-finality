@@ -11,10 +11,8 @@ This project is dedicated to measuring Layer 2 finality, quantifying assets at r
 
 ### Chain coverage
 - [ ] Starknet 
-- [ ] zkSync
 - [ ] OP Mainnet
-- [ ] Base 
-- [ ] Scroll
+- [ ] Polygon zkEVM
 
 Note: This list is subject to change.
 

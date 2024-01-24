@@ -9,6 +9,12 @@ const menuItemStyles = {
   alignItems: 'center',
 }
 
+export const dropdownMenuOptions: Record<string, string> = {
+  optimism: 'Optimism',
+  starknet: 'Starknet',
+  polygonzkevm: 'Polygon zkEVM',
+}
+
 const renderMenuItem = (value: string) => {
   const label: string = getValueLabel(value)
   return (
@@ -17,7 +23,7 @@ const renderMenuItem = (value: string) => {
         style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}
       >
         <Image
-          src={`/icons/${label.toLowerCase().replace(/\s+/g, '-')}.png`}
+          src={`/icons/${value.toLowerCase().replace(/\s+/g, '-')}.png`}
           alt={`${label} logo`}
           width={30}
           height={30}
@@ -29,19 +35,12 @@ const renderMenuItem = (value: string) => {
 }
 
 const DropdownMenu: React.FC = () => {
-  const [selectedValue, setSelectedValue] = useState<string>('base')
+  const options: string[] = Object.keys(dropdownMenuOptions)
+  const [selectedValue, setSelectedValue] = useState<string>(options[0])
 
   const handleChange = (event: React.ChangeEvent<{ value: string }>) => {
     setSelectedValue(event.target.value)
   }
-
-  const options: string[] = [
-    'base',
-    'optimism',
-    'scroll',
-    'starknet',
-    'zksync-era',
-  ]
 
   return (
     <Select
