@@ -10,11 +10,10 @@ This project is dedicated to measuring Layer 2 finality, quantifying assets at r
 
 
 ### Chain coverage
-- [ ] Starknet 
 - [ ] OP Mainnet
+- [ ] Starknet 
 - [ ] Polygon zkEVM
 
-Note: This list is subject to change.
 
 
 ## Getting Started
@@ -25,10 +24,7 @@ Note: This list is subject to change.
    ```bash
    git clone https://github.com/NethermindEth/l2-finality
    ```
-2. Add environment variables:
-   ```bash
-   copy .env.example .env
-   ```
+2. X
 
 WIP
 

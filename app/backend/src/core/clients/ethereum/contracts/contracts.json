@@ -1,0 +1,22 @@
+{
+  "OptimismStateRootProposer": {
+    "chainId": 10,
+    "address": "0xdfe97868233d1aa22e815a266982f2cf17685a27",
+    "topics": {
+      "OutputProposed": "0xa7aaf2512769da4e444e3de247be2564225c2e7a8f74cfe528e46e17d24868e2"
+    }
+  },
+  "StarknetCoreContract": {
+    "address": "0xc662c410C0ECf747543f5bA90660f6ABeBD9C8c4",
+    "topics": {
+      "LogStateUpdate": "0xd342ddf7a308dec111745b00315c14b7efb2bdae570a6856e088ed0c65a3576c"
+    }
+  },
+  "PolygonZkEVMProxy": {
+    "address": "0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2",
+    "topics": {
+      "VerifyBatchesTrustedAggregator": "0xcb339b570a7f0b25afa7333371ff11192092a0aeace12b671f4c212f2815c6fe",
+      "SequenceBatches": "0x303446e6a8cb73c83dff421c0b1d5e5ce0719dab1bff13660fc254e58cc17fce"
+    }
+  }
+}

@@ -1,0 +1,85 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - 'app/backend/**'
+
+jobs:
+  setup:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: app/backend
+
+  ci-check:
+    runs-on: ubuntu-latest
+    name: Lint / Prettier
+    needs: setup
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: app/backend
+
+      - name: Lint check
+        run: npm run lint:check
+        working-directory: app/backend
+
+      - name: Prettier check
+        run: npm run prettier:check
+        working-directory: app/backend
+
+
+  tests:
+    runs-on: ubuntu-latest
+    name: Tests
+    needs: setup
+    env:
+      DB_UI: postgresql://postgres:postgres@localhost:5432/postgres
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: app/backend
+
+      - name: Run tests
+        run: npm run test
+        working-directory: app/backend
