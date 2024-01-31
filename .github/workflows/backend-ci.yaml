@@ -53,7 +53,7 @@ jobs:
     name: Tests
     needs: setup
     env:
-      DB_UI: postgresql://postgres:postgres@localhost:5432/postgres
+      DEPLOYMENT_ENV: test
     services:
       postgres:
         image: postgres:14
