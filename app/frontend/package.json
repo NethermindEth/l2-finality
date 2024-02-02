@@ -17,10 +17,12 @@
     "@mui/base": "^5.0.0-beta.32",
     "@mui/icons-material": "^5.15.5",
     "@mui/material": "^5.15.5",
+    "@react-spring/types": "^9.7.3",
     "chart.js": "^4.4.1",
     "next": "14.0.4",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-spring": "^9.7.3"
   },
   "devDependencies": {
     "@types/node": "^20",
