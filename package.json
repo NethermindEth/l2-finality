@@ -1,0 +1,17 @@
+{
+  "name": "l2-finality",
+  "version": "0.0.1",
+  "workspaces": {
+    "packages": [
+      "app/*"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.2.4"
+  }
+}

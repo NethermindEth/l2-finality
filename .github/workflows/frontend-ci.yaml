@@ -1,0 +1,48 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    paths:
+      - 'app/frontend/**'
+
+jobs:
+  setup:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: app/frontend
+
+  ci-check:
+    runs-on: ubuntu-latest
+    name: Lint / Prettier
+    needs: setup
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: app/frontend
+
+      - name: Lint check
+        run: npm run lint:check
+        working-directory: app/frontend
+
+      - name: Prettier check
+        run: npm run prettier:check
+        working-directory: app/frontend
