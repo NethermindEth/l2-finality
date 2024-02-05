@@ -37,8 +37,6 @@ class L1LogMonitorController {
     this.logDecoder = new EthereumLogDecoder(
       this.logger.for("EthereumLogDecoder"),
     );
-
-    this.logger.info("Starting L1 log monitor...");
   }
 
   public async start(): Promise<void> {

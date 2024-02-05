@@ -16,6 +16,12 @@ export class UnixTime {
     }
   }
 
+  static DAY = 86_400;
+
+  static HOUR = 3_600;
+
+  static MINUTE = 60;
+
   static now(): UnixTime {
     return new UnixTime(Math.floor(Date.now() / 1000));
   }
@@ -26,5 +32,23 @@ export class UnixTime {
 
   toDate(): Date {
     return new Date(this.timestamp * 1000);
+  }
+
+  add(
+    value: number,
+    period: "days" | "hours" | "minutes" | "seconds",
+  ): UnixTime {
+    if (!Number.isInteger(value)) {
+      throw new TypeError("value must be an integer");
+    }
+    const unit =
+      period === "days"
+        ? UnixTime.DAY
+        : period === "hours"
+          ? UnixTime.HOUR
+          : period === "minutes"
+            ? UnixTime.MINUTE
+            : 1;
+    return new UnixTime(this.timestamp + value * unit);
   }
 }

@@ -5,6 +5,7 @@ export interface Config {
   readonly api: ApiConfig;
   readonly indexer: IndexerConfig;
   readonly ethereumMonitor: EthereumMonitorConfig;
+  readonly pricingModule: PricingModuleConfig;
 }
 
 export interface ApiConfig {
@@ -26,7 +27,15 @@ export interface IndexerConfig {
 }
 
 export interface EthereumMonitorConfig {
+  readonly enabled: boolean;
   readonly taskIntervalMs: number;
   readonly ethereumLogsStartBlock: number;
   readonly maxBlocksPerLogFetch: number;
+}
+
+export interface PricingModuleConfig {
+  readonly enabled: boolean;
+  readonly coinCapBaseUrl: string;
+  readonly coinCapApiKey: string;
+  readonly maxMinuteRateLimit: number;
 }

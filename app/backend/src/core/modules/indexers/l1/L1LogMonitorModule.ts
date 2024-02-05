@@ -26,7 +26,13 @@ export function createL1MonitorModule(
     logger.for(loggerContext),
   );
 
-  return async () => {
-    await l1LogMonitorTaskScheduler.start();
-  };
+  if (config.ethereumMonitor.enabled) {
+    return async () => {
+      logger.info("Starting L1 monitor...");
+      await l1LogMonitorTaskScheduler.start();
+    };
+  } else {
+    logger.warn("L1 monitor is disabled");
+    return async () => {};
+  }
 }

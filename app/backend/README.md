@@ -58,3 +58,14 @@ The L1 Log Monitor module is responsible for fetching contract log events from E
 ```
 
 2. **ABI Addition**: For each new contract, add the corresponding ABI file to the `/abi` folder located at `core/clients/ethereum/contracts/abis`.
+
+### Pricing module
+
+The Price Updater Module is responsible for keeping cryptocurrency price data up-to-date. It works as follows:
+
+- It fetches the latest timestamp available in the database.
+- If the difference between the latest timestamp and the current time is greater than 15 minutes or the asset is new (i.e., it exists in `core/clients/coincap/assets/whitelisted.json`), the module will fetch historical data going back 1 month.
+- We receive pricing data every 15 minutes.
+- The module checks the boundaries from the database every 10 seconds. If the data is stale (older than 15 minutes), it fetches new data using CoinCap.
+
+Please note that the CoinCap module has a rate limit of 500 requests per minute
