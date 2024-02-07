@@ -11,6 +11,7 @@ import EconomicGuaranteesChart from '@/components/charts/EconomicGuaranteesChart
 import AssetsAtRiskChart from '@/components/charts/AssetsAtRiskChart'
 import { graphPaperStyle } from '@/styles/graphCardStyles'
 import LastReorgsTable from '@/components/charts/LastReorgsTable'
+import AutoIncrementComponent from '@/components/ui/AutoIncrement'
 
 const pageTitle: string = 'L2 Finality Dashboard'
 const pageDescription: string =
@@ -41,6 +42,7 @@ const Index = () => {
                   Select chain
                 </Typography>
                 <DropdownMenu />
+                <AutoIncrementComponent />
               </Box>
             </Paper>
           </Grid>

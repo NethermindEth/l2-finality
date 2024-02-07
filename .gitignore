@@ -40,3 +40,4 @@ next-env.d.ts
 /app/frontend/node_modules/
 
 /.idea/
+test.ts

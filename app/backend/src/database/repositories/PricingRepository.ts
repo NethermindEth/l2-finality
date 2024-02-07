@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import { UnixTime } from "@/core/types/UnixTime";
+import { UnixTime } from "../../core/types/UnixTime";
 
 export const TABLE_NAME = "asset_prices";
 
@@ -12,7 +12,7 @@ export interface PriceRecord {
 interface PriceRow {
   asset_id: string;
   price_usd: number;
-  unix_timestamp: Date;
+  timestamp: Date;
 }
 
 export interface DataBoundary {
@@ -47,7 +47,7 @@ export class PriceRepository {
     const row = await this.knex(TABLE_NAME)
       .where({
         asset_id: assetId,
-        unix_timestamp: timestamp.toDate(),
+        timestamp: timestamp.toDate(),
       })
       .first();
     return row ? toRecord(row) : undefined;
@@ -55,7 +55,12 @@ export class PriceRepository {
 
   async addMany(prices: PriceRecord[]) {
     const rows: PriceRow[] = prices.map(toRow);
-    await this.knex.batchInsert(TABLE_NAME, rows, 10_000);
+
+    await this.knex(TABLE_NAME)
+      .insert(rows)
+      .onConflict(["asset_id", "timestamp"])
+      .merge();
+
     return rows.length;
   }
 
@@ -63,34 +68,14 @@ export class PriceRepository {
     return this.knex(TABLE_NAME).delete();
   }
 
-  async findDataBoundaries(): Promise<Map<string, DataBoundary>> {
-    const rows = await this.knex(TABLE_NAME)
-      .min("unix_timestamp")
-      .max("unix_timestamp")
-      .select("asset_id")
-      .groupBy("asset_id");
-
-    return new Map(
-      rows.map((row) => [
-        row.asset_id,
-        {
-          earliest: UnixTime.fromDate(row.min),
-          latest: UnixTime.fromDate(row.max),
-        },
-      ]),
-    );
-  }
-
-  async findLatestByTokenBetween(
+  async findLatestByToken(
     from: UnixTime,
-    to: UnixTime,
   ): Promise<Map<string, UnixTime | undefined>> {
-    const rows = await this.knex("coingecko_prices")
-      .max("unix_timestamp")
+    const rows = await this.knex(TABLE_NAME)
+      .max("timestamp")
       .select("asset_id")
       .groupBy("asset_id")
-      .where("unix_timestamp", ">=", from.toDate())
-      .andWhere("unix_timestamp", "<=", to.toDate());
+      .where("timestamp", ">=", from.toDate());
 
     return new Map(
       rows.map((row) => [row.asset_id, UnixTime.fromDate(row.max)]),
@@ -100,7 +85,7 @@ export class PriceRepository {
 
 function toRecord(row: PriceRow): PriceRecord {
   return {
-    timestamp: UnixTime.fromDate(row.unix_timestamp),
+    timestamp: UnixTime.fromDate(row.timestamp),
     assetId: row.asset_id,
     priceUsd: +row.price_usd,
   };
@@ -110,6 +95,6 @@ function toRow(record: PriceRecord): PriceRow {
   return {
     asset_id: record.assetId.toString(),
     price_usd: record.priceUsd,
-    unix_timestamp: record.timestamp.toDate(),
+    timestamp: record.timestamp.toDate(),
   };
 }
