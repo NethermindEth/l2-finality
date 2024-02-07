@@ -24,6 +24,7 @@ export interface DatabaseConfig {
 
 export interface IndexerConfig {
   readonly ethereumRpcEndpoint: string;
+  readonly optimismRpcEndpoint: string;
 }
 
 export interface EthereumMonitorConfig {
@@ -39,3 +40,5 @@ export interface PricingModuleConfig {
   readonly coinCapApiKey: string;
   readonly maxMinuteRateLimit: number;
 }
+
+

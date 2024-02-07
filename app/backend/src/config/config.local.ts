@@ -25,6 +25,7 @@ export function getLocalConfig(env: Env): Config {
 
   const indexerConfig: IndexerConfig = {
     ethereumRpcEndpoint: env.string("ETHEREUM_RPC_ENDPOINT"),
+    optimismRpcEndpoint: env.string("OPTIMISM_RPC_ENDPOINT"),
   };
 
   const ethereumMonitorConfig: EthereumMonitorConfig = {

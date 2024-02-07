@@ -31,6 +31,10 @@ export function getTestConfig(env: Env): Config {
       "ETHEREUM_RPC_ENDPOINT",
       "https://rpc.ankr.com/eth",
     ),
+    optimismRpcEndpoint: env.string(
+      "OPTIMISM_RPC_ENDPOINT",
+      "https://rpc.ankr.com/optimism",
+    )
   };
 
   const ethereumMonitorConfig: EthereumMonitorConfig = {
