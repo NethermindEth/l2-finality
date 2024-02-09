@@ -57,8 +57,8 @@ describe(SyncStatusRepository.name, () => {
       };
 
       await expect(async () => {
-        // @ts-ignore
         await repository.insertSyncStatus(
+          // @ts-ignore
           invalidSyncStatus as SyncStatusRecord,
         );
       }).toBeRejected();
