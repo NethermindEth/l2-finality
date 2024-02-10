@@ -13,7 +13,7 @@ describe(EthereumClient.name, () => {
   beforeEach(() => {
     const logger = new Logger();
     const config = getConfig();
-    ethClient = new EthereumClient(config, logger);
+    ethClient = new EthereumClient(config, logger.for("Ethereum Client"));
   });
 
   describe(EthereumClient.prototype.getCurrentHeight.name, () => {

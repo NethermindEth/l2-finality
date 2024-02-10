@@ -6,16 +6,23 @@ import { createL1MonitorModule } from "./core/modules/indexers/l1/L1LogMonitorMo
 import EthereumClient from "./core/clients/ethereum/EthereumClient";
 import { createPriceUpdaterModule } from "./core/modules/pricing/PriceUpdaterModule";
 import { CoinCapClient } from "./core/clients/coincap/CoinCapClient";
+import { createOptimismFinalityModule } from "@/core/modules/indexers/l2/optimism/OptimismFinalityModule";
+import OptimismClient from "@/core/clients/optimism/OptimismClient";
+import { createOptimismBlockModule } from "@/core/modules/indexers/l2/optimism/OptimismBlockModule";
 
 export class Application {
   constructor(config: Config) {
     const logger: Logger = new Logger();
     const database: Database = new Database(config.database, logger);
 
-    const ethClient = new EthereumClient(config, logger.for("EthereumClient"));
+    const ethClient = new EthereumClient(config, logger.for("Ethereum Client"));
+    const optimismClient = new OptimismClient(
+      config,
+      logger.for("Optimism Client"),
+    );
     const coinCapClient = new CoinCapClient(
       config,
-      logger.for("CoinCapClient"),
+      logger.for("CoinCap Client"),
     );
 
     this.start = async (): Promise<void> => {
@@ -31,6 +38,8 @@ export class Application {
       const modules = [
         createL1MonitorModule(config, logger, database, ethClient),
         createPriceUpdaterModule(config, logger, database, coinCapClient),
+        createOptimismBlockModule(config, logger, database, optimismClient),
+        createOptimismFinalityModule(config, logger, database, optimismClient),
       ];
 
       for (const module of modules) {

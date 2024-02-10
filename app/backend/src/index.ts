@@ -1,16 +1,11 @@
 import { getConfig } from "./config";
-import logger, { Logger } from './tools/Logger'
-import OptimismClient from './core/clients/optimism/OptimismClient'
+import { Application } from "@/Application";
 
 async function main() {
   try {
     const config = getConfig();
-    const logger = new Logger();
-    const optimismClient = new OptimismClient(config, logger);
-    // const [block, transfer] = await optimismClient.getBlock(115867686);
-    const result = await optimismClient.getSyncStatus()
-    console.log(result)
-
+    const app = new Application(config);
+    await app.start();
   } catch (e) {
     console.error(e);
     throw e;

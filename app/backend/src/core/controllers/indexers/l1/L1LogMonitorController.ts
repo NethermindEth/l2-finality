@@ -7,12 +7,11 @@ import { Database } from "@/database/Database";
 import MetadataRepository, {
   MetadataJobName,
   MetadataMetricName,
-  MetadataRecord,
 } from "../../../../database/repositories/MetadataRepository";
 import { EthereumMonitorConfig } from "@/config/Config";
 import SyncStatusRepository from "../../../../database/repositories/SyncStatusRepository";
 import { ethers } from "ethers";
-import LogProcessor, { LogProcessors } from "./LogProcessor";
+import { LogProcessors } from "./LogProcessor";
 
 class L1LogMonitorController {
   private logger: Logger;

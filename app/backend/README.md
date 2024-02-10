@@ -33,9 +33,9 @@ To run the backend service, you need to configure the following environment vari
 **L1 Log Monitor module configuration:**
 
 - `ETHEREUM_RPC_ENDPOINT`: The RPC endpoint URL for interacting with the Ethereum blockchain.
-- `ETHEREUM_MONITOR_TASK_INTERVAL_MS`: The interval in milliseconds for the cron job that checks for new log events on Ethereum L1.
-- `ETHEREUM_LOGS_START_BLOCK`: The blockchain start block number from which to begin fetching log events.
-- `ETHEREUM_LOGS_MAX_BLOCKS_PER_LOG_FETCH`: The maximum number of blocks to query for log events in a single fetch operation.
+- `ETHEREUM_MONITOR_POLL_INTERVAL_MS`: The interval in milliseconds for the cron job that checks for new log events on Ethereum L1.
+- `ETHEREUM_MONITOR_START_BLOCK`: The blockchain start block number from which to begin fetching log events.
+- `ETHEREUM_MONITOR_MAX_LOG_RANGE`: The maximum number of blocks to query for log events in a single fetch operation.
 
 ## Modules
 
