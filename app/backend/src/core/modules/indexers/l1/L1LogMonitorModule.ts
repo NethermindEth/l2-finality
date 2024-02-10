@@ -22,7 +22,7 @@ export function createL1MonitorModule(
 
   const l1LogMonitorTaskScheduler = new TaskScheduler(
     () => l1LogMonitor.start(),
-    config.ethereumMonitor.taskIntervalMs,
+    config.ethereumMonitor.pollIntervalMs,
     logger.for(loggerContext),
   );
 
