@@ -5,14 +5,13 @@ import Logger from "@/tools/Logger";
 import { ContractName } from "@/core/clients/ethereum/contracts/types";
 
 class EthereumClient {
-  private readonly chainId: number = 1;
   private provider: ethers.JsonRpcProvider;
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
     this.provider = new ethers.JsonRpcProvider(
-      config.indexer.ethereumRpcEndpoint,
-      ethers.Network.from(this.chainId),
+      config.indexers.ethereumRpcEndpoint,
+      ethers.Network.from(config.ethereumMonitor.chainId),
     );
     this.logger = logger;
   }
@@ -34,7 +33,9 @@ class EthereumClient {
     }
 
     const txs = await Promise.all(
-      block.transactions.map((hash: string) => block.getPrefetchedTransaction(hash)),
+      block.transactions.map((hash: string) =>
+        block.getPrefetchedTransaction(hash),
+      ),
     );
     return [block, txs];
   }

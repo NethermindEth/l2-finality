@@ -54,7 +54,7 @@ describe(EthereumClient.name, () => {
         extraData: "0xExtraData",
         transactions: ["0x1234567890abcdef", "0xabcdef1234567890"],
         // @ts-ignore
-        getTransaction: (hash: string | number) =>
+        getPrefetchedTransaction: (hash: string | number) =>
           Promise.resolve(mockTransactionResponse),
       };
 
