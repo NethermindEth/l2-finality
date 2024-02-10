@@ -7,6 +7,7 @@ import { Database } from "@/database/Database";
 import MetadataRepository, {
   MetadataJobName,
   MetadataMetricName,
+  MetadataRecord,
 } from "../../../../database/repositories/MetadataRepository";
 import { EthereumMonitorConfig } from "@/config/Config";
 import SyncStatusRepository from "../../../../database/repositories/SyncStatusRepository";
@@ -54,7 +55,7 @@ class L1LogMonitorController {
     );
 
     this.logger.info(
-      `Fetching Ethereum contract logs from block ${fromBlock} to block: ${currentHeight} in ${numberOfBatches} batch(es)`,
+      `Fetching Ethereum contract logs from ${fromBlock} to ${currentHeight} (${numberOfBatches} batches)`,
     );
     for (
       let startBlock = fromBlock, batch = 1;
@@ -131,16 +132,15 @@ class L1LogMonitorController {
   }
 
   private async startFrom(): Promise<number> {
-    // const metadataRecord: MetadataRecord | null =
-    //   await this.metadataRepository.getMetadata(
-    //     MetadataJobName.L1FinalityModule,
-    //     MetadataMetricName.LatestBlockNumber,
-    //   );
-    // return (
-    //   (metadataRecord && metadataRecord.value) ||
-    //   this.schedulerConfig.ethereumLogsStartBlock
-    // );
-    return 19192758;
+    const metadataRecord: MetadataRecord | null =
+      await this.metadataRepository.getMetadata(
+        MetadataJobName.L1FinalityModule,
+        MetadataMetricName.LatestBlockNumber,
+      );
+    return (
+      (metadataRecord && metadataRecord.value) ||
+      this.schedulerConfig.ethereumLogsStartBlock
+    );
   }
 }
 

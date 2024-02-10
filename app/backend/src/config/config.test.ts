@@ -51,7 +51,7 @@ export function getTestConfig(env: Env): Config {
   const ethereumMonitorConfig: EthereumMonitorConfig = {
     enabled: env.boolean("ETHEREUM_MONITOR_MODULE_ENABLED", true),
     chainId: 1,
-    pollIntervalMs: env.integer("ETHEREUM_MONITOR_POLL_INTERVAL_MS", 1000),
+    pollIntervalMs: env.integer("ETHEREUM_MONITOR_POLL_INTERVAL_MS", 30000),
     ethereumLogsStartBlock: env.integer("ETHEREUM_MONITOR_START_BLOCK", 0),
     maxBlockLogRange: env.integer("ETHEREUM_MONITOR_MAX_LOG_RANGE", 5),
   };

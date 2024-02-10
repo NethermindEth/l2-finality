@@ -33,7 +33,6 @@ class BlockIndexerController {
 
     this.blockValueRepository = new BlockValueRepository(
       this.database.getKnex(),
-      this.chainId,
     );
   }
 
@@ -73,9 +72,12 @@ class BlockIndexerController {
   }
 
   protected async startFrom(): Promise<number> {
-    const startBlock: bigint | null =
-      await this.blockValueRepository.getLatestBlockNumber();
-    return Number(startBlock || this.indexerConfig.startBlockEnvVar);
+    const startBlock = await this.blockValueRepository.getLatestBlockNumber(
+      this.chainId,
+    );
+    return Number(
+      startBlock?.l2_block_number || this.indexerConfig.startBlockEnvVar,
+    );
   }
 }
 

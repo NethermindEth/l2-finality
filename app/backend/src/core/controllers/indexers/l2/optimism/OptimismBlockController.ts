@@ -36,7 +36,9 @@ class OptimismBlockController extends BlockIndexerController {
     toBlock: number,
   ): Promise<void> {
     const recordsToAdd: BlockValueRecord[] = [];
-
+    this.logger.debug(
+      `Fetching Optimism blocks for range: ${fromBlock} to block ${toBlock}`,
+    );
     for (let startBlock = fromBlock; startBlock <= toBlock; startBlock++) {
       const [block, txs] = await this.optimismClient.getBlock(startBlock);
 
@@ -50,7 +52,7 @@ class OptimismBlockController extends BlockIndexerController {
         recordsToAdd.push(record);
       }
     }
-    await this.blockValueRepository.upsertMany(recordsToAdd);
+    await this.blockValueRepository.upsertMany(this.chainId, recordsToAdd);
   }
 }
 

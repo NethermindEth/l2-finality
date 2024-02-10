@@ -64,4 +64,38 @@ describe(SyncStatusRepository.name, () => {
       }).toBeRejected();
     });
   });
+
+  describe(SyncStatusRepository.prototype.getPaginatedSyncStatus.name, () => {
+    it("returns paginated sync status records", async () => {
+      const testData: SyncStatusRecord[] = [];
+      for (let i = 0; i < 20; i++) {
+        testData.push({
+          chain_id: 1,
+          l2_block_number: BigInt(100 + i),
+          l2_block_hash: `0x${i}`,
+          l1_block_number: null,
+          l1_block_hash: null,
+          timestamp: new Date(),
+          submission_type: SubmissionType.DataSubmission,
+        });
+      }
+      await knexInstance(TABLE_NAME).insert(testData);
+
+      const page = 1;
+      const pageSize = 10;
+      const result = await repository.getPaginatedSyncStatus(1, page, pageSize);
+
+      expect(result).toHaveLength(pageSize);
+
+      for (const record of result) {
+        expect(record.submission_type).toEqual(SubmissionType.DataSubmission);
+      }
+    });
+
+    it("returns empty array when no records found", async () => {
+      const result = await repository.getPaginatedSyncStatus(9999);
+
+      expect(result).toBeEmpty();
+    });
+  });
 });

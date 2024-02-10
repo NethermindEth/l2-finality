@@ -30,6 +30,27 @@ export class SyncStatusRepository {
       .onConflict(["chain_id", "l2_block_number", "submission_type"])
       .merge();
   }
+
+  async getPaginatedSyncStatus(
+    chainId: number,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<SyncStatusRecord[]> {
+    const offset = (page - 1) * pageSize;
+    return this.knex(TABLE_NAME)
+      .select(
+        "l2_block_number",
+        "l2_block_hash",
+        "l1_block_number",
+        "l1_block_hash",
+        "timestamp",
+        "submission_type",
+      )
+      .where("chain_id", chainId)
+      .orderBy("timestamp", "desc")
+      .limit(pageSize)
+      .offset(offset);
+  }
 }
 
 export default SyncStatusRepository;

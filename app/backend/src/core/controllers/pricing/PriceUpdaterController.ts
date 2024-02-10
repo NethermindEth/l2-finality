@@ -68,7 +68,7 @@ export class PriceUpdaterController {
     const from: UnixTime = latestBoundary ?? now.add(-30, "days");
     if (from.toDate().getTime() < thresholdTime.toDate().getTime()) {
       this.logger.info(
-        `Updating prices for ${asset.coincap_asset_id} from ${from.toDate()} to ${now.toDate()}`,
+        `Updating prices for ${asset.coincap_asset_id} from ${from.toDate().toUTCString()} to ${now.toDate().toUTCString()}`,
       );
       await this.fetchAndSavePrices(asset, from, now);
     }

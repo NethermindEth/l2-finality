@@ -1,6 +1,11 @@
 import { Knex } from "knex";
 import { expect } from "earl";
-import { PriceRecord, PriceRepository, TABLE_NAME } from "./PricingRepository";
+import {
+  PriceRecord,
+  PriceRepository,
+  PriceRow,
+  TABLE_NAME,
+} from "./PricingRepository";
 import { getTestDatabase } from "../getTestDatabase";
 import { UnixTime } from "../../core/types/UnixTime";
 
@@ -84,6 +89,60 @@ describe(PriceRepository.name, () => {
       retrievedPrices.sort((a, b) => a.priceUsd - b.priceUsd);
 
       expect(retrievedPrices).toEqual(expectedPrices);
+    });
+  });
+
+  describe(PriceRepository.prototype.getLatestAndPreviousByToken.name, () => {
+    it("returns map of latest and previous prices by token", async () => {
+      const testData: PriceRow[] = [
+        {
+          asset_id: "BTC",
+          price_usd: 40000,
+          timestamp: UnixTime.now().add(-1, "hours").toDate(),
+        },
+        {
+          asset_id: "BTC",
+          price_usd: 41000,
+          timestamp: UnixTime.now().toDate(),
+        },
+        {
+          asset_id: "ETH",
+          price_usd: 2000,
+          timestamp: UnixTime.now().add(-1, "hours").toDate(),
+        },
+        {
+          asset_id: "ETH",
+          price_usd: 2100,
+          timestamp: UnixTime.now().toDate(),
+        },
+      ];
+      await knexInstance(TABLE_NAME).insert(testData);
+
+      const result = await repository.getLatestAndPreviousByToken();
+
+      expect(result.size).toEqual(2);
+
+      expect(result.get("BTC")).toEqual({
+        latestPrice: {
+          price: "41000.0000",
+          timestamp: testData[1].timestamp,
+        },
+        previousPrice: {
+          price: "40000.0000",
+          timestamp: testData[0].timestamp,
+        },
+      });
+
+      expect(result.get("ETH")).toEqual({
+        latestPrice: {
+          price: "2100.0000",
+          timestamp: testData[3].timestamp,
+        },
+        previousPrice: {
+          price: "2000.0000",
+          timestamp: testData[2].timestamp,
+        },
+      });
     });
   });
 });

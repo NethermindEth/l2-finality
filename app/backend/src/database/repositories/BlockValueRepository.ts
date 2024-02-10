@@ -17,27 +17,18 @@ export interface BlockValueRecord {
 
 export class BlockValueRepository {
   private readonly knex: Knex;
-  private readonly chainId: number;
 
-  private readonly tableName: string;
-  constructor(knex: Knex, chainId: number) {
+  constructor(knex: Knex) {
     this.knex = knex;
-    this.chainId = chainId;
-
-    if (!chainTableMapping[chainId]) {
-      throw new Error(
-        `Chain ID ${chainId} is not supported by BlockValueRepository, please add migrations`,
-      );
-    }
-
-    this.tableName = chainTableMapping[chainId];
   }
 
   async getBetweenBlocks(
+    chainId: number,
     startBlock: number,
     endBlock: number,
   ): Promise<BlockValueRecord[] | null> {
-    const result = await this.knex(this.tableName)
+    const tableName = this.getTable(chainId);
+    const result = await this.knex(tableName)
       .select<BlockValueRecord[]>()
       .where("l2_block_number", ">=", startBlock)
       .andWhere("l2_block_number", "<=", endBlock);
@@ -46,10 +37,12 @@ export class BlockValueRepository {
   }
 
   async getBetweenTimestamps(
+    chainId: number,
     startTime: Date,
     endTime: Date,
   ): Promise<BlockValueRecord[] | null> {
-    const result = await this.knex(this.tableName)
+    const tableName = this.getTable(chainId);
+    const result = await this.knex(tableName)
       .select<BlockValueRecord[]>()
       .where("l2_block_timestamp", ">=", startTime)
       .andWhere("l2_block_timestamp", "<=", endTime);
@@ -57,27 +50,49 @@ export class BlockValueRepository {
     return result.length > 0 ? result : null;
   }
 
-  async upsertRecord(record: BlockValueRecord): Promise<void> {
-    await this.knex(this.tableName)
+  async upsertRecord(chainId: number, record: BlockValueRecord): Promise<void> {
+    const tableName = this.getTable(chainId);
+    await this.knex(tableName)
       .insert(record)
       .onConflict(["l2_block_number", "l2_block_hash"])
       .merge();
   }
 
-  async upsertMany(records: BlockValueRecord[]): Promise<void> {
-    await this.knex(this.tableName)
+  async upsertMany(
+    chainId: number,
+    records: BlockValueRecord[],
+  ): Promise<void> {
+    const tableName = this.getTable(chainId);
+    await this.knex(tableName)
       .insert(records)
       .onConflict(["l2_block_number", "l2_block_hash"])
       .merge();
   }
 
-  async getLatestBlockNumber(): Promise<bigint | null> {
-    const result = await this.knex(this.tableName)
-      .select("l2_block_number")
+  async getLatestBlockNumber(
+    chainId: number,
+  ): Promise<{ l2_block_number: bigint; l2_block_timestamp: Date } | null> {
+    const tableName = this.getTable(chainId);
+    const result = await this.knex(tableName)
+      .select("l2_block_number", "l2_block_timestamp")
       .orderBy("l2_block_number", "desc")
       .first();
 
-    return result ? BigInt(result.l2_block_number) : null;
+    return result
+      ? {
+          l2_block_number: result.l2_block_number,
+          l2_block_timestamp: new Date(result.l2_block_timestamp),
+        }
+      : null;
+  }
+
+  private getTable(chainId: number): string {
+    if (!chainTableMapping[chainId]) {
+      throw new Error(
+        `Chain ID ${chainId} is not supported by BlockValueRepository, please add migrations`,
+      );
+    }
+    return chainTableMapping[chainId];
   }
 }
 

@@ -9,12 +9,13 @@ import { getTestDatabase } from "../getTestDatabase";
 import { Block } from "ethers";
 
 describe(BlockValueRepository.name, () => {
+  const chainId: number = 10;
   let repository: BlockValueRepository;
   let knexInstance: Knex;
 
   beforeEach(async () => {
     knexInstance = await getTestDatabase();
-    repository = new BlockValueRepository(knexInstance, 10);
+    repository = new BlockValueRepository(knexInstance);
   });
 
   afterEach(async () => {
@@ -47,9 +48,9 @@ describe(BlockValueRepository.name, () => {
         value: blockValue.value,
       };
 
-      await repository.upsertRecord(record);
+      await repository.upsertRecord(chainId, record);
 
-      const result = await knexInstance(chainTableMapping[10]).first();
+      const result = await knexInstance(chainTableMapping[chainId]).first();
       expect({
         ...result,
         l2_block_number: BigInt(result.l2_block_number),
@@ -74,7 +75,7 @@ describe(BlockValueRepository.name, () => {
       };
 
       await expect(async () => {
-        await repository.upsertRecord(record);
+        await repository.upsertRecord(chainId, record);
       }).toBeRejected();
     });
   });
@@ -87,9 +88,9 @@ describe(BlockValueRepository.name, () => {
         l2_block_timestamp: new Date(),
         value: { "0xABC": 1000 },
       };
-      await repository.upsertRecord(record);
+      await repository.upsertRecord(chainId, record);
 
-      const result = await repository.getBetweenBlocks(50, 150);
+      const result = await repository.getBetweenBlocks(chainId, 50, 150);
       expect(result!).not.toBeEmpty();
       expect(result!.length).toEqual(1);
       expect(
@@ -106,12 +107,16 @@ describe(BlockValueRepository.name, () => {
         l2_block_timestamp: new Date(),
         value: { "0xABC": 1000 },
       };
-      await repository.upsertRecord(record);
+      await repository.upsertRecord(chainId, record);
 
       const startTime = new Date(Date.now() - 1000 * 60 * 60); // 1 hour ago
       const endTime = new Date();
 
-      const result = await repository.getBetweenTimestamps(startTime, endTime);
+      const result = await repository.getBetweenTimestamps(
+        chainId,
+        startTime,
+        endTime,
+      );
       expect(result!).not.toBeEmpty();
       expect(result!.length).toEqual(1);
       expect(

@@ -6,9 +6,9 @@ import { createL1MonitorModule } from "./core/modules/indexers/l1/L1LogMonitorMo
 import EthereumClient from "./core/clients/ethereum/EthereumClient";
 import { createPriceUpdaterModule } from "./core/modules/pricing/PriceUpdaterModule";
 import { CoinCapClient } from "./core/clients/coincap/CoinCapClient";
-import { createOptimismFinalityModule } from "@/core/modules/indexers/l2/optimism/OptimismFinalityModule";
-import OptimismClient from "@/core/clients/optimism/OptimismClient";
-import { createOptimismBlockModule } from "@/core/modules/indexers/l2/optimism/OptimismBlockModule";
+import { createOptimismFinalityModule } from "./core/modules/indexers/l2/optimism/OptimismFinalityModule";
+import OptimismClient from "./core/clients/optimism/OptimismClient";
+import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/OptimismBlockModule";
 
 export class Application {
   constructor(config: Config) {
@@ -38,8 +38,8 @@ export class Application {
       const modules = [
         createL1MonitorModule(config, logger, database, ethClient),
         createPriceUpdaterModule(config, logger, database, coinCapClient),
-        createOptimismBlockModule(config, logger, database, optimismClient),
         createOptimismFinalityModule(config, logger, database, optimismClient),
+        createOptimismBlockModule(config, logger, database, optimismClient),
       ];
 
       for (const module of modules) {
