@@ -3,9 +3,10 @@ import { Knex } from "knex";
 export interface Config {
   readonly database: DatabaseConfig;
   readonly api: ApiConfig;
-  readonly indexer: IndexerConfig;
-  readonly ethereumMonitor: EthereumMonitorConfig;
+  readonly indexers: IndexerConfig;
   readonly pricingModule: PricingModuleConfig;
+  readonly ethereumMonitor: EthereumMonitorConfig;
+  readonly optimismModule: OptimismModuleConfig;
 }
 
 export interface ApiConfig {
@@ -27,13 +28,6 @@ export interface IndexerConfig {
   readonly optimismRpcEndpoint: string;
 }
 
-export interface EthereumMonitorConfig {
-  readonly enabled: boolean;
-  readonly taskIntervalMs: number;
-  readonly ethereumLogsStartBlock: number;
-  readonly maxBlocksPerLogFetch: number;
-}
-
 export interface PricingModuleConfig {
   readonly enabled: boolean;
   readonly coinCapBaseUrl: string;
@@ -41,4 +35,18 @@ export interface PricingModuleConfig {
   readonly maxMinuteRateLimit: number;
 }
 
+export interface EthereumMonitorConfig {
+  readonly enabled: boolean;
+  readonly chainId: number;
+  readonly ethereumLogsStartBlock: number;
+  readonly maxBlockLogRange: number;
+  readonly pollIntervalMs: number;
+}
 
+export interface OptimismModuleConfig {
+  readonly enabled: boolean;
+  readonly chainId: number;
+  readonly startBlock: number;
+  readonly maxBlockRange: number;
+  readonly pollIntervalMs: number;
+}
