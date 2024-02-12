@@ -36,14 +36,14 @@ export class Application {
       await api.listen();
 
       const modules = [
-        createL1MonitorModule(config, logger, database, ethClient),
         createPriceUpdaterModule(config, logger, database, coinCapClient),
         createOptimismFinalityModule(config, logger, database, optimismClient),
+        createL1MonitorModule(config, logger, database, ethClient),
         createOptimismBlockModule(config, logger, database, optimismClient),
       ];
 
       for (const module of modules) {
-        await module();
+        await module.start();
       }
     };
   }

@@ -10,7 +10,7 @@ export function createL1MonitorModule(
   logger: Logger,
   database: Database,
   ethClient: EthereumClient,
-): () => Promise<void> {
+): { start: () => Promise<void> } {
   const loggerContext = "L1 Log Monitor Module";
 
   const l1LogMonitor = new L1LogMonitorController(
@@ -27,12 +27,16 @@ export function createL1MonitorModule(
   );
 
   if (config.ethereumMonitor.enabled) {
-    return async () => {
-      logger.info("Starting L1 monitor...");
-      await l1LogMonitorTaskScheduler.start();
+    return {
+      start: async () => {
+        logger.info("Starting L1 monitor...");
+        await l1LogMonitorTaskScheduler.start();
+      },
     };
   } else {
     logger.warn("L1 monitor is disabled");
-    return async () => {};
+    return {
+      start: async () => {},
+    };
   }
 }

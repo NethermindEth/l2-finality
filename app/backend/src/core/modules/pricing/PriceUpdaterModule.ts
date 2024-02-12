@@ -11,7 +11,7 @@ export function createPriceUpdaterModule(
   logger: Logger,
   database: Database,
   coinCapClient: CoinCapClient,
-): () => Promise<void> {
+): { start: () => Promise<void> } {
   const loggerContext: string = "Price updater module";
 
   const priceRepository = new PriceRepository(database.getKnex());
@@ -29,12 +29,17 @@ export function createPriceUpdaterModule(
   );
 
   if (config.pricingModule.enabled) {
-    return async () => {
-      logger.info("Starting price updater...");
-      await priceUpdaterTaskScheduler.start();
+    return {
+      start: async () => {
+        // Define the start method
+        logger.info("Starting price updater...");
+        await priceUpdaterTaskScheduler.start();
+      },
     };
   } else {
     logger.warn("Price updater is disabled");
-    return async () => {};
+    return {
+      start: async () => {}, // No-op start method
+    };
   }
 }

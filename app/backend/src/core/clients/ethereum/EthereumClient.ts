@@ -21,7 +21,10 @@ class EthereumClient {
   }
 
   public async getCurrentHeight(): Promise<number> {
-    return await this.provider.getBlockNumber();
+    return (
+      (await this.provider.getBlock("finalized"))?.number ??
+      (await this.provider.getBlockNumber())
+    );
   }
 
   public async getBlock(

@@ -9,7 +9,7 @@ export function createOptimismFinalityModule(
   logger: Logger,
   database: Database,
   optimismClient: OptimismClient,
-): () => Promise<void> {
+): { start: () => Promise<void> } {
   const loggerContext = "Optimism Finality";
 
   const optimismFinalityController = new OptimismFinalityController(
@@ -20,12 +20,16 @@ export function createOptimismFinalityModule(
   );
 
   if (config.optimismModule.enabled) {
-    return async () => {
-      logger.info("Starting Optimism finality module...");
-      await optimismFinalityController.start();
+    return {
+      start: async () => {
+        logger.info("Starting Optimism finality module...");
+        await optimismFinalityController.start();
+      },
     };
   } else {
     logger.warn("Optimism finality module is disabled");
-    return async () => {};
+    return {
+      start: async () => {},
+    };
   }
 }

@@ -10,7 +10,7 @@ export function createOptimismBlockModule(
   logger: Logger,
   database: Database,
   optimismClient: OptimismClient,
-): () => Promise<void> {
+): { start: () => Promise<void> } {
   const loggerContext = "Optimism Blocks";
 
   const optimismBlockController = new OptimismBlockController(
@@ -27,12 +27,16 @@ export function createOptimismBlockModule(
   );
 
   if (config.optimismModule.enabled) {
-    return async () => {
-      logger.info("Starting Optimism block module...");
-      await optimismBlockControllerTask.start();
+    return {
+      start: async () => {
+        logger.info("Starting Optimism block module...");
+        await optimismBlockControllerTask.start();
+      },
     };
   } else {
     logger.warn("Optimism blocks module is disabled");
-    return async () => {};
+    return {
+      start: async () => {},
+    };
   }
 }

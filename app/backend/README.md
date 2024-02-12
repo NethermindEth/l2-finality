@@ -10,7 +10,7 @@ To start the application in development mode, follow these steps:
 
 1. Navigate to the root directory of the backend project in your terminal.
 2. Create a `.env` file in the root directory and configure the environment variables as described below. You can copy the `.env.local` file and modify the values as required.
-2. Run the command `npm run dev`.
+3. Run the command `npm run dev`.
 
 This will start the backend server in development mode with hot reloading enabled.
 
@@ -42,16 +42,19 @@ The Price Updater Module is responsible for keeping cryptocurrency price data up
 **Environment Variables**
 
 - **`PRICING_MODULE_ENABLED`**: Enables the Pricing module.
-   - Recommended: `true`
+
+  - Recommended: `true`
 
 - **`PRICING_COINCAP_BASE_URL`**: Base URL for CoinCap API.
-   - Default: `https://api.coincap.io/v2`
+
+  - Default: `https://api.coincap.io/v2`
 
 - **`PRICING_COINCAP_API_KEY`**: API key for CoinCap access. Request one from [CoinCap](https://coincap.io/).
-   - Set as required.
+
+  - Set as required.
 
 - **`PRICING_MINUTE_RATE_LIMIT`**: Maximum API requests per minute.
-   - Recommended: `500`
+  - Recommended: `500`
 
 **Logic**:
 
@@ -68,29 +71,31 @@ The Block Appraisal Module is responsible for fetching and appraising blocks fro
 
 **WIP**
 
-
 ### L1 Log Monitor
 
 The L1 Log Monitor module is responsible for fetching contract log events from Ethereum at specified intervals. It updates a local metadata table with the latest processed block number to keep track of the synchronization progress.
 
-
 **Environment Variables**
 
 - **`ETHEREUM_MONITOR_MODULE_ENABLED`**: Activates the Ethereum Monitor module.
-   - Recommended: `true`
+
+  - Recommended: `true`
 
 - **`ETHEREUM_RPC_ENDPOINT`**: The RPC endpoint URL for interacting with the Ethereum blockchain.
-   - Set as required.
+
+  - Set as required.
 
 - **`ETHEREUM_MONITOR_START_BLOCK`**: Initial block for log processing.
-   - Set as required.
+
+  - Set as required.
 
 - **`ETHEREUM_MONITOR_MAX_LOG_RANGE`**: Maximum range of blocks for log fetching.
-   - Quicknodes max: `5`
-   - Set as required.
+
+  - Quicknodes max: `5`
+  - Set as required.
 
 - **`ETHEREUM_MONITOR_POLL_INTERVAL_MS`**: Frequency of update checks (in ms).
-   - Recommended: `30000`
+  - Recommended: `30000`
 
 **Configuration**:
 
@@ -110,8 +115,6 @@ The L1 Log Monitor module is responsible for fetching contract log events from E
 
 3. **Add Parsing Function**: Create a new function in `LogProcessors` to parse the log events of the contract and event name.
 
-
-
 ### Optimism Module
 
 The Optimism Module measures finality of blocks on the Optimism network by monitoring synchronization status for each data submission and gets each block for it to be appraised.
@@ -119,26 +122,22 @@ The Optimism Module measures finality of blocks on the Optimism network by monit
 **Environment Variables**
 
 - **`OPTIMISM_MODULE_ENABLED`**: Enables the Optimism module.
-   - Recommended: `true`
-   
+  - Recommended: `true`
 - **`OPTIMISM_RPC_ENDPOINT`**: The RPC endpoint URL for interacting with the Optimism network.
-   - Set as required.
-   
+  - Set as required.
 - **`OPTIMISM_START_BLOCK`**: Starting block for processing.
-   - Set as required.
+
+  - Set as required.
 
 - **`OPTIMISM_MAX_BLOCK_RANGE`**: Max range of blocks fetched per operation.
-   - Recommended: `50`
+
+  - Recommended: `50`
 
 - **`OPTIMISM_POLL_INTERVAL_MS`**: Interval for polling status sync updates and getBlock (in ms).
-   - Recommended: `15000`
+  - Recommended: `15000`
 
 **Key Components**:
 
 - **OptimismFinalityController**: This class interacts with the OptimismClient to fetch the current synchronization status, comparing it with the previous state to detect any changes in the safe L2 origin number.
 
 - **OptimismBlockController**: This class is responsible for fetching blocks within a specified range from the Optimism network
-
-
-
-
