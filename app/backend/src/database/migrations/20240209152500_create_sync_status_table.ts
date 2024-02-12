@@ -11,6 +11,7 @@ export async function up(knex: Knex): Promise<void> {
     table
       .enum("submission_type", [
         "data_submission",
+        "l2_finalization",
         "proof_submission",
         "state_updates",
       ])

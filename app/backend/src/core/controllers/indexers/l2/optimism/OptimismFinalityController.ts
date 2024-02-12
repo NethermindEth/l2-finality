@@ -44,7 +44,11 @@ class OptimismFinalityController {
       const currentStatus = await this.optimismClient.getSyncStatus();
 
       if (this.hasSafeL2OriginNumberChanged(currentStatus)) {
-        await this.processUpdate(currentStatus);
+        await this.processUpdate(currentStatus, SubmissionType.DataSubmission);
+      }
+
+      if (this.hasFinalizedL2Changed(currentStatus)) {
+        await this.processUpdate(currentStatus, SubmissionType.L2Finalization);
       }
 
       this.previousStatus = currentStatus;
@@ -64,21 +68,33 @@ class OptimismFinalityController {
     );
   }
 
+  private hasFinalizedL2Changed(currentStatus: OptimismSyncStatus): boolean {
+    return (
+      this.previousStatus?.finalized_l2.number !==
+      currentStatus.finalized_l2.number
+    );
+  }
+
   private async processUpdate(
     currentStatus: OptimismSyncStatus,
+    submissionType: SubmissionType,
   ): Promise<void> {
     if (!this.previousStatus) {
       return;
     }
+    const l2 =
+      submissionType === SubmissionType.DataSubmission
+        ? currentStatus.safe_l2
+        : currentStatus.finalized_l2;
 
     const syncStatus: SyncStatusRecord = {
       chain_id: this.config.optimismModule.chainId,
-      l2_block_number: BigInt(currentStatus.safe_l2.number),
-      l2_block_hash: currentStatus.safe_l2.hash,
-      l1_block_number: currentStatus.safe_l2.l1origin.number,
-      l1_block_hash: currentStatus.safe_l2.l1origin.hash,
-      timestamp: new Date(currentStatus.safe_l2.timestamp * 1000),
-      submission_type: SubmissionType.DataSubmission,
+      l2_block_number: BigInt(l2.number),
+      l2_block_hash: l2.hash,
+      l1_block_number: l2.l1origin.number,
+      l1_block_hash: l2.l1origin.hash,
+      timestamp: new Date(l2.timestamp * 1000),
+      submission_type: submissionType,
     };
 
     await this.syncStatusRepository.insertSyncStatus(syncStatus);

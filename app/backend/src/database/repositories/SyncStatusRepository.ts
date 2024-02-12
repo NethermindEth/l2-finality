@@ -4,6 +4,7 @@ export const TABLE_NAME = "sync_status";
 
 export enum SubmissionType {
   DataSubmission = "data_submission",
+  L2Finalization = "l2_finalization",
   ProofSubmission = "proof_submission",
   StateUpdates = "state_updates",
 }
