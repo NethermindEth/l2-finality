@@ -10,16 +10,15 @@ class EthereumClient {
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(
-      ethers.Network.from(config.ethereumMonitorModule.chainId),
-    );
+    this.network = Network.from(ethers.Network.from(config.ethereumMonitorModule.chainId))
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.ethereumRpcEndpoint,
       this.network,
-      { staticNetwork: this.network },
+      { staticNetwork: this.network }
     );
     this.logger = logger;
   }
+
 
   public getProvider(): ethers.JsonRpcProvider {
     return this.provider;

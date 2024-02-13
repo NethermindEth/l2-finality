@@ -9,13 +9,11 @@ class OptimismClient {
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(
-      ethers.Network.from(config.optimismModule.chainId),
-    );
+    this.network = Network.from(ethers.Network.from(config.optimismModule.chainId))
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.optimismRpcEndpoint,
       this.network,
-      { staticNetwork: this.network },
+      { staticNetwork: this.network }
     );
     this.logger = logger;
   }
