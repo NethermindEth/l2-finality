@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, Network } from "ethers";
 import contracts from "./contracts/contracts.json";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
@@ -6,12 +6,17 @@ import { ContractName } from "@/core/clients/ethereum/contracts/types";
 
 class EthereumClient {
   private provider: ethers.JsonRpcProvider;
+  private network: Network;
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
+    this.network = Network.from(
+      ethers.Network.from(config.ethereumMonitorModule.chainId),
+    );
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.ethereumRpcEndpoint,
-      ethers.Network.from(config.ethereumMonitorModule.chainId),
+      this.network,
+      { staticNetwork: this.network },
     );
     this.logger = logger;
   }
