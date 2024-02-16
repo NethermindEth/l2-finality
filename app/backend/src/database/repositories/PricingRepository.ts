@@ -97,9 +97,9 @@ export class PriceRepository {
       .as("a");
 
     const rows = await this.knex
-      .select<PriceRow[]>("a.asset_id", "a.price_usd", "a.timestamp")
-      .from(subquery.as("a"))
-      .where("a.rn", "<=", 2);
+      .select<PriceRow[]>("asset_id", "price_usd", "timestamp")
+      .from(subquery)
+      .where("rn", "<=", 2);
 
     const result = new Map<string, { latestPrice: any; previousPrice: any }>();
 

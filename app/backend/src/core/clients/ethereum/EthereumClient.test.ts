@@ -18,7 +18,10 @@ describe(EthereumClient.name, () => {
 
   describe(EthereumClient.prototype.getCurrentHeight.name, () => {
     it("returns the current block height", async () => {
-      createMockProvider(ethClient, 123456, undefined);
+      const mockBlock: Partial<ethers.Block> = {
+        number: 123456,
+      };
+      createMockProvider(ethClient, mockBlock);
       const currentHeight = await ethClient.getCurrentHeight();
       expect(currentHeight).toEqual(123456);
     });
@@ -58,7 +61,7 @@ describe(EthereumClient.name, () => {
           Promise.resolve(mockTransactionResponse),
       };
 
-      createMockProvider(ethClient, undefined, block);
+      createMockProvider(ethClient, block);
       const [actualBlock, actualTransactions] =
         await ethClient.getBlock(blockNumber);
 
@@ -119,16 +122,9 @@ describe(EthereumClient.name, () => {
   });
 });
 
-function createMockProvider(
-  ethClient: EthereumClient,
-  getBlockNumberResponse: any,
-  getBlockResponse: any,
-) {
+function createMockProvider(ethClient: EthereumClient, getBlockResponse: any) {
   const mockProvider = ethClient.getProvider();
 
-  mockProvider.getBlockNumber = mockFn().returns(
-    Promise.resolve(getBlockNumberResponse),
-  );
   mockProvider.getBlock = mockFn().returns(Promise.resolve(getBlockResponse));
   mockProvider.getLogs = mockFn().returns(Promise.resolve([]));
   return mockProvider;

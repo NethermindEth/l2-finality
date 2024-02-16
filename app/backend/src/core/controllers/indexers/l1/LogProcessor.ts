@@ -13,7 +13,7 @@ export class LogProcessors {
     ContractName,
     Record<string, CallbackFunction>
   > = {
-    OptimismStateRootProposer: {
+    L2OutputOracle: {
       OutputProposed: LogProcessors.optimismStateUpdate.bind(LogProcessors),
     },
     StarknetCoreContract: {

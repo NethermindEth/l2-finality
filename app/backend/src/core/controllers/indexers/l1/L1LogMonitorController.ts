@@ -24,7 +24,7 @@ class L1LogMonitorController {
   private syncStatusRepository: SyncStatusRepository;
   private logDecoder: EthereumLogDecoder;
 
-  private readonly timoutMs = 1000;
+  private readonly timeoutMs = 1000;
 
   constructor(
     ethClient: EthereumClient,
@@ -72,7 +72,7 @@ class L1LogMonitorController {
         MetadataMetricName.LatestBlockNumber,
         endBlock,
       );
-      await new Promise((resolve) => setTimeout(resolve, this.timoutMs));
+      await new Promise((resolve) => setTimeout(resolve, this.timeoutMs));
     }
   }
 

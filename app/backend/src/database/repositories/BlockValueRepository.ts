@@ -51,11 +51,7 @@ export class BlockValueRepository {
   }
 
   async upsertRecord(chainId: number, record: BlockValueRecord): Promise<void> {
-    const tableName = this.getTable(chainId);
-    await this.knex(tableName)
-      .insert(record)
-      .onConflict(["l2_block_number", "l2_block_hash"])
-      .merge();
+    await this.upsertMany(chainId, [record]);
   }
 
   async upsertMany(

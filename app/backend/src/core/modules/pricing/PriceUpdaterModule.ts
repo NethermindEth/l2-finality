@@ -31,7 +31,6 @@ export function createPriceUpdaterModule(
   if (config.pricingModule.enabled) {
     return {
       start: async () => {
-        // Define the start method
         logger.info("Starting price updater...");
         await priceUpdaterTaskScheduler.start();
       },
@@ -39,7 +38,7 @@ export function createPriceUpdaterModule(
   } else {
     logger.warn("Price updater is disabled");
     return {
-      start: async () => {}, // No-op start method
+      start: async () => {},
     };
   }
 }

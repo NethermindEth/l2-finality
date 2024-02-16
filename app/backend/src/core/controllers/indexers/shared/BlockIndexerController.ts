@@ -75,9 +75,15 @@ class BlockIndexerController {
     const startBlock = await this.blockValueRepository.getLatestBlockNumber(
       this.chainId,
     );
-    return Number(
-      startBlock?.l2_block_number || this.indexerConfig.startBlockEnvVar,
-    );
+
+    let startFrom: number;
+
+    if (startBlock && typeof startBlock.l2_block_number !== "undefined") {
+      startFrom = Number(startBlock.l2_block_number) + 1;
+    } else {
+      startFrom = Number(this.indexerConfig.startBlockEnvVar);
+    }
+    return startFrom;
   }
 }
 
