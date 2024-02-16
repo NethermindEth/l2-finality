@@ -1,7 +1,7 @@
 import KnexConstructor, { Knex } from "knex";
 import path from "path";
-import Logger from "../tools/Logger";
-import { DatabaseConfig } from "../config/Config";
+import Logger from "@/tools/Logger";
+import { DatabaseConfig } from "@/config/Config";
 
 export class Database {
   private readonly knex: Knex;

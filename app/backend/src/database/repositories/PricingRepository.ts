@@ -95,7 +95,6 @@ export class PriceRepository {
         ),
       )
       .as("a");
-
     const rows = await this.knex
       .select<PriceRow[]>("asset_id", "price_usd", "timestamp")
       .from(subquery)

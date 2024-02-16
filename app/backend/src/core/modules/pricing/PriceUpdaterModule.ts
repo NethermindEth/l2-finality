@@ -4,7 +4,7 @@ import CoinCapClient from "@/core/clients/coincap/CoinCapClient";
 import { PriceUpdaterController } from "../../controllers/pricing/PriceUpdaterController";
 import { PriceRepository } from "../../../database/repositories/PricingRepository";
 import TaskScheduler from "../../../core/scheduler/TaskScheduler";
-import { Config } from "./../../../config/Config";
+import { Config } from "@/config/Config";
 
 export function createPriceUpdaterModule(
   config: Config,
