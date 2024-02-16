@@ -69,7 +69,7 @@ export function getTestConfig(env: Env): Config {
     api: apiConfig,
     indexers: indexerConfig,
     pricingModule: pricingModuleConfig,
-    ethereumMonitor: ethereumMonitorConfig,
+    ethereumMonitorModule: ethereumMonitorConfig,
     optimismModule: optimismModuleConfig,
   };
 }

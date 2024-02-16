@@ -5,7 +5,7 @@ export interface Config {
   readonly api: ApiConfig;
   readonly indexers: IndexerConfig;
   readonly pricingModule: PricingModuleConfig;
-  readonly ethereumMonitor: EthereumMonitorConfig;
+  readonly ethereumMonitorModule: EthereumMonitorConfig;
   readonly optimismModule: OptimismModuleConfig;
 }
 

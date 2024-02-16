@@ -39,7 +39,7 @@ export function getLocalConfig(env: Env): Config {
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 500),
   };
 
-  const ethereumMonitorConfig: EthereumMonitorConfig = {
+  const ethereumMonitorModuleConfig: EthereumMonitorConfig = {
     enabled: env.boolean("ETHEREUM_MONITOR_MODULE_ENABLED", true),
     chainId: 1,
     ethereumLogsStartBlock: env.integer("ETHEREUM_MONITOR_START_BLOCK"),
@@ -60,7 +60,7 @@ export function getLocalConfig(env: Env): Config {
     api: apiConfig,
     indexers: indexerConfig,
     pricingModule: pricingModuleConfig,
-    ethereumMonitor: ethereumMonitorConfig,
+    ethereumMonitorModule: ethereumMonitorModuleConfig,
     optimismModule: optimismModuleConfig,
   };
 }

@@ -15,18 +15,18 @@ export function createL1MonitorModule(
 
   const l1LogMonitor = new L1LogMonitorController(
     ethClient,
-    config.ethereumMonitor,
+    config.ethereumMonitorModule,
     database,
     logger.for(loggerContext),
   );
 
   const l1LogMonitorTaskScheduler = new TaskScheduler(
     () => l1LogMonitor.start(),
-    config.ethereumMonitor.pollIntervalMs,
+    config.ethereumMonitorModule.pollIntervalMs,
     logger.for(loggerContext),
   );
 
-  if (config.ethereumMonitor.enabled) {
+  if (config.ethereumMonitorModule.enabled) {
     return {
       start: async () => {
         logger.info("Starting L1 monitor...");

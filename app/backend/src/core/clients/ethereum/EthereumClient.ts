@@ -11,7 +11,7 @@ class EthereumClient {
   constructor(config: Config, logger: Logger) {
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.ethereumRpcEndpoint,
-      ethers.Network.from(config.ethereumMonitor.chainId),
+      ethers.Network.from(config.ethereumMonitorModule.chainId),
     );
     this.logger = logger;
   }
