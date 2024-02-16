@@ -41,10 +41,7 @@ class EthereumClient {
       return [null, null];
     }
 
-    const txs = await Promise.all(
-      block.transactions.map((hash: string) =>
-        block.getPrefetchedTransaction(hash),
-      ),
+    const txs = block.transactions.map((hash: string) => block.getPrefetchedTransaction(hash),
     );
     return [block, txs];
   }

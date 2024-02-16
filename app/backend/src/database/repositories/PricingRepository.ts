@@ -43,7 +43,7 @@ export class PriceRepository {
     return row.map(toRecord);
   }
 
-  async findByTimestampAndToken(timestamp: UnixTime, assetId: string) {
+  async findByTimestampAndToken(timestamp: UnixTime, assetId: string): Promise<PriceRecord | undefined>  {
     const row = await this.knex(TABLE_NAME)
       .where({
         asset_id: assetId,
@@ -151,3 +151,5 @@ function toRow(record: PriceRecord): PriceRow {
     timestamp: record.timestamp.toDate(),
   };
 }
+
+export default PriceRepository;
