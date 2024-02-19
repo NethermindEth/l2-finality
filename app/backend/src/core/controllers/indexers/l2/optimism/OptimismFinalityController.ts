@@ -1,11 +1,11 @@
-import Logger from "../../../../../tools/Logger";
+import Logger from "@/tools/Logger";
 import OptimismClient from "@/core/clients/optimism/OptimismClient";
-import { Database } from "../../../../../database/Database";
-import { OptimismSyncStatus } from "../../../../clients/optimism/types";
+import { Database } from "@/database/Database";
+import { OptimismSyncStatus } from "@/core/clients/optimism/types";
 import SyncStatusRepository, {
   SubmissionType,
   SyncStatusRecord,
-} from "../../../../../database/repositories/SyncStatusRepository";
+} from "@/database/repositories/SyncStatusRepository";
 import { Config } from "@/config";
 
 class OptimismFinalityController {

@@ -1,21 +1,21 @@
 import express from "express";
-import Logger from "../tools/Logger";
-import { apiLogger } from "./middleware/apiLogger";
-import { Database } from "../database/Database";
-import { createHealthRouter } from "./routers/HealthRouter";
-import HealthController from "./controllers/HealthController";
-import { MetadataController } from "../api/controllers/MetadataController";
-import MetadataRepository from "../database/repositories/MetadataRepository";
-import { createMetadataRouter } from "../api/routers/MetadataRouter";
-import { SyncStatusController } from "../api/controllers/SyncStatusController";
-import SyncStatusRepository from "../database/repositories/SyncStatusRepository";
-import { createSyncStatusRouter } from "../api/routers/SyncStatusRouter";
-import { PricingController } from "../api/controllers/PriceController";
-import { PriceRepository } from "../database/repositories/PricingRepository";
-import { createPricingRouter } from "../api/routers/PriceRouter";
-import { createBlockValueRouter } from "../api/routers/BlockValueRouter";
-import { BlockValueController } from "../api/controllers/BlockValueController";
-import BlockValueRepository from "../database/repositories/BlockValueRepository";
+import Logger from "@/tools/Logger";
+import { apiLogger } from "@/api/middleware/apiLogger";
+import { Database } from "@/database/Database";
+import { createHealthRouter } from "@/api/routers/HealthRouter";
+import HealthController from "@/api/controllers/HealthController";
+import { MetadataController } from "@/api/controllers/MetadataController";
+import MetadataRepository from "@/database/repositories/MetadataRepository";
+import { createMetadataRouter } from "@/api/routers/MetadataRouter";
+import { SyncStatusController } from "@/api/controllers/SyncStatusController";
+import SyncStatusRepository from "@/database/repositories/SyncStatusRepository";
+import { createSyncStatusRouter } from "@/api/routers/SyncStatusRouter";
+import { PricingController } from "@/api/controllers/PriceController";
+import { PriceRepository } from "@/database/repositories/PricingRepository";
+import { createPricingRouter } from "@/api/routers/PriceRouter";
+import { createBlockValueRouter } from "@/api/routers/BlockValueRouter";
+import { BlockValueController } from "@/api/controllers/BlockValueController";
+import BlockValueRepository from "@/database/repositories/BlockValueRepository";
 
 export class Api {
   private readonly app: express.Application;

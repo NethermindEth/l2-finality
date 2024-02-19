@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import {
   BlockValueRepository,
   chainTableMapping,
-} from "../../database/repositories/BlockValueRepository";
+} from "@/database/repositories/BlockValueRepository";
 import {
   sendErrorResponse,
   sendSuccessResponse,
-} from "../../api/utils/responseUtils";
-import Logger from "../../tools/Logger";
+} from "@/api/utils/responseUtils";
+import Logger from "@/tools/Logger";
 
 export class BlockValueController {
   private blockValueRepository: BlockValueRepository;

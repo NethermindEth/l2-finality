@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import { UnixTime } from "../../core/types/UnixTime";
+import { UnixTime } from "@/core/types/UnixTime";
 
 export const TABLE_NAME = "asset_prices";
 

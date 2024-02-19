@@ -1,12 +1,12 @@
 import fs from "fs";
 import { LogProcessors } from "./LogProcessor";
 import { expect } from "earl";
-import contracts from "../../../clients/ethereum/contracts/contracts.json";
+import contracts from "@/core/clients/ethereum/contracts/contracts.json";
 import { ethers } from "ethers";
 import {
   SubmissionType,
   SyncStatusRecord,
-} from "../../../../database/repositories/SyncStatusRepository";
+} from "@/database/repositories/SyncStatusRepository";
 import { OptimismOutputProposed } from "@/core/controllers/indexers/shared/types";
 describe(LogProcessors.name, () => {
   it("should have a callback for every topic in contracts.json", () => {

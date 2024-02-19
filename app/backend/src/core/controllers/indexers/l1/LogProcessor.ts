@@ -1,9 +1,9 @@
 import {
   SubmissionType,
   SyncStatusRecord,
-} from "../../../../database/repositories/SyncStatusRepository";
+} from "@/database/repositories/SyncStatusRepository";
 import { ethers } from "ethers";
-import { ContractName } from "../../../../core/clients/ethereum/contracts/types";
+import { ContractName } from "@/core/clients/ethereum/contracts/types";
 import { OptimismOutputProposed } from "@/core/controllers/indexers/shared/types";
 
 type CallbackFunction = (...args: any[]) => any;

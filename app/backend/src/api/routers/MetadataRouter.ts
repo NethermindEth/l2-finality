@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { MetadataController } from "../controllers/MetadataController";
+import { MetadataController } from "@/api/controllers/MetadataController";
 
 export function createMetadataRouter(
   metadataController: MetadataController,

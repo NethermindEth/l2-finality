@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { PricingController } from "../controllers/PriceController"; // Adjust the import path as necessary
+import { PricingController } from "@/api/controllers/PriceController"; // Adjust the import path as necessary
 
 export function createPricingRouter(
   pricingController: PricingController,

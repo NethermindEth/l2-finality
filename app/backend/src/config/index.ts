@@ -1,6 +1,6 @@
 import { Config } from "./Config";
 import { getLocalConfig } from "./config.local";
-import { getEnv } from "../tools/Env";
+import { getEnv } from "@/tools/Env";
 import { getTestConfig } from "./config.test";
 
 export type { Config };

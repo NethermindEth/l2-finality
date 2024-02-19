@@ -1,9 +1,9 @@
 import { Logger } from "@/tools/Logger";
 import { Database } from "@/database/Database";
-import { Config } from "../../../../../config/Config";
-import { TaskScheduler } from "../../../../../core/scheduler/TaskScheduler";
-import OptimismClient from "../../../../../core/clients/optimism/OptimismClient";
-import OptimismBlockController from "../../../../../core/controllers/indexers/l2/optimism/OptimismBlockController";
+import { Config } from "@/config/Config";
+import { TaskScheduler } from "@/core/scheduler/TaskScheduler";
+import OptimismClient from "@/core/clients/optimism/OptimismClient";
+import OptimismBlockController from "@/core/controllers/indexers/l2/optimism/OptimismBlockController";
 
 export function createOptimismBlockModule(
   config: Config,

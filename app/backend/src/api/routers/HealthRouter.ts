@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { HealthController } from "../controllers/HealthController";
+import { HealthController } from "@/api/controllers/HealthController";
 
 export function createHealthRouter(healthController: HealthController): Router {
   const router: Router = Router();

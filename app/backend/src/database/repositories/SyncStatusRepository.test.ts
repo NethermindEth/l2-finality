@@ -1,5 +1,3 @@
-// src/database/repositories/SyncStatusRepository.test.ts
-
 import { Knex } from "knex";
 import { expect } from "earl";
 import {
@@ -8,7 +6,7 @@ import {
   SyncStatusRepository,
   TABLE_NAME,
 } from "./SyncStatusRepository";
-import { getTestDatabase } from "../getTestDatabase";
+import { getTestDatabase } from "@/database/getTestDatabase";
 
 describe(SyncStatusRepository.name, () => {
   let repository: SyncStatusRepository;

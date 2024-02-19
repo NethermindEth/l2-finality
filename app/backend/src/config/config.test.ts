@@ -7,7 +7,7 @@ import {
   OptimismModuleConfig,
   PricingModuleConfig,
 } from "./Config";
-import { Env } from "../tools/Env";
+import { Env } from "@/tools/Env";
 
 export function getTestConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {

@@ -1,6 +1,6 @@
 import { Logger } from "@/tools/Logger";
 import { Database } from "@/database/Database";
-import BlockValueRepository from "../../../../database/repositories/BlockValueRepository";
+import BlockValueRepository from "@/database/repositories/BlockValueRepository";
 
 export interface BlockIndexerConfig {
   chainId: number;

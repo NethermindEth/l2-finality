@@ -5,9 +5,8 @@ import {
   MetadataMetricName,
   MetadataRecord,
   MetadataRepository,
-  TABLE_NAME,
 } from "./MetadataRepository";
-import { getTestDatabase } from "../getTestDatabase";
+import { getTestDatabase } from "@/database/getTestDatabase";
 
 describe(MetadataRepository.name, () => {
   let repository: MetadataRepository;

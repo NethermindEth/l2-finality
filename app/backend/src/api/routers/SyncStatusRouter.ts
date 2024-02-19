@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { SyncStatusController } from "../controllers/SyncStatusController";
+import { SyncStatusController } from "@/api/controllers/SyncStatusController";
 
 export function createSyncStatusRouter(
   syncStatusController: SyncStatusController,
