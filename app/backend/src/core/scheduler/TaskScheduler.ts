@@ -15,35 +15,25 @@ export class TaskScheduler {
     this.isTaskRunning = false;
   }
 
-  async start() {
-    if (this.isTaskRunning) {
-      this.logger.debug("Task is already running, skipping this interval.");
-      return;
-    }
+  start() {
+    setImmediate(() => this.setInterval());
 
-    try {
+    this.intervalId = setInterval(() => this.setInterval(), this.intervalMs);
+  }
+
+  private setInterval() {
+    if (!this.isTaskRunning) {
       this.isTaskRunning = true;
-      await this.executeTask();
-    } catch (error) {
-      this.logger.error("Error in task:", error);
-    } finally {
-      this.isTaskRunning = false;
-    }
-
-    this.intervalId = setInterval(async () => {
-      if (!this.isTaskRunning) {
-        try {
-          this.isTaskRunning = true;
-          await this.executeTask();
-        } catch (error) {
+      this.executeTask()
+        .catch((error) => {
           this.logger.error("Error in task:", error);
-        } finally {
+        })
+        .finally(() => {
           this.isTaskRunning = false;
-        }
-      } else {
-        this.logger.debug("Task is still running, skipping this interval.");
-      }
-    }, this.intervalMs);
+        });
+    } else {
+      this.logger.debug("Task is still running, skipping this interval.");
+    }
   }
 
   stop() {
