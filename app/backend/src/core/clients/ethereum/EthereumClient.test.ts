@@ -2,10 +2,9 @@ import EthereumClient from "./EthereumClient";
 import { expect, mockFn } from "earl";
 import { beforeEach } from "mocha";
 import { ethers } from "ethers";
-import Logger from "../../../tools/Logger";
-import { undefined } from "zod";
+import Logger from "@/tools/Logger";
 import contractsData from "./contracts/contracts.json";
-import { getConfig } from "../../../config";
+import { getConfig } from "@/config";
 
 describe(EthereumClient.name, () => {
   let ethClient: EthereumClient;

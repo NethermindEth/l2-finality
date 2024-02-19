@@ -1,7 +1,10 @@
 import { MetadataRepository } from "@/database/repositories/MetadataRepository";
 import Logger from "@/tools/Logger";
 import { Request, Response } from "express";
-import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
+import {
+  sendErrorResponse,
+  sendSuccessResponse,
+} from "@/api/utils/responseUtils";
 
 export class MetadataController {
   private metadataRepository: MetadataRepository;

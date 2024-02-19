@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { PriceRepository } from "@/database/repositories/PricingRepository"; // Adjust the import path as necessary
-import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
+import {
+  sendErrorResponse,
+  sendSuccessResponse,
+} from "@/api/utils/responseUtils";
 import Logger from "@/tools/Logger";
 
 type Price = {

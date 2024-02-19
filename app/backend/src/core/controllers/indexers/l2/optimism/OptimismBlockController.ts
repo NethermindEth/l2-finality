@@ -1,6 +1,6 @@
 import BlockIndexerController, {
   BlockIndexerConfig,
-} from "../../shared/BlockIndexerController";
+} from "@/core/controllers/indexers/shared/BlockIndexerController";
 import OptimismClient from "@/core/clients/optimism/OptimismClient";
 import { Logger } from "@/tools/Logger";
 import { Database } from "@/database/Database";

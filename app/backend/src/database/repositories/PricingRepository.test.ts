@@ -6,8 +6,8 @@ import {
   PriceRow,
   TABLE_NAME,
 } from "./PricingRepository";
-import { getTestDatabase } from "../getTestDatabase";
-import { UnixTime } from "../../core/types/UnixTime";
+import { getTestDatabase } from "@/database/getTestDatabase";
+import { UnixTime } from "@/core/types/UnixTime";
 
 describe(PriceRepository.name, () => {
   let repository: PriceRepository;

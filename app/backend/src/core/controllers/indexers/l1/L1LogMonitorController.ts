@@ -1,16 +1,16 @@
-import Logger from "../../../../tools/Logger";
-import EthereumClient from "../../../../core/clients/ethereum/EthereumClient";
-import EthereumLogDecoder from "../../../clients/ethereum/EthereumLogDecoder";
-import contracts from "../../../clients/ethereum/contracts/contracts.json";
+import Logger from "@/tools/Logger";
+import EthereumClient from "@/core/clients/ethereum/EthereumClient";
+import EthereumLogDecoder from "@/core/clients/ethereum/EthereumLogDecoder";
+import contracts from "@/core/clients/ethereum/contracts/contracts.json";
 import { ContractName } from "@/core/clients/ethereum/contracts/types";
 import { Database } from "@/database/Database";
 import MetadataRepository, {
   MetadataJobName,
   MetadataMetricName,
   MetadataRecord,
-} from "../../../../database/repositories/MetadataRepository";
+} from "@/database/repositories/MetadataRepository";
 import { EthereumMonitorConfig } from "@/config/Config";
-import SyncStatusRepository from "../../../../database/repositories/SyncStatusRepository";
+import SyncStatusRepository from "@/database/repositories/SyncStatusRepository";
 import { ethers } from "ethers";
 import { LogProcessors } from "./LogProcessor";
 

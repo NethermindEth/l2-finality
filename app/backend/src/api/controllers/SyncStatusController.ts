@@ -1,8 +1,11 @@
 import { SyncStatusRepository } from "@/database/repositories/SyncStatusRepository";
 import Logger from "@/tools/Logger";
 import { Request, Response } from "express";
-import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
-import { chainTableMapping } from "../../database/repositories/BlockValueRepository";
+import {
+  sendErrorResponse,
+  sendSuccessResponse,
+} from "@/api/utils/responseUtils";
+import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;

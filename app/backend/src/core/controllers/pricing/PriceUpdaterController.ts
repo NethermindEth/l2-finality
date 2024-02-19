@@ -1,9 +1,9 @@
-import { PriceRepository } from "../../../database/repositories/PricingRepository";
-import { WhitelistedAsset } from "../../../core/clients/coincap/assets/types";
-import whitelisted from "../../clients/coincap/assets/whitelisted.json";
-import CoinCapClient from "./../../clients/coincap/CoinCapClient";
-import { UnixTime } from "../../../core/types/UnixTime";
-import Logger from "../../../tools/Logger";
+import { PriceRepository } from "@/database/repositories/PricingRepository";
+import { WhitelistedAsset } from "@/core/clients/coincap/assets/types";
+import whitelisted from "@/core/clients/coincap/assets/whitelisted.json";
+import CoinCapClient from "@/core/clients/coincap/CoinCapClient";
+import { UnixTime } from "@/core/types/UnixTime";
+import Logger from "@/tools/Logger";
 
 export class PriceUpdaterController {
   private readonly coinCapClient: CoinCapClient;

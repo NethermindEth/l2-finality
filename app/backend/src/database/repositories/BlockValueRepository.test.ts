@@ -4,9 +4,7 @@ import BlockValueRepository, {
   BlockValueRecord,
   chainTableMapping,
 } from "./BlockValueRepository";
-import { Database } from "@/database/Database";
-import { getTestDatabase } from "../getTestDatabase";
-import { Block } from "ethers";
+import { getTestDatabase } from "@/database/getTestDatabase";
 
 describe(BlockValueRepository.name, () => {
   const chainId: number = 10;
