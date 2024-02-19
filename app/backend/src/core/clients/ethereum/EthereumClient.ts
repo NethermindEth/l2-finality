@@ -5,14 +5,13 @@ import Logger from "@/tools/Logger";
 import { ContractName } from "@/core/clients/ethereum/contracts/types";
 
 class EthereumClient {
-  private readonly chainId: number = 1;
   private provider: ethers.JsonRpcProvider;
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
     this.provider = new ethers.JsonRpcProvider(
-      config.indexer.ethereumRpcEndpoint,
-      ethers.Network.from(this.chainId),
+      config.indexers.ethereumRpcEndpoint,
+      ethers.Network.from(config.ethereumMonitorModule.chainId),
     );
     this.logger = logger;
   }
@@ -22,7 +21,12 @@ class EthereumClient {
   }
 
   public async getCurrentHeight(): Promise<number> {
-    return await this.provider.getBlockNumber();
+    const blockNumber = await this.provider.getBlock("finalized");
+    if (blockNumber) {
+      return blockNumber.number;
+    } else {
+      throw new Error("Failed to get current block number, null returned");
+    }
   }
 
   public async getBlock(
@@ -34,7 +38,9 @@ class EthereumClient {
     }
 
     const txs = await Promise.all(
-      block.transactions.map((hash: string) => block.getTransaction(hash)),
+      block.transactions.map((hash: string) =>
+        block.getPrefetchedTransaction(hash),
+      ),
     );
     return [block, txs];
   }

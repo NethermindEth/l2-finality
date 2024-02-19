@@ -4,6 +4,7 @@ import {
   DatabaseConfig,
   EthereumMonitorConfig,
   IndexerConfig,
+  OptimismModuleConfig,
   PricingModuleConfig,
 } from "./Config";
 import { Env } from "../tools/Env";
@@ -31,15 +32,9 @@ export function getTestConfig(env: Env): Config {
       "ETHEREUM_RPC_ENDPOINT",
       "https://rpc.ankr.com/eth",
     ),
-  };
-
-  const ethereumMonitorConfig: EthereumMonitorConfig = {
-    enabled: env.boolean("ETHEREUM_MONITOR_MODULE_ENABLED", true),
-    taskIntervalMs: env.integer("ETHEREUM_MONITOR_TASK_INTERVAL_MS", 1000),
-    ethereumLogsStartBlock: env.integer("ETHEREUM_LOGS_START_BLOCK", 0),
-    maxBlocksPerLogFetch: env.integer(
-      "ETHEREUM_LOGS_MAX_BLOCKS_PER_LOG_FETCH",
-      5,
+    optimismRpcEndpoint: env.string(
+      "OPTIMISM_RPC_ENDPOINT",
+      "https://rpc.ankr.com/optimism",
     ),
   };
 
@@ -53,11 +48,28 @@ export function getTestConfig(env: Env): Config {
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 100),
   };
 
+  const ethereumMonitorConfig: EthereumMonitorConfig = {
+    enabled: env.boolean("ETHEREUM_MONITOR_MODULE_ENABLED", true),
+    chainId: 1,
+    pollIntervalMs: env.integer("ETHEREUM_MONITOR_POLL_INTERVAL_MS", 30000),
+    ethereumLogsStartBlock: env.integer("ETHEREUM_MONITOR_START_BLOCK", 0),
+    maxBlockLogRange: env.integer("ETHEREUM_MONITOR_MAX_LOG_RANGE", 5),
+  };
+
+  const optimismModuleConfig: OptimismModuleConfig = {
+    enabled: env.boolean("OPTIMISM_MODULE_ENABLED", true),
+    chainId: 10,
+    startBlock: env.integer("OPTIMISM_START_BLOCK", 0),
+    maxBlockRange: env.integer("OPTIMISM_MAX_BLOCK_RANGE", 50),
+    pollIntervalMs: env.integer("OPTIMISM_POLL_INTERVAL_MS", 15000),
+  };
+
   return {
     database: databaseConfig,
     api: apiConfig,
-    indexer: indexerConfig,
-    ethereumMonitor: ethereumMonitorConfig,
+    indexers: indexerConfig,
     pricingModule: pricingModuleConfig,
+    ethereumMonitorModule: ethereumMonitorConfig,
+    optimismModule: optimismModuleConfig,
   };
 }

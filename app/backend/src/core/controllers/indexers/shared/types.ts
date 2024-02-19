@@ -1,3 +1,10 @@
+export interface OptimismOutputProposed {
+  outputRoot: string;
+  l2OutputIndex: bigint;
+  l2BlockNumber: bigint;
+  l1Timestamp: bigint;
+}
+
 export interface PolygonVerifyBatch {
   ethBlockNum: bigint;
   ethTxHash: string;

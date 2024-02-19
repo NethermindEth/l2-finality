@@ -9,7 +9,7 @@ export interface PriceRecord {
   timestamp: UnixTime;
 }
 
-interface PriceRow {
+export interface PriceRow {
   asset_id: string;
   price_usd: number;
   timestamp: Date;
@@ -80,6 +80,55 @@ export class PriceRepository {
     return new Map(
       rows.map((row) => [row.asset_id, UnixTime.fromDate(row.max)]),
     );
+  }
+
+  async getLatestAndPreviousByToken(): Promise<
+    Map<string, { latestPrice: any; previousPrice: any }>
+  > {
+    const subquery = this.knex(TABLE_NAME)
+      .select(
+        "asset_id",
+        "price_usd",
+        "timestamp",
+        this.knex.raw(
+          "ROW_NUMBER() OVER (PARTITION BY asset_id ORDER BY timestamp DESC) as rn",
+        ),
+      )
+      .as("a");
+
+    const rows = await this.knex
+      .select<PriceRow[]>("asset_id", "price_usd", "timestamp")
+      .from(subquery)
+      .where("rn", "<=", 2);
+
+    const result = new Map<string, { latestPrice: any; previousPrice: any }>();
+
+    const groupedByAssetId = rows.reduce(
+      (acc, row) => {
+        if (!acc[row.asset_id]) {
+          acc[row.asset_id] = [];
+        }
+        acc[row.asset_id].push({
+          price: row.price_usd,
+          timestamp: row.timestamp,
+        });
+        return acc;
+      },
+      {} as Record<string, { price: number; timestamp: Date }[]>,
+    );
+
+    Object.entries(groupedByAssetId).forEach(([assetId, prices]) => {
+      const sortedPrices = prices.sort(
+        (a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+      );
+
+      const latestPrice = sortedPrices[0] || null; // The most recent price
+      const previousPrice = sortedPrices[1] || null; // The second most recent price
+
+      result.set(assetId, { latestPrice, previousPrice });
+    });
+
+    return result;
   }
 }
 

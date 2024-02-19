@@ -10,29 +10,33 @@ export function createL1MonitorModule(
   logger: Logger,
   database: Database,
   ethClient: EthereumClient,
-): () => Promise<void> {
+): { start: () => Promise<void> } {
   const loggerContext = "L1 Log Monitor Module";
 
   const l1LogMonitor = new L1LogMonitorController(
     ethClient,
-    config.ethereumMonitor,
+    config.ethereumMonitorModule,
     database,
     logger.for(loggerContext),
   );
 
   const l1LogMonitorTaskScheduler = new TaskScheduler(
     () => l1LogMonitor.start(),
-    config.ethereumMonitor.taskIntervalMs,
+    config.ethereumMonitorModule.pollIntervalMs,
     logger.for(loggerContext),
   );
 
-  if (config.ethereumMonitor.enabled) {
-    return async () => {
-      logger.info("Starting L1 monitor...");
-      await l1LogMonitorTaskScheduler.start();
+  if (config.ethereumMonitorModule.enabled) {
+    return {
+      start: async () => {
+        logger.info("Starting L1 monitor...");
+        await l1LogMonitorTaskScheduler.start();
+      },
     };
   } else {
     logger.warn("L1 monitor is disabled");
-    return async () => {};
+    return {
+      start: async () => {},
+    };
   }
 }

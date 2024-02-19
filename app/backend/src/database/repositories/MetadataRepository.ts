@@ -4,6 +4,7 @@ export const TABLE_NAME = "metadata";
 
 export enum MetadataJobName {
   L1FinalityModule = "l1_logs_head",
+  L2Optimism = "l2_optimism",
 }
 
 export enum MetadataMetricName {

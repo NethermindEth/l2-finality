@@ -7,6 +7,15 @@ import HealthController from "./controllers/HealthController";
 import { MetadataController } from "../api/controllers/MetadataController";
 import MetadataRepository from "../database/repositories/MetadataRepository";
 import { createMetadataRouter } from "../api/routers/MetadataRouter";
+import { SyncStatusController } from "../api/controllers/SyncStatusController";
+import SyncStatusRepository from "../database/repositories/SyncStatusRepository";
+import { createSyncStatusRouter } from "../api/routers/SyncStatusRouter";
+import { PricingController } from "../api/controllers/PriceController";
+import { PriceRepository } from "../database/repositories/PricingRepository";
+import { createPricingRouter } from "../api/routers/PriceRouter";
+import { createBlockValueRouter } from "../api/routers/BlockValueRouter";
+import { BlockValueController } from "../api/controllers/BlockValueController";
+import BlockValueRepository from "../database/repositories/BlockValueRepository";
 
 export class Api {
   private readonly app: express.Application;
@@ -26,8 +35,23 @@ export class Api {
       new MetadataRepository(this.database.getKnex()),
       logger,
     );
+    const blockValueController = new BlockValueController(
+      new BlockValueRepository(this.database.getKnex()),
+      this.logger,
+    );
+    const syncStatusController = new SyncStatusController(
+      new SyncStatusRepository(this.database.getKnex()),
+      this.logger,
+    );
+    const pricingController = new PricingController(
+      new PriceRepository(this.database.getKnex()),
+      this.logger,
+    );
 
     this.app.use("/api/metadata", createMetadataRouter(metadataController));
+    this.app.use("/api/blocks", createBlockValueRouter(blockValueController));
+    this.app.use("/api/prices", createPricingRouter(pricingController));
+    this.app.use("/api/state", createSyncStatusRouter(syncStatusController));
     this.app.use("/health", createHealthRouter(new HealthController()));
   }
 

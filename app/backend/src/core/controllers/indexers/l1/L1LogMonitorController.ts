@@ -10,6 +10,9 @@ import MetadataRepository, {
   MetadataRecord,
 } from "../../../../database/repositories/MetadataRepository";
 import { EthereumMonitorConfig } from "@/config/Config";
+import SyncStatusRepository from "../../../../database/repositories/SyncStatusRepository";
+import { ethers } from "ethers";
+import { LogProcessors } from "./LogProcessor";
 
 class L1LogMonitorController {
   private logger: Logger;
@@ -18,9 +21,10 @@ class L1LogMonitorController {
   private database: Database;
 
   private metadataRepository: MetadataRepository;
+  private syncStatusRepository: SyncStatusRepository;
   private logDecoder: EthereumLogDecoder;
 
-  private readonly timoutMs = 1000;
+  private readonly timeoutMs = 1000;
 
   constructor(
     ethClient: EthereumClient,
@@ -34,6 +38,9 @@ class L1LogMonitorController {
     this.database = database;
 
     this.metadataRepository = new MetadataRepository(this.database.getKnex());
+    this.syncStatusRepository = new SyncStatusRepository(
+      this.database.getKnex(),
+    );
     this.logDecoder = new EthereumLogDecoder(
       this.logger.for("EthereumLogDecoder"),
     );
@@ -44,20 +51,19 @@ class L1LogMonitorController {
     const fromBlock = await this.startFrom();
 
     const numberOfBatches = Math.ceil(
-      (currentHeight - fromBlock + 1) /
-        this.schedulerConfig.maxBlocksPerLogFetch,
+      (currentHeight - fromBlock + 1) / this.schedulerConfig.maxBlockLogRange,
     );
 
     this.logger.info(
-      `Fetching Ethereum contract logs from block ${fromBlock} to block: ${currentHeight} in ${numberOfBatches} batch(es)`,
+      `Fetching Ethereum contract logs from ${fromBlock} to ${currentHeight} (${numberOfBatches} batches)`,
     );
     for (
       let startBlock = fromBlock, batch = 1;
       startBlock <= currentHeight;
-      startBlock += this.schedulerConfig.maxBlocksPerLogFetch + 1, batch++
+      startBlock += this.schedulerConfig.maxBlockLogRange + 1, batch++
     ) {
       const endBlock = Math.min(
-        startBlock + this.schedulerConfig.maxBlocksPerLogFetch,
+        startBlock + this.schedulerConfig.maxBlockLogRange,
         currentHeight,
       );
       await this.fetchLogs(startBlock, endBlock);
@@ -66,7 +72,7 @@ class L1LogMonitorController {
         MetadataMetricName.LatestBlockNumber,
         endBlock,
       );
-      await new Promise((resolve) => setTimeout(resolve, this.timoutMs));
+      await new Promise((resolve) => setTimeout(resolve, this.timeoutMs));
     }
   }
 
@@ -85,7 +91,43 @@ class L1LogMonitorController {
         logs.map((log) => this.logDecoder.decodeLog(log, contractName)),
       );
 
-      console.log(contractName, logs, decodedLogs);
+      for (const logObject of decodedLogs) {
+        if (!logObject) {
+          continue;
+        }
+        await this.processDecodedLogs(
+          logObject.contractName as ContractName,
+          logObject.eventName,
+          logObject.log,
+          logObject.decodedLogEvents,
+        );
+      }
+    }
+  }
+
+  public async processDecodedLogs(
+    contractName: ContractName,
+    eventName: string,
+    log: ethers.Log,
+    decodedLogs: Record<string, any>,
+  ): Promise<void> {
+    const eventCallbacks = LogProcessors.callbackMapping[contractName];
+    if (eventCallbacks) {
+      const eventCallback = eventCallbacks[eventName];
+      if (eventCallback) {
+        const syncStatusRecord = eventCallback(log, decodedLogs);
+        if (syncStatusRecord) {
+          await this.syncStatusRepository.insertSyncStatus(syncStatusRecord);
+        }
+      } else {
+        this.logger.error(
+          `No callback function found for event "${eventName}" of contract "${contractName}"`,
+        );
+      }
+    } else {
+      this.logger.error(
+        `No callback mapping found for contract "${contractName}"`,
+      );
     }
   }
 

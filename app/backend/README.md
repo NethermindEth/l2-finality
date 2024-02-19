@@ -9,7 +9,8 @@ This guide provides instructions for setting up the backend environment for our 
 To start the application in development mode, follow these steps:
 
 1. Navigate to the root directory of the backend project in your terminal.
-2. Run the command `npm run dev`.
+2. Create a `.env` file in the root directory and configure the environment variables as described below. You can copy the `.env.local` file and modify the values as required.
+3. Run the command `npm run dev`.
 
 This will start the backend server in development mode with hot reloading enabled.
 
@@ -30,20 +31,73 @@ To run the backend service, you need to configure the following environment vari
 - `DB_URI`: Connection string for the PostgreSQL database. Format: `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`. Replace `USER`, `PASSWORD`, `HOST`, `PORT`, and `DATABASE` with your database credentials.
 - `DB_FRESH_START`: When set to `true`, the database schema will be dropped and recreated on startup. Useful for development environments.
 
-**L1 Log Monitor module configuration:**
-
-- `ETHEREUM_RPC_ENDPOINT`: The RPC endpoint URL for interacting with the Ethereum blockchain.
-- `ETHEREUM_MONITOR_TASK_INTERVAL_MS`: The interval in milliseconds for the cron job that checks for new log events on Ethereum L1.
-- `ETHEREUM_LOGS_START_BLOCK`: The blockchain start block number from which to begin fetching log events.
-- `ETHEREUM_LOGS_MAX_BLOCKS_PER_LOG_FETCH`: The maximum number of blocks to query for log events in a single fetch operation.
+**Important**: For module specific environment variables, refer to the respective module documentation below.
 
 ## Modules
+
+### Pricing module
+
+The Price Updater Module is responsible for keeping cryptocurrency price data up-to-date. It works as follows:
+
+**Environment Variables**
+
+- **`PRICING_MODULE_ENABLED`**: Enables the Pricing module.
+
+  - Recommended: `true`
+
+- **`PRICING_COINCAP_BASE_URL`**: Base URL for CoinCap API.
+
+  - Default: `https://api.coincap.io/v2`
+
+- **`PRICING_COINCAP_API_KEY`**: API key for CoinCap access. Request one from [CoinCap](https://coincap.io/).
+
+  - Set as required.
+
+- **`PRICING_MINUTE_RATE_LIMIT`**: Maximum API requests per minute.
+  - Recommended: `500`
+
+**Logic**:
+
+- It fetches the latest timestamp available in the database.
+- If the difference between the latest timestamp and the current time is greater than 15 minutes or the asset is new (i.e., it exists in `core/clients/coincap/assets/whitelisted.json`), the module will fetch historical data going back 1 month.
+- We receive pricing data every 15 minutes.
+- The module checks the boundaries from the database every 10 seconds. If the data is stale (older than 15 minutes), it fetches new data using CoinCap.
+
+Please note that the CoinCap module has a rate limit of 500 requests per minute
+
+### Block Appraisal Module
+
+The Block Appraisal Module is responsible for fetching and appraising blocks from EVM compatible network.
+
+**WIP**
 
 ### L1 Log Monitor
 
 The L1 Log Monitor module is responsible for fetching contract log events from Ethereum at specified intervals. It updates a local metadata table with the latest processed block number to keep track of the synchronization progress.
 
-#### Setup:
+**Environment Variables**
+
+- **`ETHEREUM_MONITOR_MODULE_ENABLED`**: Activates the Ethereum Monitor module.
+
+  - Recommended: `true`
+
+- **`ETHEREUM_RPC_ENDPOINT`**: The RPC endpoint URL for interacting with the Ethereum blockchain.
+
+  - Set as required.
+
+- **`ETHEREUM_MONITOR_START_BLOCK`**: Initial block for log processing.
+
+  - Set as required.
+
+- **`ETHEREUM_MONITOR_MAX_LOG_RANGE`**: Maximum range of blocks for log fetching.
+
+  - Quicknodes max: `5`
+  - Set as required.
+
+- **`ETHEREUM_MONITOR_POLL_INTERVAL_MS`**: Frequency of update checks (in ms).
+  - Recommended: `30000`
+
+**Configuration**:
 
 1. **Contract Addition**:  
    To monitor new contracts, you need to add their details to the `contracts.json` file located at `core/clients/ethereum/contracts/`. Use the following schema to add a new contract:
@@ -59,13 +113,31 @@ The L1 Log Monitor module is responsible for fetching contract log events from E
 
 2. **ABI Addition**: For each new contract, add the corresponding ABI file to the `/abi` folder located at `core/clients/ethereum/contracts/abis`.
 
-### Pricing module
+3. **Add Parsing Function**: Create a new function in `LogProcessors` to parse the log events of the contract and event name.
 
-The Price Updater Module is responsible for keeping cryptocurrency price data up-to-date. It works as follows:
+### Optimism Module
 
-- It fetches the latest timestamp available in the database.
-- If the difference between the latest timestamp and the current time is greater than 15 minutes or the asset is new (i.e., it exists in `core/clients/coincap/assets/whitelisted.json`), the module will fetch historical data going back 1 month.
-- We receive pricing data every 15 minutes.
-- The module checks the boundaries from the database every 10 seconds. If the data is stale (older than 15 minutes), it fetches new data using CoinCap.
+The Optimism Module measures finality of blocks on the Optimism network by monitoring synchronization status for each data submission and gets each block for it to be appraised.
 
-Please note that the CoinCap module has a rate limit of 500 requests per minute
+**Environment Variables**
+
+- **`OPTIMISM_MODULE_ENABLED`**: Enables the Optimism module.
+  - Recommended: `true`
+- **`OPTIMISM_RPC_ENDPOINT`**: The RPC endpoint URL for interacting with the Optimism network.
+  - Set as required.
+- **`OPTIMISM_START_BLOCK`**: Starting block for processing.
+
+  - Set as required.
+
+- **`OPTIMISM_MAX_BLOCK_RANGE`**: Max range of blocks fetched per operation.
+
+  - Recommended: `50`
+
+- **`OPTIMISM_POLL_INTERVAL_MS`**: Interval for polling status sync updates and getBlock (in ms).
+  - Recommended: `15000`
+
+**Key Components**:
+
+- **OptimismFinalityController**: This class interacts with the OptimismClient to fetch the current synchronization status, comparing it with the previous state to detect any changes in the safe L2 origin number.
+
+- **OptimismBlockController**: This class is responsible for fetching blocks within a specified range from the Optimism network

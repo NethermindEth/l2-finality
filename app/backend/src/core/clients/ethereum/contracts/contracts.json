@@ -1,6 +1,5 @@
 {
-  "OptimismStateRootProposer": {
-    "chainId": 10,
+  "L2OutputOracle": {
     "address": "0xdfe97868233d1aa22e815a266982f2cf17685a27",
     "topics": {
       "OutputProposed": "0xa7aaf2512769da4e444e3de247be2564225c2e7a8f74cfe528e46e17d24868e2"
