@@ -1,4 +1,4 @@
-import { ethers, Network } from "ethers";
+import { ethers, Network } from 'ethers'
 import contracts from "./contracts/contracts.json";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
@@ -10,15 +10,16 @@ class EthereumClient {
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(ethers.Network.from(config.ethereumMonitorModule.chainId))
+    this.network = Network.from(
+      ethers.Network.from(config.ethereumMonitorModule.chainId),
+    );
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.ethereumRpcEndpoint,
       this.network,
-      { staticNetwork: this.network }
+      { staticNetwork: this.network },
     );
     this.logger = logger;
   }
-
 
   public getProvider(): ethers.JsonRpcProvider {
     return this.provider;
@@ -41,7 +42,8 @@ class EthereumClient {
       return [null, null];
     }
 
-    const txs = block.transactions.map((hash: string) => block.getPrefetchedTransaction(hash),
+    const txs = block.transactions.map((hash: string) =>
+      block.getPrefetchedTransaction(hash),
     );
     return [block, txs];
   }

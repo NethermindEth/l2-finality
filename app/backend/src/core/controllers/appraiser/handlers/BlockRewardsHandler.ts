@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
-import Logger from "@/tools/Logger";
 
 export interface BlockRewardSummary {
   gasFees: bigint;
@@ -13,22 +12,15 @@ export interface BlockRewardSummary {
 export class BlockRewardsHandler {
   private provider: ethers.Provider;
   private priceService: PriceService;
-  private logger: Logger;
 
-  constructor(
-    provider: ethers.Provider,
-    priceService: PriceService,
-    logger: Logger,
-  ) {
+  constructor(provider: ethers.Provider, priceService: PriceService) {
     this.provider = provider;
     this.priceService = priceService;
-    this.logger = logger;
   }
 
   async handleBlockRewards(
     block: ethers.Block,
     txs: ethers.TransactionResponse[],
-    timestamp: UnixTime,
   ): Promise<BlockRewardSummary> {
     let totalGasFees = BigInt(0);
     let totalTips = BigInt(0);
@@ -62,7 +54,7 @@ export class BlockRewardsHandler {
 
     const priceRecord = await this.priceService.getPriceWithRetry(
       ethers.ZeroAddress,
-      timestamp,
+      UnixTime.fromDate(new Date(block.timestamp * 1000)),
     );
     const priceUsd = priceRecord ? priceRecord.priceUsd : 0;
 

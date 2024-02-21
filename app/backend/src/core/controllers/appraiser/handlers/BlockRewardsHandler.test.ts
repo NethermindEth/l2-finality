@@ -65,7 +65,6 @@ describe(BlockRewardsHandler.name, () => {
       blockRewardsHandler = new BlockRewardsHandler(
         mockProvider,
         mockPriceService,
-        new Logger(),
       );
 
       const txs = mockTransactionData.map((txData) => ({
@@ -77,11 +76,7 @@ describe(BlockRewardsHandler.name, () => {
         mockTransactionData[0].blockNumber,
       )) as ethers.Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(
-        block,
-        txs,
-        timestamp,
-      );
+      const result = await blockRewardsHandler.handleBlockRewards(block, txs);
       console.log(result);
       const expected = {
         gasFees: 438513250744200n,
@@ -151,7 +146,6 @@ describe(BlockRewardsHandler.name, () => {
       blockRewardsHandler = new BlockRewardsHandler(
         mockProvider,
         mockPriceService,
-        new Logger(),
       );
 
       const txs = mockTransactionData.map((txData) => ({
@@ -163,11 +157,7 @@ describe(BlockRewardsHandler.name, () => {
         mockTransactionData[0].blockNumber,
       )) as ethers.Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(
-        block,
-        txs,
-        timestamp,
-      );
+      const result = await blockRewardsHandler.handleBlockRewards(block, txs);
       console.log(result);
       const expected = {
         gasFees: 498190237979734n,
@@ -205,6 +195,7 @@ function setUpMockProvider(
       );
       return {
         number: txData ? txData.blockNumber : 0,
+        timestamp: 1629782400,
         baseFeePerGas: txData ? txData.blockBaseFeePerGas : BigInt(0),
       };
     },

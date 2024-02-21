@@ -1,66 +1,154 @@
 import { ethers } from "ethers";
-import { BaseHandler, TransferEvent } from './BaseHandler';
-import { UnixTime } from '../../../../core/types/UnixTime';
-import { PriceService } from '../services/PriceService';
-import { WhitelistedAsset } from '../../../../core/clients/coincap/assets/types';
-import Logger from '../../../../tools/Logger';
+import {
+  AppraisalSummary,
+  BaseHandler,
+  PricedTransferLogEvent,
+  TransferLogEvent,
+} from "./BaseHandler";
+import { UnixTime } from "@/core/types/UnixTime";
+import { PriceService } from "../services/PriceService";
+import { WhitelistedAsset } from "@/core/clients/coincap/assets/types";
+import Logger from "@/tools/Logger";
+import monitoredAssets from "@/core/clients/coincap/assets/whitelisted.json";
 
 export class TokenTransferHandler extends BaseHandler {
   private priceService: PriceService;
   private monitoredAssets: WhitelistedAsset[];
 
-  constructor(provider: ethers.Provider, logger: Logger, priceService: PriceService, monitoredAssets: WhitelistedAsset[]) {
+  constructor(
+    provider: ethers.Provider,
+    logger: Logger,
+    priceService: PriceService,
+  ) {
     super(provider, logger);
     this.priceService = priceService;
-    this.monitoredAssets = monitoredAssets;
+    this.monitoredAssets = monitoredAssets as WhitelistedAsset[];
   }
 
-  async handleTransferEvents(tx: ethers.TransactionResponse, timestamp: UnixTime): Promise<TransferEvent[]> {
+  async handleTransferEvents(
+    tx: ethers.TransactionResponse,
+    timestamp: UnixTime,
+  ): Promise<AppraisalSummary[]> {
     const receipt = await this.provider.getTransactionReceipt(tx.hash);
     if (!receipt) return [];
+    const transferEvents: TransferLogEvent[] = this.extractTransferEvents(
+      receipt.logs,
+    );
 
-    const transferEvents = this.extractTransferEvents(receipt.logs);
-    const netTransfers = this.calculateNetTransfers(transferEvents);
-    const isSwapLike = this.isSwapLikeTransaction(netTransfers);
-
-    return isSwapLike
-      ? this.valueSwapLikeTransfers(netTransfers, timestamp)
-      : this.valueDistributionLikeTransfers(netTransfers, timestamp);
+    const hasReciprocal = this.hasReciprocalTransfers(transferEvents);
+    return hasReciprocal
+      ? await this.handleSwapLikeTransfers(transferEvents, timestamp)
+      : await this.handleDistributionLikeTransfers(transferEvents, timestamp);
   }
 
-  private extractTransferEvents(logs: ethers.Log[]): TransferEvent[] {
-    const transferEvents: TransferEvent[] = [];
+  private extractTransferEvents(
+    logs: readonly ethers.Log[],
+  ): TransferLogEvent[] {
+    const transferEvents: TransferLogEvent[] = [];
+
+    const transferEventSigHash = ethers.id("Transfer(address,address,uint256)");
+
     for (const log of logs) {
-      if (log.topics[0] === ethers.id("Transfer(address,address,uint256)")) {
+      if (log.topics[0] === transferEventSigHash) {
         const contractAddress = log.address;
+        const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
+        const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
         const rawAmount = BigInt(log.data);
-        transferEvents.push({ contractAddress, rawAmount });
+        transferEvents.push({
+          fromAddress,
+          toAddress,
+          contractAddress,
+          rawAmount,
+        });
       }
     }
     return transferEvents;
   }
 
-  private calculateNetTransfers(transferEvents: TransferEvent[]): Map<string, bigint> {
-    const netTransfers = new Map<string, bigint>();
+  private async handleSwapLikeTransfers(
+    transferEvents: TransferLogEvent[],
+    timestamp: UnixTime,
+  ): Promise<AppraisalSummary[]> {
+    const pricedTransferLogEvents: PricedTransferLogEvent[] =
+      await this.priceTransferLogEvents(transferEvents, timestamp);
+    const maxTransferEvent = pricedTransferLogEvents.reduce(
+      (max, event) =>
+        (max.usdValue || 0) < (event.usdValue || 0) ? event : max,
+      pricedTransferLogEvents[0],
+    );
+
+    return [
+      {
+        contractAddress: maxTransferEvent.contractAddress,
+        rawAmount: maxTransferEvent.rawAmount,
+        adjustedAmount: maxTransferEvent.adjustedAmount,
+        usdValue: maxTransferEvent.usdValue,
+      },
+    ];
+  }
+
+  private async handleDistributionLikeTransfers(
+    transferEvents: TransferLogEvent[],
+    timestamp: UnixTime,
+  ): Promise<AppraisalSummary[]> {
+    const pricedTransferLogEvents: PricedTransferLogEvent[] =
+      await this.priceTransferLogEvents(transferEvents, timestamp);
+
+    return pricedTransferLogEvents.map((event) => ({
+      contractAddress: event.contractAddress,
+      rawAmount: event.rawAmount,
+      adjustedAmount: event.adjustedAmount,
+      usdValue: event.usdValue,
+    }));
+  }
+
+  private hasReciprocalTransfers(transferEvents: TransferLogEvent[]): boolean {
+    const senders = new Set();
+    const receivers = new Set();
 
     for (const event of transferEvents) {
-      const { contractAddress, rawAmount } = event;
-      const asset = this.monitoredAssets.find(a => a.address === contractAddress);
-
-      if (!asset) {
-        this.logger.warn(`Token ${contractAddress} is not whitelisted and will be ignored in net transfer calculation.`);
-        continue;
-      }
-
-      netTransfers.set(contractAddress, (netTransfers.get(contractAddress) || BigInt(0)) + rawAmount);
+      senders.add(event.fromAddress);
+      receivers.add(event.toAddress);
     }
 
-    return netTransfers;
+    return [...senders].some((sender) => receivers.has(sender));
   }
 
-  private isSwapLikeTransaction(netTransfers: Map<string, bigint>): boolean {
-    // Logic to determine if the net transfers indicate a swap-like transaction
-    // For simplicity, let's say if we have more than one token with net transfers, it's swap-like
-    return netTransfers.size > 1;
-  }
+  private async priceTransferLogEvents(
+    transferEvents: TransferLogEvent[],
+    timestamp: UnixTime,
+  ): Promise<PricedTransferLogEvent[]> {
+    const pricedTransferEventPromises: Promise<PricedTransferLogEvent>[] =
+      transferEvents.map(async (event) => {
+        const asset = this.monitoredAssets.find(
+          (a) => a.address === event.contractAddress,
+        );
+        let adjustedAmount: number | undefined = undefined;
+        let usdValue: number | undefined = undefined;
 
+        if (asset) {
+          // Asset is whitelisted
+          const decimals = asset.decimals;
+          const priceRecord = await this.priceService.getPriceWithRetry(
+            event.contractAddress,
+            timestamp,
+          );
+
+          adjustedAmount = Number(event.rawAmount) / Math.pow(10, decimals);
+          usdValue = priceRecord
+            ? adjustedAmount * priceRecord.priceUsd
+            : undefined;
+        } else {
+          // Asset is not whitelisted
+        }
+
+        return {
+          ...event,
+          adjustedAmount,
+          usdValue,
+        };
+      });
+
+    return Promise.all(pricedTransferEventPromises);
+  }
+}

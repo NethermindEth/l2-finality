@@ -57,13 +57,14 @@ describe(EthereumClient.name, () => {
         transactions: ["0x1234567890abcdef", "0xabcdef1234567890"],
         // @ts-ignore
         getPrefetchedTransaction: (hash: string | number) =>
-          Promise.resolve(mockTransactionResponse),
+          mockTransactionResponse,
       };
 
       createMockProvider(ethClient, block);
       const [actualBlock, actualTransactions] =
         await ethClient.getBlock(blockNumber);
 
+      console.log(actualBlock, actualTransactions);
       // @ts-ignore
       expect(actualBlock).toEqual(block);
       // @ts-ignore

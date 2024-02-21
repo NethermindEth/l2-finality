@@ -1,11 +1,22 @@
-// BaseHandler.ts
 import { ethers } from "ethers";
-import { UnixTime } from '../../../../core/types/UnixTime';
-import Logger from '../../../../tools/Logger'
+import { UnixTime } from "@/core/types/UnixTime";
+import Logger from "@/tools/Logger";
 
-export interface TransferEvent {
+export interface AppraisalSummary {
   contractAddress: string;
   rawAmount: bigint;
+  adjustedAmount?: number;
+  usdValue?: number;
+}
+
+export interface TransferLogEvent {
+  fromAddress: string;
+  toAddress: string;
+  contractAddress: string;
+  rawAmount: bigint;
+}
+
+export interface PricedTransferLogEvent extends TransferLogEvent {
   adjustedAmount?: number;
   usdValue?: number;
 }
@@ -19,6 +30,8 @@ export abstract class BaseHandler {
     this.logger = logger;
   }
 
-  abstract handleTransferEvents(tx: ethers.TransactionResponse, timestamp: UnixTime): Promise<TransferEvent[]>;
+  abstract handleTransferEvents(
+    tx: ethers.TransactionResponse,
+    timestamp: UnixTime,
+  ): Promise<AppraisalSummary[]>;
 }
-
