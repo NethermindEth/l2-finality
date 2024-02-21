@@ -10,6 +10,11 @@ import { getConfig } from "@/config";
 import PricingRepository from "@/database/repositories/PricingRepository";
 import { getTestDatabase } from "@/database/getTestDatabase";
 import { afterEach } from "mocha";
+import {
+  IBlockchainClient,
+  Transaction,
+} from "@/core/clients/blockchain/IBlockchainClient";
+import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 
 interface MockLog {
   address: string;
@@ -19,7 +24,7 @@ interface MockLog {
 
 describe(TokenTransferHandler.name, () => {
   let knexInstance: Knex;
-  let ethersProvider: ethers.JsonRpcProvider;
+  let ethersProvider: IBlockchainClient;
   let priceService: PriceService;
 
   beforeEach(async () => {
@@ -28,8 +33,8 @@ describe(TokenTransferHandler.name, () => {
     const priceRepository = new PricingRepository(knexInstance);
 
     knexInstance = await getTestDatabase();
-    ethersProvider = new ethers.JsonRpcProvider();
-    priceService = new PriceService(priceRepository);
+    ethersProvider = new OptimismClient(config, logger);
+    priceService = new PriceService(priceRepository, logger, false);
   });
 
   afterEach(async () => {
@@ -74,9 +79,9 @@ describe(TokenTransferHandler.name, () => {
     );
 
     const timestamp: UnixTime = UnixTime.now();
-    const mockTxResponse: ethers.TransactionResponse = {
+    const mockTxResponse: Transaction = {
       hash: mockTransactionReceiptLogs.transactionHash,
-    } as ethers.TransactionResponse;
+    } as Transaction;
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
@@ -132,9 +137,9 @@ describe(TokenTransferHandler.name, () => {
     );
 
     const timestamp: UnixTime = UnixTime.now();
-    const mockTxResponse: ethers.TransactionResponse = {
+    const mockTxResponse: Transaction = {
       hash: mockTransactionReceiptLogs.transactionHash,
-    } as ethers.TransactionResponse;
+    } as Transaction;
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
@@ -205,9 +210,9 @@ describe(TokenTransferHandler.name, () => {
     );
 
     const timestamp: UnixTime = UnixTime.now();
-    const mockTxResponse: ethers.TransactionResponse = {
+    const mockTxResponse: Transaction = {
       hash: mockTransactionReceiptLogs.transactionHash,
-    } as ethers.TransactionResponse;
+    } as Transaction;
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
@@ -285,9 +290,9 @@ describe(TokenTransferHandler.name, () => {
     );
 
     const timestamp: UnixTime = UnixTime.now();
-    const mockTxResponse: ethers.TransactionResponse = {
+    const mockTxResponse: Transaction = {
       hash: mockTransactionReceiptLogs.transactionHash,
-    } as ethers.TransactionResponse;
+    } as Transaction;
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
@@ -311,10 +316,10 @@ describe(TokenTransferHandler.name, () => {
 });
 
 function setUpMockProvider(
-  mockProvider: ethers.JsonRpcProvider,
+  mockProvider: IBlockchainClient,
   mockPriceService: PriceService,
   mockTransactionData: any,
-): { mockProvider: ethers.JsonRpcProvider; mockPriceService: PriceService } {
+): { mockProvider: IBlockchainClient; mockPriceService: PriceService } {
   mockProvider.getTransactionReceipt = mockFn().returns(mockTransactionData);
   mockPriceService.getPriceWithRetry = mockFn().returns({ priceUsd: 5 });
 

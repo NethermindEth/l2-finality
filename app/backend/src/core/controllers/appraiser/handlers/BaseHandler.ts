@@ -1,6 +1,9 @@
-import { ethers } from "ethers";
 import { UnixTime } from "@/core/types/UnixTime";
 import Logger from "@/tools/Logger";
+import {
+  IBlockchainClient,
+  Transaction,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface AppraisalSummary {
   contractAddress: string;
@@ -22,16 +25,16 @@ export interface PricedTransferLogEvent extends TransferLogEvent {
 }
 
 export abstract class BaseHandler {
-  protected provider: ethers.Provider;
+  protected provider: IBlockchainClient;
   protected logger: Logger;
 
-  constructor(provider: ethers.Provider, logger: Logger) {
+  constructor(provider: IBlockchainClient, logger: Logger) {
     this.provider = provider;
     this.logger = logger;
   }
 
   abstract handleTransferEvents(
-    tx: ethers.TransactionResponse,
+    tx: Transaction,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]>;
 }

@@ -29,6 +29,7 @@ export function getLocalConfig(env: Env): Config {
   const indexerConfig: IndexerConfig = {
     ethereumRpcEndpoint: env.string("ETHEREUM_RPC_ENDPOINT"),
     optimismRpcEndpoint: env.string("OPTIMISM_RPC_ENDPOINT"),
+    useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 
   const pricingModuleConfig: PricingModuleConfig = {

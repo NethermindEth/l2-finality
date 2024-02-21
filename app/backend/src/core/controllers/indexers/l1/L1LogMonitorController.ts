@@ -1,8 +1,8 @@
 import Logger from "@/tools/Logger";
-import EthereumClient from "@/core/clients/ethereum/EthereumClient";
-import EthereumLogDecoder from "@/core/clients/ethereum/EthereumLogDecoder";
-import contracts from "@/core/clients/ethereum/contracts/contracts.json";
-import { ContractName } from "@/core/clients/ethereum/contracts/types";
+import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
+import EthereumLogDecoder from "@/core/clients/blockchain/ethereum/EthereumLogDecoder";
+import contracts from "@/core/clients/blockchain/ethereum/contracts/contracts.json";
+import { ContractName } from "@/core/clients/blockchain/ethereum/contracts/types";
 import { Database } from "@/database/Database";
 import MetadataRepository, {
   MetadataJobName,

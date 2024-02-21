@@ -28,6 +28,7 @@ export interface DatabaseConfig {
 export interface IndexerConfig {
   readonly ethereumRpcEndpoint: string;
   readonly optimismRpcEndpoint: string;
+  readonly useFakePricing: boolean;
 }
 
 export interface PricingModuleConfig {

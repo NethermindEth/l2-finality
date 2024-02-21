@@ -1,7 +1,7 @@
 import { Logger } from "@/tools/Logger";
 import { Database } from "@/database/Database";
 import { Config } from "@/config/Config";
-import OptimismClient from "@/core/clients/optimism/OptimismClient";
+import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import OptimismFinalityController from "@/core/controllers/indexers/l2/optimism/OptimismFinalityController";
 
 export function createOptimismFinalityModule(

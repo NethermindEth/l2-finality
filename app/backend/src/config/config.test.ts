@@ -38,6 +38,7 @@ export function getTestConfig(env: Env): Config {
       "OPTIMISM_RPC_ENDPOINT",
       "https://rpc.ankr.com/optimism",
     ),
+    useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 
   const pricingModuleConfig: PricingModuleConfig = {

@@ -1,6 +1,10 @@
 import { ethers } from "ethers";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
+import {
+  Block,
+  IBlockchainClient,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface BlockRewardSummary {
   gasFees: bigint;
@@ -10,22 +14,19 @@ export interface BlockRewardSummary {
 }
 
 export class BlockRewardsHandler {
-  private provider: ethers.Provider;
+  private provider: IBlockchainClient;
   private priceService: PriceService;
 
-  constructor(provider: ethers.Provider, priceService: PriceService) {
+  constructor(provider: IBlockchainClient, priceService: PriceService) {
     this.provider = provider;
     this.priceService = priceService;
   }
 
-  async handleBlockRewards(
-    block: ethers.Block,
-    txs: ethers.TransactionResponse[],
-  ): Promise<BlockRewardSummary> {
+  async handleBlockRewards(block: Block): Promise<BlockRewardSummary> {
     let totalGasFees = BigInt(0);
     let totalTips = BigInt(0);
 
-    for (const tx of txs) {
+    for (const tx of block.transactions) {
       const receipt = await this.provider.getTransactionReceipt(tx.hash);
       if (!receipt) continue;
       const gasUsed = receipt.gasUsed ? BigInt(receipt.gasUsed) : BigInt(0);

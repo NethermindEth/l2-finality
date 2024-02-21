@@ -12,6 +12,12 @@ import BlockValueRepository from "@/database/repositories/BlockValueRepository";
 import { Knex } from "knex";
 import pricingRepository from "@/database/repositories/PricingRepository";
 import { afterEach } from "mocha";
+import {
+  Block,
+  IBlockchainClient,
+  Transaction,
+} from "@/core/clients/blockchain/IBlockchainClient";
+import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 
 interface MockTransactionData {
   hash: string;
@@ -26,7 +32,7 @@ interface MockTransactionData {
 describe(BlockRewardsHandler.name, () => {
   let blockRewardsHandler: BlockRewardsHandler;
   let knexInstance: Knex;
-
+  let ethersProvider: IBlockchainClient;
   let priceService: PriceService;
 
   beforeEach(async () => {
@@ -35,7 +41,8 @@ describe(BlockRewardsHandler.name, () => {
     const priceRepository = new PricingRepository(knexInstance);
 
     knexInstance = await getTestDatabase();
-    priceService = new PriceService(priceRepository);
+    priceService = new PriceService(priceRepository, logger, false);
+    ethersProvider = new OptimismClient(config, logger);
   });
 
   afterEach(async () => {
@@ -58,7 +65,7 @@ describe(BlockRewardsHandler.name, () => {
       ];
 
       const { mockProvider, mockPriceService } = setUpMockProvider(
-        new ethers.JsonRpcProvider(),
+        ethersProvider,
         priceService,
         mockTransactionData,
       );
@@ -71,13 +78,13 @@ describe(BlockRewardsHandler.name, () => {
         hash: txData.hash,
         maxPriorityFeePerGas: txData.priorityFeePerGas,
         maxFeePerGas: txData.maxFeePerGas,
-      })) as ethers.TransactionResponse[];
+      })) as Transaction[];
+
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
-      )) as ethers.Block;
+      )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block, txs);
-      console.log(result);
+      const result = await blockRewardsHandler.handleBlockRewards(block);
       const expected = {
         gasFees: 438513250744200n,
         gasFeesUsd: (Number(438513250744200n) / 1e18) * 5,
@@ -139,7 +146,7 @@ describe(BlockRewardsHandler.name, () => {
       ];
 
       const { mockProvider, mockPriceService } = setUpMockProvider(
-        new ethers.JsonRpcProvider(),
+        ethersProvider,
         priceService,
         mockTransactionData,
       );
@@ -148,17 +155,11 @@ describe(BlockRewardsHandler.name, () => {
         mockPriceService,
       );
 
-      const txs = mockTransactionData.map((txData) => ({
-        hash: txData.hash,
-        maxPriorityFeePerGas: txData.priorityFeePerGas,
-        maxFeePerGas: txData.maxFeePerGas,
-      })) as ethers.TransactionResponse[];
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
-      )) as ethers.Block;
+      )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block, txs);
-      console.log(result);
+      const result = await blockRewardsHandler.handleBlockRewards(block);
       const expected = {
         gasFees: 498190237979734n,
         gasFeesUsd: (Number(498190237979734n) / 1e18) * 5,
@@ -172,7 +173,7 @@ describe(BlockRewardsHandler.name, () => {
 });
 
 function setUpMockProvider(
-  mockProvider: ethers.JsonRpcProvider,
+  mockProvider: IBlockchainClient,
   mockPriceService: PriceService,
   mockTransactionData: MockTransactionData[],
 ) {
@@ -197,24 +198,17 @@ function setUpMockProvider(
         number: txData ? txData.blockNumber : 0,
         timestamp: 1629782400,
         baseFeePerGas: txData ? txData.blockBaseFeePerGas : BigInt(0),
-      };
-    },
-  );
-
-  const mockGetTransaction = mockFn<(hash: string) => any>().executes(
-    (hash: string) => {
-      const txData = mockTransactionData.find((tx) => tx.hash === hash);
-      return {
-        hash: txData ? txData.hash : "",
-        maxPriorityFeePerGas: txData ? txData.priorityFeePerGas : BigInt(0),
-        maxFeePerGas: txData ? txData.maxFeePerGas : BigInt(0),
+        transactions: mockTransactionData.map((tx) => ({
+          hash: tx.hash,
+          maxPriorityFeePerGas: tx.priorityFeePerGas,
+          maxFeePerGas: tx.maxFeePerGas,
+        })),
       };
     },
   );
 
   mockProvider.getTransactionReceipt = mockGetTransactionReceipt;
   mockProvider.getBlock = mockGetBlock;
-  mockProvider.getTransaction = mockGetTransaction;
 
   mockGetPriceWithRetry.returns({
     priceUsd: 5,

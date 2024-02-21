@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
 import { UnixTime } from "@/core/types/UnixTime";
 import { TokenTransferHandler } from "../handlers/TokenTransfers";
 import { NativeTransferHandler } from "../handlers/NativeTransfers";
 import { AppraisalSummary } from "../handlers/BaseHandler";
+import { Transaction } from "@/core/clients/blockchain/IBlockchainClient";
 
 export class TransferService {
   constructor(
@@ -11,7 +11,7 @@ export class TransferService {
   ) {}
 
   async handleTransfers(
-    txs: ethers.TransactionResponse[],
+    txs: Transaction[],
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
     const allEvents: AppraisalSummary[] = [];

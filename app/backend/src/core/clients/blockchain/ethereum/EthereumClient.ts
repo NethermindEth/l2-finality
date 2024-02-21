@@ -2,9 +2,16 @@ import { ethers, Network } from 'ethers'
 import contracts from "./contracts/contracts.json";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
-import { ContractName } from "@/core/clients/ethereum/contracts/types";
+import { ContractName } from "@/core/clients/blockchain/ethereum/contracts/types";
+import {
+  Block,
+  ethersToBlock,
+  ethersToTransactionReceipt,
+  IBlockchainClient,
+  TransactionReceipt,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
-class EthereumClient {
+class EthereumClient implements IBlockchainClient {
   private provider: ethers.JsonRpcProvider;
   private network: Network;
   private logger: Logger;
@@ -34,18 +41,22 @@ class EthereumClient {
     }
   }
 
-  public async getBlock(
-    blockHeight: number,
-  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> {
+  public async getBlock(blockHeight: number): Promise<Block | undefined> {
     const block = await this.provider.getBlock(blockHeight, true);
-    if (!block) {
-      return [null, null];
+    if (block) {
+      return ethersToBlock(block);
     }
+    this.logger.error(`Block not found: ${blockHeight}`);
+  }
 
-    const txs = block.transactions.map((hash: string) =>
-      block.getPrefetchedTransaction(hash),
-    );
-    return [block, txs];
+  public async getTransactionReceipt(
+    txHash: string,
+  ): Promise<TransactionReceipt | undefined> {
+    const receipt = await this.provider.getTransactionReceipt(txHash);
+    if (receipt) {
+      return ethersToTransactionReceipt(receipt);
+    }
+    this.logger.error(`Transaction receipt not found: ${txHash}`);
   }
 
   public async getContractLogs(

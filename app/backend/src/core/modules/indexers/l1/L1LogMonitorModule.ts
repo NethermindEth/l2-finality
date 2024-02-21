@@ -3,7 +3,7 @@ import { Database } from "@/database/Database";
 import { Config } from "@/config/Config";
 import L1LogMonitorController from "@/core/controllers/indexers/l1/L1LogMonitorController";
 import { TaskScheduler } from "@/core/scheduler/TaskScheduler";
-import EthereumClient from "@/core/clients/ethereum/EthereumClient";
+import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 
 export function createL1MonitorModule(
   config: Config,

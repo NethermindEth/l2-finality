@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import Logger from "@/tools/Logger";
 import contractsData from "./contracts/contracts.json";
 import { getConfig } from "@/config";
+import { ethersToBlock } from "@/core/clients/blockchain/IBlockchainClient";
 
 describe(EthereumClient.name, () => {
   let ethClient: EthereumClient;
@@ -40,6 +41,10 @@ describe(EthereumClient.name, () => {
         value: 0n,
         blockNumber: blockNumber,
         blockHash: "0x1234567890abcdef",
+        index: 1,
+        type: 0,
+        maxFeePerGas: 100n,
+        maxPriorityFeePerGas: 100n,
       };
 
       const block: Partial<ethers.Block> = {
@@ -61,16 +66,13 @@ describe(EthereumClient.name, () => {
       };
 
       createMockProvider(ethClient, block);
-      const [actualBlock, actualTransactions] =
-        await ethClient.getBlock(blockNumber);
-
-      console.log(actualBlock, actualTransactions);
+      const actualBlock = await ethClient.getBlock(blockNumber);
       // @ts-ignore
-      expect(actualBlock).toEqual(block);
+      expect(actualBlock).toEqual(ethersToBlock(block));
       // @ts-ignore
-      expect(actualTransactions.length).toEqual(2);
+      expect(actualBlock?.transactions.length).toEqual(2);
       // @ts-ignore
-      actualTransactions.forEach((actualTransaction, index) =>
+      actualBlock?.transactions.forEach((actualTransaction, index) =>
         // @ts-ignore
         expect(actualTransaction).toEqual(mockTransactionResponse),
       );

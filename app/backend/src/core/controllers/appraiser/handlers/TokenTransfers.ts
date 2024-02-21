@@ -10,13 +10,18 @@ import { PriceService } from "../services/PriceService";
 import { WhitelistedAsset } from "@/core/clients/coincap/assets/types";
 import Logger from "@/tools/Logger";
 import monitoredAssets from "@/core/clients/coincap/assets/whitelisted.json";
+import {
+  IBlockchainClient,
+  Log,
+  Transaction,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
 export class TokenTransferHandler extends BaseHandler {
   private priceService: PriceService;
   private monitoredAssets: WhitelistedAsset[];
 
   constructor(
-    provider: ethers.Provider,
+    provider: IBlockchainClient,
     logger: Logger,
     priceService: PriceService,
   ) {
@@ -26,7 +31,7 @@ export class TokenTransferHandler extends BaseHandler {
   }
 
   async handleTransferEvents(
-    tx: ethers.TransactionResponse,
+    tx: Transaction,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
     const receipt = await this.provider.getTransactionReceipt(tx.hash);
@@ -41,9 +46,7 @@ export class TokenTransferHandler extends BaseHandler {
       : await this.handleDistributionLikeTransfers(transferEvents, timestamp);
   }
 
-  private extractTransferEvents(
-    logs: readonly ethers.Log[],
-  ): TransferLogEvent[] {
+  private extractTransferEvents(logs: Log[]): TransferLogEvent[] {
     const transferEvents: TransferLogEvent[] = [];
 
     const transferEventSigHash = ethers.id("Transfer(address,address,uint256)");
@@ -53,7 +56,7 @@ export class TokenTransferHandler extends BaseHandler {
         const contractAddress = log.address;
         const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
         const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
-        const rawAmount = BigInt(log.data);
+        const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
         transferEvents.push({
           fromAddress,
           toAddress,

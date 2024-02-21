@@ -1,7 +1,7 @@
 import fs from "fs";
 import { LogProcessors } from "./LogProcessor";
 import { expect } from "earl";
-import contracts from "@/core/clients/ethereum/contracts/contracts.json";
+import contracts from "@/core/clients/blockchain/ethereum/contracts/contracts.json";
 import { ethers } from "ethers";
 import {
   SubmissionType,

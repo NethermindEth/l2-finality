@@ -3,13 +3,17 @@ import { AppraisalSummary, BaseHandler } from "./BaseHandler";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
 import Logger from "@/tools/Logger";
+import {
+  IBlockchainClient,
+  Transaction,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
 export class NativeTransferHandler extends BaseHandler {
   private priceService: PriceService;
   private ethContract: string;
 
   constructor(
-    provider: ethers.Provider,
+    provider: IBlockchainClient,
     logger: Logger,
     priceService: PriceService,
   ) {
@@ -20,7 +24,7 @@ export class NativeTransferHandler extends BaseHandler {
   }
 
   async handleTransferEvents(
-    tx: ethers.TransactionResponse,
+    tx: Transaction,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
     const adjustedAmount = Number(tx.value) / 1e18;

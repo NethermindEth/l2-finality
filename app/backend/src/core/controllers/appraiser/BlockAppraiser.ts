@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { TransferService } from "./services/TransferService";
 import { TransferValueSummarizer } from "./aggregators/TransferValueSummarizer";
 import { AggregatedTransferResults, BlockValue } from "./types";
@@ -8,6 +7,7 @@ import {
   BlockRewardsHandler,
   BlockRewardSummary,
 } from "@/core/controllers/appraiser/handlers/BlockRewardsHandler";
+import { Block } from "@/core/clients/blockchain/IBlockchainClient";
 
 export class BlockAppraiser {
   constructor(
@@ -15,24 +15,18 @@ export class BlockAppraiser {
     private blockRewardsHandler: BlockRewardsHandler,
   ) {}
 
-  public async value(
-    txs: ethers.TransactionResponse[],
-    block: ethers.Block,
-  ): Promise<BlockValue> {
+  public async value(block: Block): Promise<BlockValue> {
     const timestamp: UnixTime = UnixTime.fromDate(
       new Date(block.timestamp * 1000),
     );
 
     const blockRewardSummary: BlockRewardSummary =
-      await this.blockRewardsHandler.handleBlockRewards(block, txs);
-    console.log(blockRewardSummary);
+      await this.blockRewardsHandler.handleBlockRewards(block);
 
     const transfers: AppraisalSummary[] =
-      await this.transferService.handleTransfers(txs, timestamp);
-    console.log(transfers);
+      await this.transferService.handleTransfers(block.transactions, timestamp);
     const aggregatedResults: AggregatedTransferResults =
       TransferValueSummarizer.aggregate(transfers);
-    console.log(aggregatedResults);
 
     return {
       transferSummary: aggregatedResults,
