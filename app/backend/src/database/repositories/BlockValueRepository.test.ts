@@ -31,28 +31,37 @@ describe(BlockValueRepository.name, () => {
   });
 
   describe(BlockValueRepository.prototype.upsertRecord.name, () => {
-    it("inserts a new block value record", async () => {
-      const blockValue = {
+    it("inserts a new block value record with block reward summary", async () => {
+      const blockValueRecord: BlockValueRecord = {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: { "0xABC": 1000 },
+        value: {
+          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
+          unmapped: [],
+        },
+        gas_fees: 100n,
+        gas_fees_usd: 10,
+        block_reward: 100n,
+        block_reward_usd: 10,
       };
 
-      const record: BlockValueRecord = {
-        l2_block_number: blockValue.l2_block_number,
-        l2_block_hash: blockValue.l2_block_hash,
-        l2_block_timestamp: blockValue.l2_block_timestamp,
-        value: blockValue.value,
-      };
-
-      await repository.upsertRecord(chainId, record);
-
-      const result = await knexInstance(chainTableMapping[chainId]).first();
-      expect({
+      await repository.upsertRecord(chainId, blockValueRecord);
+      const result = await knexInstance(chainTableMapping[chainId])
+        .where("l2_block_number", blockValueRecord.l2_block_number.toString())
+        .first();
+      const formattedResult = {
         ...result,
+        value: result.value,
+        gas_fees_usd: parseFloat(result.gas_fees_usd),
+        block_reward_usd: parseFloat(result.block_reward_usd),
+        gas_fees: BigInt(result.gas_fees),
+        block_reward: BigInt(result.block_reward),
         l2_block_number: BigInt(result.l2_block_number),
-      }).toEqual(blockValue);
+        l2_block_timestamp: new Date(result.l2_block_timestamp),
+      };
+
+      expect(formattedResult).toEqual(blockValueRecord);
     });
 
     it("throws an error or handles invalid input", async () => {
@@ -80,11 +89,18 @@ describe(BlockValueRepository.name, () => {
 
   describe(BlockValueRepository.prototype.getBetweenBlocks.name, () => {
     it("retrieves block value records between specified block numbers", async () => {
-      const record = {
+      const record: BlockValueRecord = {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: { "0xABC": 1000 },
+        value: {
+          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
+          unmapped: [{ contractAddress: "0xABC", rawTotalAmount: 10n }],
+        },
+        gas_fees: 100n,
+        gas_fees_usd: 10,
+        block_reward: 100n,
+        block_reward_usd: 10,
       };
       await repository.upsertRecord(chainId, record);
 
@@ -99,11 +115,18 @@ describe(BlockValueRepository.name, () => {
 
   describe(BlockValueRepository.prototype.getBetweenTimestamps.name, () => {
     it("retrieves block value records between specified timestamps", async () => {
-      const record = {
+      const record: BlockValueRecord = {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: { "0xABC": 1000 },
+        value: {
+          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
+          unmapped: [],
+        },
+        gas_fees: 100n,
+        gas_fees_usd: 10,
+        block_reward: 100n,
+        block_reward_usd: 10,
       };
       await repository.upsertRecord(chainId, record);
 
