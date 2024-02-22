@@ -14,6 +14,8 @@ export class PriceUpdaterController {
   private readonly backfillPeriodDays: number;
   private readonly pollIntervalMs: number;
 
+  private hasBackfilledHistory: boolean;
+
   constructor(
     client: CoinGeckoClient,
     priceRepository: PriceRepository,
@@ -26,6 +28,7 @@ export class PriceUpdaterController {
     this.whitelistedAssets = whitelisted;
     this.backfillPeriodDays = config.backfillPeriodDays;
     this.pollIntervalMs = config.pollIntervalMs;
+    this.hasBackfilledHistory = false;
   }
 
   async start() {
@@ -34,6 +37,8 @@ export class PriceUpdaterController {
   }
 
   private async backfillHistory() {
+    if (this.hasBackfilledHistory) return;
+
     const now = UnixTime.now();
     const earliest = await this.priceRepository.findEarliestByToken();
 
@@ -57,6 +62,9 @@ export class PriceUpdaterController {
       const [fromStr, toStr] = [range.from.toDate().toISOString(), range.to.toDate().toISOString()];
       this.logger.info(`Backfilled history for ${asset.coingeckoId} from ${fromStr} to ${toStr} with ${priceRecords.length} records`);
     }
+
+    this.hasBackfilledHistory = true;
+    this.logger.info(`Backfilled history for all the assets`);
   }
 
   private async updateActivePrices() {
