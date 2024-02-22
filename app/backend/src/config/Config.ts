@@ -32,9 +32,12 @@ export interface IndexerConfig {
 
 export interface PricingModuleConfig {
   readonly enabled: boolean;
-  readonly coinCapBaseUrl: string;
-  readonly coinCapApiKey: string;
+  readonly baseUrl: string;
+  readonly apiKey: string;
+  readonly apiKeyHeader: string;
   readonly maxMinuteRateLimit: number;
+  readonly backfillPeriodDays: number;
+  readonly pollIntervalMs: number;
 }
 
 export interface EthereumMonitorConfig {

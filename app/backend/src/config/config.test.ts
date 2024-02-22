@@ -42,12 +42,15 @@ export function getTestConfig(env: Env): Config {
 
   const pricingModuleConfig: PricingModuleConfig = {
     enabled: env.boolean("PRICING_MODULE_ENABLED", true),
-    coinCapBaseUrl: env.string(
-      "PRICING_COINCAP_BASE_URL",
-      "https://api.coincap.io/v2",
+    baseUrl: env.string(
+      "PRICING_BASE_URL",
+      "https://api.coingecko.com/api/v3",
     ),
-    coinCapApiKey: env.string("PRICING_COINCAP_API_KEY", "coinCapApiKey"),
+    apiKey: env.string("PRICING_API_KEY"),
+    apiKeyHeader: env.string("PRICING_API_KEY_HEADER"),
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 100),
+    backfillPeriodDays: env.integer("PRICING_BACKFILL_PERIOD_DAYS", 30),
+    pollIntervalMs: env.integer("PRICING_POLL_INTERVAL_MS", 15 * 60 * 1000),
   };
 
   const ethereumMonitorConfig: EthereumMonitorConfig = {

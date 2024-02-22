@@ -82,6 +82,17 @@ export class PriceRepository {
     );
   }
 
+  async findEarliestByToken(): Promise<Map<string, UnixTime | undefined>> {
+    const rows = await this.knex(TABLE_NAME)
+      .min("timestamp")
+      .select("asset_id")
+      .groupBy("asset_id");
+
+    return new Map(
+      rows.map((row) => [row.asset_id, UnixTime.fromDate(row.min)]),
+    );
+  }
+
   async getLatestAndPreviousByToken(): Promise<
     Map<string, { latestPrice: any; previousPrice: any }>
   > {

@@ -1,30 +1,31 @@
 import Logger from "@/tools/Logger";
 import { Database } from "@/database/Database";
-import CoinCapClient from "@/core/clients/coincap/CoinCapClient";
 import { PriceUpdaterController } from "@/core/controllers/pricing/PriceUpdaterController";
 import { PriceRepository } from "@/database/repositories/PricingRepository";
 import TaskScheduler from "@/core/scheduler/TaskScheduler";
 import { Config } from "@/config/Config";
+import { CoinGeckoClient } from "@/core/clients/coingecko/CoinGeckoClient";
 
 export function createPriceUpdaterModule(
   config: Config,
   logger: Logger,
   database: Database,
-  coinCapClient: CoinCapClient,
+  client: CoinGeckoClient,
 ): { start: () => Promise<void> } {
   const loggerContext: string = "Price updater module";
 
   const priceRepository = new PriceRepository(database.getKnex());
 
   const priceUpdaterController = new PriceUpdaterController(
-    coinCapClient,
+    client,
     priceRepository,
-    logger,
+    config.pricingModule,
+    logger.for(loggerContext)
   );
 
   const priceUpdaterTaskScheduler = new TaskScheduler(
     () => priceUpdaterController.start(),
-    10000,
+    config.pricingModule.pollIntervalMs,
     logger.for(loggerContext),
   );
 
@@ -32,7 +33,7 @@ export function createPriceUpdaterModule(
     return {
       start: async () => {
         logger.info("Starting price updater...");
-        await priceUpdaterTaskScheduler.start();
+        priceUpdaterTaskScheduler.start();
       },
     };
   } else {

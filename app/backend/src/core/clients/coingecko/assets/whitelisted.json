@@ -1,9 +1,10 @@
 [
   {
-    "coincap_asset_id": "bitcoin",
-    "coinmarketcap_asset_id": null,
     "name": "WBTC",
     "ticker": "WBTC",
+    "coingeckoId": "wrapped-bitcoin",
+    "deploymentTimestamp": 1543095952,
+    "coingeckoListingTimestamp": 1573689600,
     "contracts": {
       "ethereum": {
         "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
@@ -12,10 +13,11 @@
     }
   },
   {
-    "coincap_asset_id": "ethereum",
-    "coinmarketcap_asset_id": null,
     "name": "ETH",
     "ticker": "ETH",
+    "coingeckoId": "ethereum",
+    "deploymentTimestamp": 0,
+    "coingeckoListingTimestamp": 0,
     "contracts": {
       "ethereum": {
         "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",

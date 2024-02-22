@@ -8,8 +8,9 @@ interface ContractAddresses {
 }
 
 export interface WhitelistedAsset {
-  coincap_asset_id: string;
-  coinmarketcap_asset_id: string | null;
+  coingeckoId: string;
+  deploymentTimestamp: number;
+  coingeckoListingTimestamp: number;
   name: string;
   ticker: string;
   contracts: ContractAddresses;
