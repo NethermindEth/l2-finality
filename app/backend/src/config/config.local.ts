@@ -38,7 +38,7 @@ export function getLocalConfig(env: Env): Config {
       "https://api.coingecko.com/api/v3",
     ),
     apiKey: env.string("PRICING_API_KEY"),
-    apiKeyHeader: env.string("PRICING_API_KEY_HEADER"),
+    apiKeyHeader: env.string("PRICING_API_KEY_HEADER", "x-cg-demo-api-key"),
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 30),
     backfillPeriodDays: env.integer("PRICING_BACKFILL_PERIOD_DAYS", 30),
     pollIntervalMs: env.integer("PRICING_POLL_INTERVAL_MS", 15 * 60 * 1000),
