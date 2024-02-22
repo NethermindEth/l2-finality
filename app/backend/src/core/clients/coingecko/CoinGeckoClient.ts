@@ -25,7 +25,7 @@ export class CoinGeckoClient {
 
     this.headers = {
       [this.apiKeyHeader]: this.apiKey,
-      "Accept-Encoding": "gzip, deflate"
+      "Accept-Encoding": "gzip, deflate",
     };
 
     this.http = rateLimit(axios.create(), {
@@ -34,36 +34,54 @@ export class CoinGeckoClient {
     });
   }
 
-  async getPrices(coingeckoIds: string[]): Promise<{ [id: string]: PriceEntry | undefined }> {
+  async getPrices(
+    coingeckoIds: string[],
+  ): Promise<{ [id: string]: PriceEntry | undefined }> {
     const noCache = UnixTime.now().toSeconds();
-    const url = `${this.baseUrl}/simple/price?include_last_updated_at=true&vs_currencies=usd&ids=${coingeckoIds.join(',')}&c=${noCache}`;
+    const url = `${this.baseUrl}/simple/price?include_last_updated_at=true&vs_currencies=usd&ids=${coingeckoIds.join(",")}&c=${noCache}`;
 
     try {
-      const response = await this.http.get<{ [id: string]: { usd: number, last_updated_at: number } }>(url, {
-        headers: this.headers
+      const response = await this.http.get<{
+        [id: string]: { usd: number; last_updated_at: number };
+      }>(url, {
+        headers: this.headers,
       });
 
-      return Object.fromEntries(coingeckoIds.map(id => {
-        const entry = response.data[id];
-        return [id, entry ? {timestamp: new UnixTime(entry.last_updated_at), price: entry.usd} : undefined];
-      }));
+      return Object.fromEntries(
+        coingeckoIds.map((id) => {
+          const entry = response.data[id];
+          return [
+            id,
+            entry
+              ? {
+                  timestamp: new UnixTime(entry.last_updated_at),
+                  price: entry.usd,
+                }
+              : undefined,
+          ];
+        }),
+      );
     } catch (error) {
       handleError(error, this.logger);
       throw new Error("Failed to fetch prices");
     }
   }
 
-  async getHistory(coingeckoId: string, from: UnixTime, to: UnixTime): Promise<PriceEntry[]> {
+  async getHistory(
+    coingeckoId: string,
+    from: UnixTime,
+    to: UnixTime,
+  ): Promise<PriceEntry[]> {
     const url = `${this.baseUrl}/coins/${coingeckoId}/market_chart/range?from=${from}&to=${to}&vs_currency=usd`;
 
     try {
-      const response = await this.http.get<({ prices: number[][] })>(url, {
-        headers: this.headers
+      const response = await this.http.get<{ prices: number[][] }>(url, {
+        headers: this.headers,
       });
 
-      return response.data.prices.map(x => ({
+      return response.data.prices.map((x) => ({
         timestamp: new UnixTime(x[0]),
-        price: x[1]
+        price: x[1],
       }));
     } catch (error) {
       handleError(error, this.logger);

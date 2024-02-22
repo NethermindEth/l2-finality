@@ -1,4 +1,7 @@
-import { PriceRecord, PriceRepository } from "@/database/repositories/PricingRepository";
+import {
+  PriceRecord,
+  PriceRepository,
+} from "@/database/repositories/PricingRepository";
 import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
 import { UnixTime } from "@/core/types/UnixTime";
@@ -43,31 +46,45 @@ export class PriceUpdaterController {
     const earliest = await this.priceRepository.findEarliestByToken();
 
     for (const asset of this.whitelistedAssets) {
-      const range = this.calculateHistoryRange(now, asset, earliest.get(asset.coingeckoId));
+      const range = this.calculateHistoryRange(
+        now,
+        asset,
+        earliest.get(asset.coingeckoId),
+      );
       if (!range) continue;
 
-      let [fromStr, toStr] = [range.from.toDate().toISOString(), range.to.toDate().toISOString()];
-      const response = await this.client.getHistory(asset.coingeckoId, range.from, range.to);
+      let [fromStr, toStr] = [
+        range.from.toDate().toISOString(),
+        range.to.toDate().toISOString(),
+      ];
+      const response = await this.client.getHistory(
+        asset.coingeckoId,
+        range.from,
+        range.to,
+      );
 
-      if (!response.length)
-      {
-        this.logger.warn(`Attempted to backfill history for ${asset.coingeckoId} from ${fromStr} to ${toStr} but got no records`);
+      if (!response.length) {
+        this.logger.warn(
+          `Attempted to backfill history for ${asset.coingeckoId} from ${fromStr} to ${toStr} but got no records`,
+        );
         continue;
       }
 
       const priceRecords = response.map((price) => ({
         assetId: asset.coingeckoId,
         priceUsd: price.price,
-        timestamp: UnixTime.fromDate(price.timestamp.toDate())
+        timestamp: UnixTime.fromDate(price.timestamp.toDate()),
       }));
 
       await this.priceRepository.addMany(priceRecords);
 
       [fromStr, toStr] = [
         priceRecords[0].timestamp.toDate().toISOString(),
-        priceRecords.slice(-1)[0].timestamp.toDate().toISOString()
+        priceRecords.slice(-1)[0].timestamp.toDate().toISOString(),
       ];
-      this.logger.info(`Backfilled history for ${asset.coingeckoId} from ${fromStr} to ${toStr} with ${priceRecords.length} records`);
+      this.logger.info(
+        `Backfilled history for ${asset.coingeckoId} from ${fromStr} to ${toStr} with ${priceRecords.length} records`,
+      );
     }
 
     this.hasBackfilledHistory = true;
@@ -75,7 +92,7 @@ export class PriceUpdaterController {
   }
 
   private async updateActivePrices() {
-    const ids = whitelisted.map(a => a.coingeckoId);
+    const ids = whitelisted.map((a) => a.coingeckoId);
 
     const prices = await this.client.getPrices(ids);
     const priceRecords: PriceRecord[] = [];
@@ -90,7 +107,7 @@ export class PriceUpdaterController {
       priceRecords.push({
         assetId: assetId,
         priceUsd: price.price,
-        timestamp: price.timestamp
+        timestamp: price.timestamp,
       });
     }
 
@@ -98,23 +115,31 @@ export class PriceUpdaterController {
     this.logger.debug(`Upserted ${upsertedCount} active price records`);
   }
 
-  private calculateHistoryRange(now: UnixTime, asset: WhitelistedAsset, earliest: UnixTime | undefined): {
-    from: UnixTime,
-    to: UnixTime
-  } | undefined {
+  private calculateHistoryRange(
+    now: UnixTime,
+    asset: WhitelistedAsset,
+    earliest: UnixTime | undefined,
+  ):
+    | {
+        from: UnixTime;
+        to: UnixTime;
+      }
+    | undefined {
     let to = now;
     let from = to.add(-this.backfillPeriodDays, "days");
 
-    const assetFrom = Math.max(asset.deploymentTimestamp, asset.coingeckoListingTimestamp);
+    const assetFrom = Math.max(
+      asset.deploymentTimestamp,
+      asset.coingeckoListingTimestamp,
+    );
 
-    if (assetFrom > from.toSeconds())
-      from = new UnixTime(assetFrom);
+    if (assetFrom > from.toSeconds()) from = new UnixTime(assetFrom);
 
     if (earliest !== undefined && earliest.toSeconds() < to.toSeconds())
-      to = earliest.add(-1, 'hours');
+      to = earliest.add(-1, "hours");
 
-    return to.toSeconds() > from.add(1, 'hours').toSeconds()
-      ? {from, to} // do not feel range of less than 1 hour
+    return to.toSeconds() > from.add(1, "hours").toSeconds()
+      ? { from, to } // do not feel range of less than 1 hour
       : undefined;
   }
 }

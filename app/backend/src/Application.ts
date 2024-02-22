@@ -12,7 +12,7 @@ import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/O
 
 export class Application {
   constructor(config: Config) {
-    const logger: Logger = new Logger({logLevel: config.api.logLevel});
+    const logger: Logger = new Logger({ logLevel: config.api.logLevel });
     const database: Database = new Database(config.database, logger);
 
     const ethClient = new EthereumClient(config, logger.for("Ethereum Client"));

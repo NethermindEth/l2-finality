@@ -20,7 +20,7 @@ export function createPriceUpdaterModule(
     client,
     priceRepository,
     config.pricingModule,
-    logger.for(loggerContext)
+    logger.for(loggerContext),
   );
 
   const priceUpdaterTaskScheduler = new TaskScheduler(

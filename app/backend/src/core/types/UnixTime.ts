@@ -13,9 +13,11 @@ export class UnixTime {
     } else if (!PositiveNumber.safeParse(timestamp).success) {
       throw new TypeError("timestamp must be a positive integer");
     } else if (timestamp > this.YEAR_3000_TIMESTAMP * 1000) {
-      throw new TypeError("timestamp must represent time in seconds or milliseconds");
+      throw new TypeError(
+        "timestamp must represent time in seconds or milliseconds",
+      );
     } else if (timestamp > this.YEAR_3000_TIMESTAMP) {
-      this.timestamp = Math.floor(timestamp / 1000)
+      this.timestamp = Math.floor(timestamp / 1000);
     }
   }
 

@@ -4,17 +4,17 @@ import { UnixTime } from "./UnixTime";
 
 describe("UnixTime.name", () => {
   [
-    {ms: 1708316848000, res: 1708316848},
-    {ms: 1708316848123, res: 1708316848},
-    {ms: 1708316848789, res: 1708316848}
-  ].forEach(testCase =>
+    { ms: 1708316848000, res: 1708316848 },
+    { ms: 1708316848123, res: 1708316848 },
+    { ms: 1708316848789, res: 1708316848 },
+  ].forEach((testCase) =>
     it("rounds down when constructed from milliseconds", () => {
       expect(new UnixTime(testCase.ms).toSeconds()).toEqual(testCase.res);
-    })
+    }),
   );
 
   it("shows seconds in template literal", () => {
-    expect(`${new UnixTime(1708316848)}`).toEqual('1708316848');
+    expect(`${new UnixTime(1708316848)}`).toEqual("1708316848");
   });
 
   it("cannot be constructed from too large numbers", () => {
