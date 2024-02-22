@@ -46,10 +46,14 @@ export class PriceUpdaterController {
       const range = this.calculateHistoryRange(now, asset, earliest.get(asset.coingeckoId));
       if (!range) continue;
 
+      let [fromStr, toStr] = [range.from.toDate().toISOString(), range.to.toDate().toISOString()];
       const response = await this.client.getHistory(asset.coingeckoId, range.from, range.to);
 
       if (!response.length)
+      {
+        this.logger.warn(`Attempted to backfill history for ${asset.coingeckoId} from ${fromStr} to ${toStr} but got no records`);
         continue;
+      }
 
       const priceRecords = response.map((price) => ({
         assetId: asset.coingeckoId,
@@ -59,7 +63,10 @@ export class PriceUpdaterController {
 
       await this.priceRepository.addMany(priceRecords);
 
-      const [fromStr, toStr] = [range.from.toDate().toISOString(), range.to.toDate().toISOString()];
+      [fromStr, toStr] = [
+        priceRecords[0].timestamp.toDate().toISOString(),
+        priceRecords.slice(-1)[0].timestamp.toDate().toISOString()
+      ];
       this.logger.info(`Backfilled history for ${asset.coingeckoId} from ${fromStr} to ${toStr} with ${priceRecords.length} records`);
     }
 
