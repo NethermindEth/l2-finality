@@ -1,4 +1,5 @@
 import { Knex } from "knex";
+import { LogLevel } from "@/tools/Logger";
 
 export interface Config {
   readonly database: DatabaseConfig;
@@ -11,6 +12,7 @@ export interface Config {
 
 export interface ApiConfig {
   readonly port: number;
+  readonly logLevel: LogLevel;
 }
 
 export interface DatabaseConfig {

@@ -8,6 +8,7 @@ import {
   PricingModuleConfig,
 } from "./Config";
 import { Env } from "@/tools/Env";
+import { LogLevel } from "@/tools/Logger";
 
 export function getLocalConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
@@ -22,6 +23,7 @@ export function getLocalConfig(env: Env): Config {
 
   const apiConfig: ApiConfig = {
     port: env.integer("API_PORT", 3005),
+    logLevel: env.string("LOG_LEVEL", "info") as LogLevel
   };
 
   const indexerConfig: IndexerConfig = {
