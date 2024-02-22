@@ -1,8 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
-*/node_modules/*
+**/node_modules/*
 
 /.pnp
 .pnp.js
@@ -37,7 +36,7 @@ app/backend/.env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-/app/frontend/node_modules/
 
 /.idea/
+/.vscode/
 test.ts
