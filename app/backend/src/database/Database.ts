@@ -2,6 +2,7 @@ import KnexConstructor, { Knex } from "knex";
 import path from "path";
 import Logger from "@/tools/Logger";
 import { DatabaseConfig } from "@/config/Config";
+import { MigrationsResolver } from "@/database/MigrationsResolver";
 
 export class Database {
   private readonly knex: Knex;
@@ -16,7 +17,10 @@ export class Database {
       client: config.client,
       connection: config.connection,
       migrations: {
-        directory: path.join(__dirname, "migrations"),
+        disableMigrationsListValidation: true,
+        migrationSource: new MigrationsResolver(
+          path.join(__dirname, "migrations"),
+        ),
       },
       pool: config.connectionPoolSize,
     });
