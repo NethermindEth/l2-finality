@@ -1,0 +1,10 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: app/backend
+    container_name: backend
+    env_file: app/backend/.env.dev
+    expose:
+      - 80
+    restart: always

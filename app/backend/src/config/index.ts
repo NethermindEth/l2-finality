@@ -15,6 +15,8 @@ export function getConfig(): Config {
       return getTestConfig(env);
     case "local":
       return getLocalConfig(env);
+    case "dev":
+      return getLocalConfig(env);
   }
 
   throw new TypeError(`Unrecognized env: ${deploymentEnv}!`);
