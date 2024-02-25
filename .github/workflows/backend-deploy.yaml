@@ -1,9 +1,10 @@
 name: Backend deploy
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - feature/ci
+      - feature/ci  # used for testing, TODO: remove after merge to master
 
 jobs:
   deploy:
