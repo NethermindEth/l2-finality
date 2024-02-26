@@ -7,7 +7,11 @@ on:
       - feature/ci  # used for testing, TODO: remove after merge to master
 
 jobs:
+  backend-check:
+    uses: ./.github/workflows/backend-check.yaml
+
   deploy:
+    needs: backend-check
     runs-on: ubuntu-latest
     steps:
       - name: Check out code

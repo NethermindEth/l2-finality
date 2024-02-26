@@ -1,6 +1,7 @@
-name: Frontend CI
+name: Frontend checks
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - 'app/frontend/**'

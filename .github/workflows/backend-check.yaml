@@ -1,6 +1,7 @@
-name: Backend CI
+name: Backend checks
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - 'app/backend/**'
