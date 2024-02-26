@@ -7,7 +7,7 @@
     ]
   },
   "scripts": {
-    "backend:start": ""
+    "backend:start": "(cd app/backend && npm run build && node dist/index.js)"
   },
   "keywords": [],
   "license": "MIT",
