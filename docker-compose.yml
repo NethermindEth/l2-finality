@@ -5,6 +5,6 @@ services:
       context: app/backend
     container_name: backend
     env_file: app/backend/.env.dev
-    expose:
-      - 80
+    ports:
+      - '80:8080'
     restart: always
