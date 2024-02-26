@@ -1,0 +1,33 @@
+name: Backend deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backend-check:
+    uses: ./.github/workflows/backend-check.yaml
+
+  deploy:
+    needs: backend-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+
+      - name: Copy input secrets to environment variables
+        uses: oNaiPs/secrets-to-env-action@ec46a22bfc9b37e014b627b3208b07eb8909ea0f
+        with:
+          secrets: ${{ toJSON(secrets) }}
+          include: INPUT_*
+          convert_prefix: false
+
+      - name: Deploy & run docker
+        run: docker compose up -d
+        env:
+          DOCKER_HOST: ${{ format('ssh://{0}@{1}', secrets.SSH_USERNAME, secrets.SSH_HOST) }}

@@ -1,16 +1,21 @@
-import { ethers } from "ethers";
+import { ethers, Network } from "ethers";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
 import { OptimismSyncStatus } from "./types";
 
 class OptimismClient {
   private provider: ethers.JsonRpcProvider;
+  private network: Network;
   private logger: Logger;
 
   constructor(config: Config, logger: Logger) {
+    this.network = Network.from(
+      ethers.Network.from(config.optimismModule.chainId),
+    );
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.optimismRpcEndpoint,
-      ethers.Network.from(config.optimismModule.chainId),
+      this.network,
+      { staticNetwork: this.network },
     );
     this.logger = logger;
   }
