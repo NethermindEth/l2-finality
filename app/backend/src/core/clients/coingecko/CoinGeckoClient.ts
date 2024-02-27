@@ -3,7 +3,7 @@ import { Config } from "@/config/Config";
 import rateLimit from "axios-rate-limit";
 import Logger from "@/tools/Logger";
 import { handleError } from "./utils";
-import { UnixTime } from "@/core/types/UnixTime";
+import { TimeRange, UnixTime } from "@/core/types/UnixTime";
 import { PriceEntry } from "./types";
 
 export class CoinGeckoClient {
@@ -34,7 +34,7 @@ export class CoinGeckoClient {
     });
   }
 
-  async getPrices(
+  async getSpotPrices(
     coingeckoIds: string[],
   ): Promise<{ [id: string]: PriceEntry | undefined }> {
     const noCache = UnixTime.now().toSeconds();
@@ -69,10 +69,9 @@ export class CoinGeckoClient {
 
   async getHistory(
     coingeckoId: string,
-    from: UnixTime,
-    to: UnixTime,
+    range: TimeRange,
   ): Promise<PriceEntry[]> {
-    const url = `${this.baseUrl}/coins/${coingeckoId}/market_chart/range?from=${from}&to=${to}&vs_currency=usd`;
+    const url = `${this.baseUrl}/coins/${coingeckoId}/market_chart/range?from=${range.from}&to=${range.to}&vs_currency=usd`;
 
     try {
       const response = await this.http.get<{ prices: number[][] }>(url, {

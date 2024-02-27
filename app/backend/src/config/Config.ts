@@ -37,7 +37,7 @@ export interface PricingModuleConfig {
   readonly apiKeyHeader: string;
   readonly maxMinuteRateLimit: number;
   readonly backfillPeriodDays: number;
-  readonly pollIntervalMs: number;
+  readonly intervalMinutes: number;
 }
 
 export interface EthereumMonitorConfig {

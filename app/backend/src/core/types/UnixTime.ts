@@ -43,8 +43,16 @@ export class UnixTime {
     return this.timestamp;
   }
 
+  toMinutes(): number {
+    return this.timestamp / 60;
+  }
+
   toString(): string {
     return this.timestamp.toString();
+  }
+
+  toISOString(): string {
+    return this.toDate().toISOString();
   }
 
   add(
@@ -65,3 +73,8 @@ export class UnixTime {
     return new UnixTime(this.timestamp + value * unit);
   }
 }
+
+export type TimeRange = {
+  from: UnixTime;
+  to: UnixTime;
+};
