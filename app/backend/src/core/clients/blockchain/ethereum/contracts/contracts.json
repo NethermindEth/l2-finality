@@ -14,8 +14,10 @@
   "PolygonZkEVMProxy": {
     "address": "0x5132A183E9F3CB7C848b0AAC5Ae0c4f0491B7aB2",
     "topics": {
-      "VerifyBatchesTrustedAggregator": "0xcb339b570a7f0b25afa7333371ff11192092a0aeace12b671f4c212f2815c6fe",
-      "SequenceBatches": "0x303446e6a8cb73c83dff421c0b1d5e5ce0719dab1bff13660fc254e58cc17fce"
+      "VerifyBatchesTrustedAggregatorStale": "0xcb339b570a7f0b25afa7333371ff11192092a0aeace12b671f4c212f2815c6fe",
+      "SequenceBatchesStale": "0x303446e6a8cb73c83dff421c0b1d5e5ce0719dab1bff13660fc254e58cc17fce",
+      "VerifyBatchesTrustedAggregatorPOL": "0xd1ec3a1216f08b6eff72e169ceb548b782db18a6614852618d86bb19f3f9b0d3",
+      "SequenceBatchesPOL": "0x1d9f30260051d51d70339da239ea7b080021adcaabfa71c9b0ea339a20cf9a25"
     }
   }
 }

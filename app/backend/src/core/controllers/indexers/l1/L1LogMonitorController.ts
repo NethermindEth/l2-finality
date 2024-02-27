@@ -115,6 +115,9 @@ class L1LogMonitorController {
     if (eventCallbacks) {
       const eventCallback = eventCallbacks[eventName];
       if (eventCallback) {
+        if (contractName === "PolygonZkEVMProxy") {
+          console.log(decodedLogs);
+        }
         const syncStatusRecord = eventCallback(log, decodedLogs);
         if (syncStatusRecord) {
           await this.syncStatusRepository.insertSyncStatus(syncStatusRecord);

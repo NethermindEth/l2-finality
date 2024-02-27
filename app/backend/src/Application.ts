@@ -43,7 +43,7 @@ export class Application {
       await api.listen();
 
       const modules = [
-        createPriceUpdaterModule(config, logger, database, pricingClient),
+       // createPriceUpdaterModule(config, logger, database, pricingClient),
         createOptimismFinalityModule(config, logger, database, optimismClient),
         createL1MonitorModule(config, logger, database, ethClient),
         createOptimismBlockModule(config, logger, database, optimismClient),
