@@ -4,7 +4,15 @@ import rateLimit from "axios-rate-limit";
 import Logger from "@/tools/Logger";
 import { handleError } from "./utils";
 import { TimeRange, UnixTime } from "@/core/types/UnixTime";
-import { PriceEntry } from "./types";
+import { AssetPriceMap, PriceEntry } from "./types";
+
+type SpotPricesResponse = {
+  [id: string]: { usd: number; last_updated_at: number };
+};
+
+type HistoryResponse = {
+  prices: number[][];
+};
 
 export class CoinGeckoClient {
   private readonly baseUrl: string;
@@ -34,22 +42,14 @@ export class CoinGeckoClient {
     });
   }
 
-  async getSpotPrices(
-    coingeckoIds: string[],
-  ): Promise<{ [id: string]: PriceEntry | undefined }> {
+  async getSpotPrices(coingeckoIds: string[]): Promise<AssetPriceMap> {
     const noCache = UnixTime.now().toSeconds();
     const url = `${this.baseUrl}/simple/price?include_last_updated_at=true&vs_currencies=usd&ids=${coingeckoIds.join(",")}&c=${noCache}`;
 
-    try {
-      const response = await this.http.get<{
-        [id: string]: { usd: number; last_updated_at: number };
-      }>(url, {
-        headers: this.headers,
-      });
-
-      return Object.fromEntries(
+    return this.makeHttpGet<SpotPricesResponse, AssetPriceMap>(url, (data) =>
+      Object.fromEntries(
         coingeckoIds.map((id) => {
-          const entry = response.data[id];
+          const entry = data[id];
           return [
             id,
             entry
@@ -60,11 +60,8 @@ export class CoinGeckoClient {
               : undefined,
           ];
         }),
-      );
-    } catch (error) {
-      handleError(error, this.logger);
-      throw new Error("Failed to fetch prices");
-    }
+      ),
+    );
   }
 
   async getHistory(
@@ -73,18 +70,26 @@ export class CoinGeckoClient {
   ): Promise<PriceEntry[]> {
     const url = `${this.baseUrl}/coins/${coingeckoId}/market_chart/range?from=${range.from}&to=${range.to}&vs_currency=usd`;
 
-    try {
-      const response = await this.http.get<{ prices: number[][] }>(url, {
-        headers: this.headers,
-      });
-
-      return response.data.prices.map((x) => ({
+    return this.makeHttpGet<HistoryResponse, PriceEntry[]>(url, (data) =>
+      data.prices.map((x) => ({
         timestamp: new UnixTime(x[0]),
         price: x[1],
-      }));
+      })),
+    );
+  }
+
+  private async makeHttpGet<TResponse, TResult>(
+    url: string,
+    transformResponse: (data: TResponse) => TResult,
+  ): Promise<TResult> {
+    try {
+      const response = await this.http.get<TResponse>(url, {
+        headers: this.headers,
+      });
+      return transformResponse(response.data);
     } catch (error) {
       handleError(error, this.logger);
-      throw new Error("Failed to fetch history");
+      throw new Error(`Failed to GET ${url}: ${error}`);
     }
   }
 }
