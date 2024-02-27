@@ -8,6 +8,7 @@ export interface Config {
   readonly pricingModule: PricingModuleConfig;
   readonly ethereumMonitorModule: EthereumMonitorConfig;
   readonly optimismModule: OptimismModuleConfig;
+  readonly polygonZkEvmModule: PolygonZkEvmModuleConfig;
 }
 
 export interface ApiConfig {
@@ -28,6 +29,7 @@ export interface DatabaseConfig {
 export interface IndexerConfig {
   readonly ethereumRpcEndpoint: string;
   readonly optimismRpcEndpoint: string;
+  readonly polygonZkEvmRpcEndpoint: string;
   readonly useFakePricing: boolean;
 }
 
@@ -50,6 +52,14 @@ export interface EthereumMonitorConfig {
 }
 
 export interface OptimismModuleConfig {
+  readonly enabled: boolean;
+  readonly chainId: number;
+  readonly startBlock: number;
+  readonly maxBlockRange: number;
+  readonly pollIntervalMs: number;
+}
+
+export interface PolygonZkEvmModuleConfig {
   readonly enabled: boolean;
   readonly chainId: number;
   readonly startBlock: number;

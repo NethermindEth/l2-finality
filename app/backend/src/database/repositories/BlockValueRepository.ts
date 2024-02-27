@@ -3,6 +3,7 @@ import { AggregatedTransferResults } from "@/core/controllers/appraiser/types";
 
 export const chainTableMapping: Record<number, string> = {
   10: "optimism_blocks",
+  1101: "polygon_zk_evm_blocks",
 };
 
 export interface BlockValueRecord {

@@ -38,7 +38,7 @@ export function createOptimismBlockModule(
     return {
       start: async () => {
         logger.info("Starting Optimism block module...");
-        await optimismBlockControllerTask.start();
+        optimismBlockControllerTask.start();
       },
     };
   } else {

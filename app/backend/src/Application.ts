@@ -9,6 +9,9 @@ import { CoinGeckoClient } from "@/core/clients/coingecko/CoinGeckoClient";
 import { createOptimismFinalityModule } from "./core/modules/indexers/l2/optimism/OptimismFinalityModule";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/OptimismBlockModule";
+import { createPolygonZkEvmBlockModule } from "@/core/modules/indexers/l2/polygonzk/PolygonZkEvmBlockModule";
+import PolygonZkEvmClient from "@/core/clients/polygonzk/PolygonZkEvmClient";
+import { createPriceUpdaterModule } from "@/core/modules/pricing/PriceUpdaterModule";
 
 export class Application {
   constructor(config: Config) {
@@ -19,6 +22,10 @@ export class Application {
     const optimismClient = new OptimismClient(
       config,
       logger.for("Optimism Client"),
+    );
+    const polygonZkEvmClient = new PolygonZkEvmClient(
+      config,
+      logger.for("PolygonZkEvm Client"),
     );
     const pricingClient = new CoinGeckoClient(
       config,
@@ -40,6 +47,12 @@ export class Application {
         createOptimismFinalityModule(config, logger, database, optimismClient),
         createL1MonitorModule(config, logger, database, ethClient),
         createOptimismBlockModule(config, logger, database, optimismClient),
+        createPolygonZkEvmBlockModule(
+          config,
+          logger,
+          database,
+          polygonZkEvmClient,
+        ),
       ];
 
       for (const module of modules) {

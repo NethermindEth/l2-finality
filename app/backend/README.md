@@ -136,8 +136,29 @@ The Optimism Module measures finality of blocks on the Optimism network by monit
 - **`OPTIMISM_POLL_INTERVAL_MS`**: Interval for polling status sync updates and getBlock (in ms).
   - Recommended: `15000`
 
+### PolygonZkEVM Module
+
+The PolygonZkEVM Module gets blocks only gets each block for it to be appraised.
+
+**Environment Variables**
+
+- **`POLYGONZK_MODULE_ENABLED`**: Enables the PolygonZkEVM module.
+  - Recommended: `true`
+- **`POLYGONZK_RPC_ENDPOINT`**: The RPC endpoint URL for interacting with the PolygonZkEVM network.
+  - Set as required.
+- **`POLYGONZK_START_BLOCK`**: Starting block for processing.
+
+  - Set as required.
+
+- **`POLYGONZK_MAX_BLOCK_RANGE`**: Max range of blocks fetched per operation.
+
+  - Recommended: `50`
+
+- **`POLYGONZK_POLL_INTERVAL_MS`**: Interval for polling getBlock for live data (in ms).
+  - Recommended: `15000`
+
 **Key Components**:
 
 - **OptimismFinalityController**: This class interacts with the OptimismClient to fetch the current synchronization status, comparing it with the previous state to detect any changes in the safe L2 origin number.
-
 - **OptimismBlockController**: This class is responsible for fetching blocks within a specified range from the Optimism network
+- **PolygonZkEvmBlockController**: This class is responsible for fetching blocks within a specified range from the PolygonZkEvm network
