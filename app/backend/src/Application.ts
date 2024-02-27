@@ -22,7 +22,7 @@ export class Application {
     );
     const pricingClient = new CoinGeckoClient(
       config,
-      logger.for("CoinCap Client"),
+      logger.for("CoinGecko Client"),
     );
 
     this.start = async (): Promise<void> => {
