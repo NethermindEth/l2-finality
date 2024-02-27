@@ -47,7 +47,7 @@ export function getTestConfig(env: Env): Config {
     apiKeyHeader: env.string("PRICING_API_KEY_HEADER", "x-cg-demo-api-key"),
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 100),
     backfillPeriodDays: env.integer("PRICING_BACKFILL_PERIOD_DAYS", 30),
-    intervalMinutes: env.integer("PRICING_INTERVAL_MINUTES", 15 * 60 * 1000),
+    intervalMinutes: env.integer("PRICING_INTERVAL_MINUTES", 15),
   };
 
   const ethereumMonitorConfig: EthereumMonitorConfig = {
