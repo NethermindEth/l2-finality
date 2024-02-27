@@ -7,9 +7,9 @@ import {
 } from "./BaseHandler";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
-import { WhitelistedAsset } from "@/core/clients/coincap/assets/types";
+import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import Logger from "@/tools/Logger";
-import monitoredAssets from "@/core/clients/coincap/assets/whitelisted.json";
+import monitoredAssets from "@/core/clients/coingecko/assets/whitelisted.json";
 import {
   IBlockchainClient,
   Log,

@@ -1,5 +1,4 @@
 import { expect, mockFn } from "earl";
-import { ethers } from "ethers";
 import { PriceService } from "../services/PriceService";
 import Logger from "@/tools/Logger";
 import { UnixTime } from "@/core/types/UnixTime";

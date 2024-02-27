@@ -4,7 +4,7 @@ import { PriceService } from "../services/PriceService";
 import Logger from "@/tools/Logger";
 import { UnixTime } from "@/core/types/UnixTime";
 import { TokenTransferHandler } from "@/core/controllers/appraiser/handlers/TokenTransfers";
-import monitoredAssets from "@/core/clients/coincap/assets/whitelisted.json";
+import monitoredAssets from "@/core/clients/coingecko/assets/whitelisted.json";
 import { Knex } from "knex";
 import { getConfig } from "@/config";
 import PricingRepository from "@/database/repositories/PricingRepository";
@@ -15,6 +15,7 @@ import {
   Transaction,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
+import { AppraisalSummary } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 interface MockLog {
   address: string;
@@ -155,7 +156,7 @@ describe(TokenTransferHandler.name, () => {
 
     const expectedAppraisals = [
       {
-        contractAddress: monitoredAssets[0].address,
+        contractAddress: monitoredAssets[0].address!,
         rawAmount: 4096n,
         adjustedAmount: adjustedAmount,
         usdValue: adjustedAmount * 5,
@@ -221,9 +222,9 @@ describe(TokenTransferHandler.name, () => {
     const adjustedAmount =
       Number("0x1000") / Math.pow(10, monitoredAssets[0].decimals);
 
-    const expectedAppraisals = [
+    const expectedAppraisals: AppraisalSummary[] = [
       {
-        contractAddress: monitoredAssets[0].address,
+        contractAddress: monitoredAssets[0].address!,
         rawAmount: 4096n,
         adjustedAmount: adjustedAmount,
         usdValue: adjustedAmount * 5,

@@ -80,7 +80,7 @@ Note: A swap-like transfer refers to a scenario where an address participates as
 
 ### Services
 
-- **`PriceService.ts`** & **`TransferService.ts`**: These services are crucial to the Block Appraiser's operations. The Price Service is tasked with fetching real-time prices for various assets, while the Transfer Service orchestrates the process of handling transfers, selecting the right handler, and aggregating the results.
+- **`PriceService.ts`** & **`TransferService.ts`**: The Price Service fetches prices from the database. It retries if the price is not available.
 
 ### Main Class
 

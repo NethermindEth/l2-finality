@@ -1,16 +1,12 @@
-import { ethers } from "ethers";
 import Logger from "@/tools/Logger";
 import { BlockRewardsHandler } from "@/core/controllers/appraiser/handlers/BlockRewardsHandler";
 import { PriceService } from "@/core/controllers/appraiser/services/PriceService";
 import { getConfig } from "@/config";
-import { Database } from "@/database/Database";
 import PricingRepository from "@/database/repositories/PricingRepository";
 import { UnixTime } from "@/core/types/UnixTime";
 import { expect, mockFn } from "earl";
 import { getTestDatabase } from "@/database/getTestDatabase";
-import BlockValueRepository from "@/database/repositories/BlockValueRepository";
 import { Knex } from "knex";
-import pricingRepository from "@/database/repositories/PricingRepository";
 import { afterEach } from "mocha";
 import {
   Block,

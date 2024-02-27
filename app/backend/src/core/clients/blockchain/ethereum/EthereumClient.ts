@@ -1,4 +1,4 @@
-import { ethers, Network } from 'ethers'
+import { ethers, Network } from "ethers";
 import contracts from "./contracts/contracts.json";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";

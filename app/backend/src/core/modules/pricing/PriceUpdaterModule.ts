@@ -23,13 +23,6 @@ export function createPriceUpdaterModule(
     logger.for(loggerContext),
   );
 
-  // Run in background to not stop spot prices from updating
-  setImmediate(() =>
-    priceUpdaterController.backfillHistory(
-      config.pricingModule.backfillPeriodDays,
-    ),
-  );
-
   const priceUpdaterClock = new Clock(
     () => priceUpdaterController.start(),
     config.pricingModule.intervalMinutes,
@@ -39,6 +32,14 @@ export function createPriceUpdaterModule(
     return {
       start: async () => {
         logger.info("Starting price updater...");
+
+        // Run in background to not stop spot prices from updating
+        setImmediate(() =>
+          priceUpdaterController.backfillHistory(
+            config.pricingModule.backfillPeriodDays,
+          ),
+        );
+
         priceUpdaterClock.start();
       },
     };
