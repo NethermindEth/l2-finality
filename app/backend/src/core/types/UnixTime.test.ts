@@ -3,10 +3,24 @@ import { expect } from "earl";
 import { UnixTime } from "./UnixTime";
 
 describe("UnixTime.name", () => {
-  it("cannot be constructed from milliseconds", () => {
-    expect(() => new UnixTime(Date.now())).toThrow(
+  [
+    { ms: 1708316848000, res: 1708316848 },
+    { ms: 1708316848123, res: 1708316848 },
+    { ms: 1708316848789, res: 1708316848 },
+  ].forEach((testCase) =>
+    it("rounds down when constructed from milliseconds", () => {
+      expect(new UnixTime(testCase.ms).toSeconds()).toEqual(testCase.res);
+    }),
+  );
+
+  it("shows seconds in template literal", () => {
+    expect(`${new UnixTime(1708316848)}`).toEqual("1708316848");
+  });
+
+  it("cannot be constructed from too large numbers", () => {
+    expect(() => new UnixTime(Date.now() * 1000 * 10)).toThrow(
       TypeError,
-      "timestamp must represent time in seconds",
+      "timestamp must represent time in seconds or milliseconds",
     );
   });
 

@@ -1,38 +1,45 @@
 import Logger from "@/tools/Logger";
 import { Database } from "@/database/Database";
-import CoinCapClient from "@/core/clients/coincap/CoinCapClient";
 import { PriceUpdaterController } from "@/core/controllers/pricing/PriceUpdaterController";
 import { PriceRepository } from "@/database/repositories/PricingRepository";
-import TaskScheduler from "@/core/scheduler/TaskScheduler";
 import { Config } from "@/config/Config";
+import { CoinGeckoClient } from "@/core/clients/coingecko/CoinGeckoClient";
+import { Clock } from "@/tools/Clock";
 
 export function createPriceUpdaterModule(
   config: Config,
   logger: Logger,
   database: Database,
-  coinCapClient: CoinCapClient,
+  client: CoinGeckoClient,
 ): { start: () => Promise<void> } {
   const loggerContext: string = "Price updater module";
 
   const priceRepository = new PriceRepository(database.getKnex());
 
   const priceUpdaterController = new PriceUpdaterController(
-    coinCapClient,
+    client,
     priceRepository,
-    logger,
+    config.pricingModule,
+    logger.for(loggerContext),
   );
 
-  const priceUpdaterTaskScheduler = new TaskScheduler(
+  // Run in background to not stop spot prices from updating
+  setImmediate(() =>
+    priceUpdaterController.backfillHistory(
+      config.pricingModule.backfillPeriodDays,
+    ),
+  );
+
+  const priceUpdaterClock = new Clock(
     () => priceUpdaterController.start(),
-    10000,
-    logger.for(loggerContext),
+    config.pricingModule.intervalMinutes,
   );
 
   if (config.pricingModule.enabled) {
     return {
       start: async () => {
         logger.info("Starting price updater...");
-        await priceUpdaterTaskScheduler.start();
+        priceUpdaterClock.start();
       },
     };
   } else {

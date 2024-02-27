@@ -68,17 +68,21 @@ export class PriceRepository {
     return this.knex(TABLE_NAME).delete();
   }
 
-  async findLatestByToken(
-    from: UnixTime,
-  ): Promise<Map<string, UnixTime | undefined>> {
+  async findBoundariesByToken(): Promise<Map<string, DataBoundary>> {
     const rows = await this.knex(TABLE_NAME)
+      .min("timestamp")
       .max("timestamp")
       .select("asset_id")
-      .groupBy("asset_id")
-      .where("timestamp", ">=", from.toDate());
+      .groupBy("asset_id");
 
     return new Map(
-      rows.map((row) => [row.asset_id, UnixTime.fromDate(row.max)]),
+      rows.map((row) => [
+        row.asset_id,
+        {
+          earliest: UnixTime.fromDate(row.min),
+          latest: UnixTime.fromDate(row.max),
+        },
+      ]),
     );
   }
 

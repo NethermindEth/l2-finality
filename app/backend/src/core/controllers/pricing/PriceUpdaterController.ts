@@ -1,127 +1,169 @@
-import { PriceRepository } from "@/database/repositories/PricingRepository";
-import { WhitelistedAsset } from "@/core/clients/coincap/assets/types";
-import whitelisted from "@/core/clients/coincap/assets/whitelisted.json";
-import CoinCapClient from "@/core/clients/coincap/CoinCapClient";
-import { UnixTime } from "@/core/types/UnixTime";
+import {
+  PriceRecord,
+  PriceRepository,
+} from "@/database/repositories/PricingRepository";
+import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
+import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
+import { TimeRange, UnixTime } from "@/core/types/UnixTime";
 import Logger from "@/tools/Logger";
+import { CoinGeckoClient } from "@/core/clients/coingecko/CoinGeckoClient";
+import { PricingModuleConfig } from "@/config/Config";
+import { DataBoundary } from "@/database/repositories/PricingRepository";
 
 export class PriceUpdaterController {
-  private readonly coinCapClient: CoinCapClient;
+  private readonly client: CoinGeckoClient;
   private readonly priceRepository: PriceRepository;
-  private readonly whitelistedAssets: WhitelistedAsset[];
   private readonly logger: Logger;
-
-  private priceIntervalMinutes: number;
-  private maxApiReturnDays: number;
-
-  private batchSize: number;
-  private batchDurationInMs: number;
+  private readonly whitelistedAssets: WhitelistedAsset[];
+  private readonly intervalMinutes: number;
 
   constructor(
-    coinCapClient: CoinCapClient,
+    client: CoinGeckoClient,
     priceRepository: PriceRepository,
+    config: PricingModuleConfig,
     logger: Logger,
   ) {
-    this.coinCapClient = coinCapClient;
+    this.client = client;
     this.priceRepository = priceRepository;
     this.logger = logger;
-
     this.whitelistedAssets = whitelisted;
-    this.priceIntervalMinutes = 15;
-    this.maxApiReturnDays = 7;
-
-    this.batchSize =
-      (this.maxApiReturnDays * 24 * 60 * 60 * 1000) /
-      (this.priceIntervalMinutes * 60 * 1000);
-    this.batchDurationInMs =
-      this.batchSize * (this.priceIntervalMinutes * 60 * 1000);
+    this.intervalMinutes = config.intervalMinutes;
   }
 
   async start() {
-    await this.updatePricesForAllAssets();
+    await this.updateSpotPrices();
   }
 
-  private async updatePricesForAllAssets() {
-    const latestBoundaries = await this.priceRepository.findLatestByToken(
-      UnixTime.now().add(-30, "days"),
-    );
+  public async backfillHistory(backfillPeriodDays: number) {
+    if (!backfillPeriodDays) return;
+
+    // To guarantee hourly data from the CoinGecko endpoint
+    if (backfillPeriodDays < 2 || backfillPeriodDays > 90) {
+      this.logger.warn(
+        "Supported history backfill period is between 2 and 90 days.",
+      );
+      backfillPeriodDays = Math.max(2, Math.min(90, backfillPeriodDays));
+    }
+
+    const now = UnixTime.now();
+    const boundaries = await this.priceRepository.findBoundariesByToken();
+
     for (const asset of this.whitelistedAssets) {
-      const latestBoundary: UnixTime | undefined = latestBoundaries.get(
-        asset.coincap_asset_id,
+      await this.tryBackfillHistoryFor(
+        asset,
+        { from: now.add(-backfillPeriodDays, "days"), to: now },
+        boundaries.get(asset.coingeckoId),
       );
-      await this.updatePricesForAsset(asset, latestBoundary);
+    }
+
+    const execSec = UnixTime.now().toSeconds() - now.toSeconds();
+    this.logger.info(`Backfilled history for all the assets in ${execSec}s`);
+  }
+
+  private async tryBackfillHistoryFor(
+    asset: WhitelistedAsset,
+    range: TimeRange,
+    boundaries: DataBoundary | undefined,
+  ) {
+    try {
+      range = this.adjustHistoryRange(asset, range, boundaries)!;
+      if (!range) return;
+
+      let [fromStr, toStr] = [range.from.toISOString(), range.to.toISOString()];
+      const response = await this.client.getHistory(asset.coingeckoId, range);
+
+      if (!response.length) {
+        this.logger.warn(
+          `Attempted to backfill history for ${asset.coingeckoId} from ${fromStr} to ${toStr} but got no records`,
+        );
+        return;
+      }
+
+      const priceRecords = response.map((price) => ({
+        assetId: asset.coingeckoId,
+        priceUsd: price.price,
+        timestamp: this.roundToMinutes(price.timestamp, 60),
+      }));
+
+      await this.priceRepository.addMany(priceRecords);
+
+      [fromStr, toStr] = [
+        priceRecords[0].timestamp.toISOString(),
+        priceRecords.slice(-1)[0].timestamp.toISOString(),
+      ];
+      this.logger.info(
+        `Backfilled history for ${asset.coingeckoId} from ${fromStr} to ${toStr} with ${priceRecords.length} records`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to backfill history for ${asset.coingeckoId}: ${error}`,
+      );
     }
   }
 
-  private async updatePricesForAsset(
+  private async updateSpotPrices() {
+    const ids = whitelisted.map((a) => a.coingeckoId);
+
+    const prices = await this.client.getSpotPrices(ids);
+    const priceRecords: PriceRecord[] = [];
+
+    for (const entry of Object.entries(prices)) {
+      const [assetId, price] = entry;
+      if (!price) {
+        this.logger.warn(`No active price for ${assetId}`);
+        continue;
+      }
+
+      const diff = UnixTime.now().toMinutes() - price.timestamp.toMinutes();
+      if (diff > this.intervalMinutes) {
+        this.logger.warn(
+          `Spot price for ${assetId} outdated for ${diff} minutes`,
+        );
+      }
+
+      priceRecords.push({
+        assetId: assetId,
+        priceUsd: price.price,
+        timestamp: this.roundToMinutes(price.timestamp, this.intervalMinutes),
+      });
+    }
+
+    const upsertedCount = await this.priceRepository.addMany(priceRecords);
+    this.logger.debug(`Upserted ${upsertedCount} active price records`);
+  }
+
+  private roundToMinutes(time: UnixTime, minutes: number) {
+    const date = time.toDate();
+    date.setMinutes(Math.round(date.getMinutes() / minutes) * minutes, 0, 0);
+    return UnixTime.fromDate(date);
+  }
+
+  private adjustHistoryRange(
     asset: WhitelistedAsset,
-    latestBoundary?: UnixTime,
-  ) {
-    // It will fetch the last 30 days of data if there is no latestBoundary, ie. new assets
-    // If the latestBoundary is older than the priceIntervalMinutes (15 min refresh rate), it will fetch latest data
-    const now: UnixTime = UnixTime.now();
-    const thresholdTime: UnixTime = now.add(
-      -this.priceIntervalMinutes,
-      "minutes",
+    range: TimeRange,
+    boundary: DataBoundary | undefined,
+  ): TimeRange | undefined {
+    const assetFrom = Math.max(
+      asset.deploymentTimestamp,
+      asset.coingeckoListingTimestamp,
     );
 
-    const from: UnixTime = latestBoundary ?? now.add(-30, "days");
-    if (from.toDate().getTime() < thresholdTime.toDate().getTime()) {
-      this.logger.info(
-        `Updating prices for ${asset.coincap_asset_id} from ${from.toDate().toUTCString()} to ${now.toDate().toUTCString()}`,
-      );
-      await this.fetchAndSavePrices(asset, from, now);
+    // eslint-disable-next-line prefer-const
+    let { from, to } = range;
+    if (assetFrom > from.toSeconds()) from = new UnixTime(assetFrom);
+
+    if (
+      boundary != undefined &&
+      boundary.earliest <= from.add(1, "hours") &&
+      boundary.latest >= to.add(-1, "hours")
+    ) {
+      return undefined; // no need to backfill
     }
+
+    return to.toSeconds() > from.add(1, "hours").toSeconds()
+      ? { from, to } // do not feel range of less than 1 hour
+      : undefined;
   }
-
-  private async fetchAndSavePrices(
-    asset: WhitelistedAsset,
-    from: UnixTime,
-    to: UnixTime,
-  ) {
-    let batchFrom = from;
-
-    while (batchFrom.toDate().getTime() < to.toDate().getTime()) {
-      const batchToEndTimestamp = Math.min(
-        batchFrom.toDate().getTime() + this.batchDurationInMs,
-        to.toDate().getTime(),
-      );
-      const batchTo = UnixTime.fromDate(new Date(batchToEndTimestamp));
-      await this.fetchPricesInBatch(asset, batchFrom, batchTo);
-      batchFrom = UnixTime.fromDate(new Date(batchToEndTimestamp));
-    }
-  }
-
-  private async fetchPricesInBatch(
-    asset: WhitelistedAsset,
-    from: UnixTime,
-    to: UnixTime,
-  ) {
-    const response = await this.coinCapClient.getHistoricalPrices({
-      coincapAssetId: asset.coincap_asset_id,
-      interval: "m15",
-      start: from.toDate().getTime(),
-      end: to.toDate().getTime(),
-    });
-
-    const priceRecords = response.data.map((price) => ({
-      assetId: asset.coincap_asset_id,
-      priceUsd: price.priceUsd,
-      timestamp: UnixTime.fromDate(new Date(price.time)),
-    }));
-
-    await this.priceRepository.addMany(priceRecords);
-  }
-}
-
-export function getClosestTimestamp(
-  timestamp: UnixTime,
-  intervalMinutes: number = 15,
-): UnixTime {
-  const intervalMs = intervalMinutes * 60 * 1000;
-  const timestampMs = timestamp.toDate().getTime();
-  const closestTimestampMs = Math.floor(timestampMs / intervalMs) * intervalMs;
-  return UnixTime.fromDate(new Date(closestTimestampMs));
 }
 
 export default PriceUpdaterController;

@@ -8,6 +8,7 @@ import {
   PricingModuleConfig,
 } from "./Config";
 import { Env } from "@/tools/Env";
+import { LogLevel } from "@/tools/Logger";
 
 export function getTestConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
@@ -25,6 +26,7 @@ export function getTestConfig(env: Env): Config {
 
   const apiConfig: ApiConfig = {
     port: env.integer("API_PORT", 3005),
+    logLevel: env.string("LOG_LEVEL", "debug") as LogLevel,
   };
 
   const indexerConfig: IndexerConfig = {
@@ -40,12 +42,12 @@ export function getTestConfig(env: Env): Config {
 
   const pricingModuleConfig: PricingModuleConfig = {
     enabled: env.boolean("PRICING_MODULE_ENABLED", true),
-    coinCapBaseUrl: env.string(
-      "PRICING_COINCAP_BASE_URL",
-      "https://api.coincap.io/v2",
-    ),
-    coinCapApiKey: env.string("PRICING_COINCAP_API_KEY", "coinCapApiKey"),
+    baseUrl: env.string("PRICING_BASE_URL", "https://api.coingecko.com/api/v3"),
+    apiKey: env.string("PRICING_API_KEY", "coinGeckoApiKey"),
+    apiKeyHeader: env.string("PRICING_API_KEY_HEADER", "x-cg-demo-api-key"),
     maxMinuteRateLimit: env.integer("PRICING_MINUTE_RATE_LIMIT", 100),
+    backfillPeriodDays: env.integer("PRICING_BACKFILL_PERIOD_DAYS", 30),
+    intervalMinutes: env.integer("PRICING_INTERVAL_MINUTES", 15),
   };
 
   const ethereumMonitorConfig: EthereumMonitorConfig = {
