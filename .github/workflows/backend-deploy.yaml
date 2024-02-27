@@ -28,6 +28,6 @@ jobs:
           convert_prefix: false
 
       - name: Deploy & run docker
-        run: docker compose up -d
+        run: docker compose -p "l2-finality" up -d --build --remove-orphans
         env:
           DOCKER_HOST: ${{ format('ssh://{0}@{1}', secrets.SSH_USERNAME, secrets.SSH_HOST) }}
