@@ -3611,16 +3611,6 @@
   {
     "name": "USD Coin",
     "coingeckoId": "usd-coin",
-    "address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
-    "symbol": "USDC",
-    "decimals": 6,
-    "deploymentTimestamp": 1533324504,
-    "coingeckoListingTimestamp": 1573689600,
-    "chainId": 10
-  },
-  {
-    "name": "USD Coin",
-    "coingeckoId": "usd-coin",
     "address": "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
     "symbol": "USDC",
     "decimals": 6,
@@ -4097,6 +4087,16 @@
     "chainId": 10,
     "type": "NMV",
     "formula": "circulatingSupply"
+  },
+  {
+    "name": "VelodromeV2",
+    "coingeckoId": "velodrome-finance",
+    "address": "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05",
+    "symbol": "VELO",
+    "decimals": 18,
+    "deploymentTimestamp": 1687392369,
+    "coingeckoListingTimestamp": 1654128000,
+    "chainId": 10
   },
   {
     "id": "mantapacific:manta-manta",
