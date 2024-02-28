@@ -1,6 +1,7 @@
 import { ethers, Network } from "ethers";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
+import { PolygonZkEvmBatch } from "@/core/clients/polygonzk/types";
 
 class PolygonZkEvmClient {
   private provider: ethers.JsonRpcProvider;
@@ -24,7 +25,7 @@ class PolygonZkEvmClient {
   }
 
   public async getBlock(
-    blockHeight: number,
+    blockHeight: number | string,
   ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> {
     const block = await this.provider.getBlock(blockHeight, true);
     if (!block) {
@@ -37,6 +38,15 @@ class PolygonZkEvmClient {
       ),
     );
     return [block, txs];
+  }
+
+  public async getBatchByNumber(
+    batchNumber: number,
+  ): Promise<PolygonZkEvmBatch> {
+    const result = (await this.provider.send("zkevm_getBatchByNumber", [
+      batchNumber,
+    ])) as PolygonZkEvmBatch;
+    return result;
   }
 }
 

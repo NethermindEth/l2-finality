@@ -1,4 +1,3 @@
-import fs from "fs";
 import { LogProcessors } from "./LogProcessor";
 import { expect } from "earl";
 import contracts from "@/core/clients/blockchain/ethereum/contracts/contracts.json";
@@ -7,10 +6,38 @@ import {
   SubmissionType,
   SyncStatusRecord,
 } from "@/database/repositories/SyncStatusRepository";
-import { OptimismOutputProposed } from "@/core/controllers/indexers/shared/types";
+import {
+  OptimismOutputProposed,
+  PolygonSequenceBatch,
+} from "@/core/controllers/indexers/shared/types";
+import { beforeEach } from "mocha";
+import Logger from "@/tools/Logger";
+import { getConfig } from "@/config";
+import EthereumClient from "@/core/clients/ethereum/EthereumClient";
+import PolygonZkEvmClient from "@/core/clients/polygonzk/PolygonZkEvmClient";
+import { PolygonZkEvmBatch } from "@/core/clients/polygonzk/types";
 describe(LogProcessors.name, () => {
+  let ethClient: EthereumClient;
+  let polygonZkEvmClient: PolygonZkEvmClient;
+
+  let loggerProcessor: LogProcessors;
+
+  beforeEach(() => {
+    const logger = new Logger();
+    const config = getConfig();
+    ethClient = new EthereumClient(config, logger.for("Ethereum Client"));
+    polygonZkEvmClient = new PolygonZkEvmClient(
+      config,
+      logger.for("PolygonZkEvm Client"),
+    );
+
+    mockBlockchainClients(ethClient, polygonZkEvmClient);
+
+    loggerProcessor = new LogProcessors(ethClient, polygonZkEvmClient);
+  });
+
   it("should have a callback for every topic in contracts.json", () => {
-    const callbackMapping = LogProcessors.callbackMapping;
+    const callbackMapping = loggerProcessor.callbackMapping;
 
     const contractsInJson = Object.keys(contracts);
     const contractsInCallbackMapping = Object.keys(callbackMapping);
@@ -59,4 +86,73 @@ describe(LogProcessors.name, () => {
       expect(result).toEqual(expected);
     });
   });
+
+  describe(LogProcessors.prototype.polygonZkEvmProcessBatchUpdate.name, () => {
+    it("polygonZkEvmProcessBatchUpdate correctly processes batches", async () => {
+      const log: ethers.Log = {
+        blockNumber: 2222222,
+        blockHash: "LogL1BlockHash",
+      } as ethers.Log;
+
+      const decodedLog: PolygonSequenceBatch = {
+        numBatch: BigInt(1),
+      };
+
+      const expected: SyncStatusRecord = {
+        chain_id: 1101,
+        l2_block_number: BigInt(8888888),
+        l2_block_hash: "0xpolygonBlockHashMock",
+        l1_block_number: 2222222,
+        l1_block_hash: "LogL1BlockHash",
+        timestamp: new Date(Number("1111111111") * 1000),
+        submission_type: SubmissionType.DataSubmission, // or StateUpdates, based on your logic
+      };
+
+      const result = await loggerProcessor.polygonZkEvmProcessBatchUpdate(
+        log,
+        decodedLog,
+      );
+      expect(result).toEqual(expected);
+    });
+  });
 });
+
+function mockBlockchainClients(
+  ethClient: EthereumClient,
+  polygonZkEvmClient: PolygonZkEvmClient,
+) {
+  ethClient.getBlock = async (
+    blockNumber: number,
+  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> => {
+    const mockBlock: ethers.Block = {
+      timestamp: 1111111111,
+      number: blockNumber,
+      hash: "0xethBlockHashMock",
+    } as ethers.Block;
+
+    const mockTransactions: ethers.TransactionResponse[] = [];
+
+    return [mockBlock, mockTransactions];
+  };
+
+  polygonZkEvmClient.getBatchByNumber = async (
+    numBatch: number,
+  ): Promise<PolygonZkEvmBatch> =>
+    ({
+      blocks: ["early1", "2", "3", "latest1"],
+    }) as PolygonZkEvmBatch;
+
+  polygonZkEvmClient.getBlock = async (
+    blockNumber: number | string,
+  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> => {
+    const mockBlock: ethers.Block = {
+      timestamp: 1234567890,
+      number: 8888888,
+      hash: "0xpolygonBlockHashMock",
+    } as ethers.Block;
+
+    const mockTransactions: ethers.TransactionResponse[] = [];
+
+    return [mockBlock, mockTransactions];
+  };
+}

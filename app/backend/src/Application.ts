@@ -43,9 +43,15 @@ export class Application {
       await api.listen();
 
       const modules = [
-       // createPriceUpdaterModule(config, logger, database, pricingClient),
+        createPriceUpdaterModule(config, logger, database, pricingClient),
         createOptimismFinalityModule(config, logger, database, optimismClient),
-        createL1MonitorModule(config, logger, database, ethClient),
+        createL1MonitorModule(
+          config,
+          logger,
+          database,
+          ethClient,
+          polygonZkEvmClient,
+        ),
         createOptimismBlockModule(config, logger, database, optimismClient),
         createPolygonZkEvmBlockModule(
           config,
