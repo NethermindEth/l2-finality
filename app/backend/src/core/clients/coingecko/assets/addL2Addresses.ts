@@ -8,9 +8,9 @@ const ChainIds = { Ethereum: 1, Optimism: 10, Starknet: -1 };
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");
 
 const optimismUrl =
-  "https://raw.githubusercontent.com/ethereum-optimism/ethereum-optimism.github.io/master/optimism.tokenlist.json";
+  "https://raw.githubusercontent.com/ethereum-optimism/ethereum-optimism.github.io/f023572ab94140ab5c5e37226521ff7326badc1e/optimism.tokenlist.json";
 const starknetUrl =
-  "https://raw.githubusercontent.com/starknet-io/starknet-addresses/master/bridged_tokens/mainnet.json";
+  "https://raw.githubusercontent.com/starknet-io/starknet-addresses/a200bcbeccc8b1cf1bfd9ce423dd0356a2ebab12/bridged_tokens/mainnet.json";
 
 type AssetL2Data = { addressL1?: string; addressL2: string; decimals?: number };
 
