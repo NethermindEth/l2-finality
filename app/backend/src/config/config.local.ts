@@ -9,6 +9,7 @@ import {
 } from "./Config";
 import { Env } from "@/tools/Env";
 import { LogLevel } from "@/tools/Logger";
+import chains from "@/core/types/chains.json";
 
 export function getLocalConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
@@ -43,7 +44,7 @@ export function getLocalConfig(env: Env): Config {
 
   const ethereumMonitorModuleConfig: EthereumMonitorConfig = {
     enabled: env.boolean("ETHEREUM_MONITOR_MODULE_ENABLED", true),
-    chainId: 1,
+    chainId: chains.Ethereum.chainId,
     ethereumLogsStartBlock: env.integer("ETHEREUM_MONITOR_START_BLOCK"),
     maxBlockLogRange: env.integer("ETHEREUM_MONITOR_MAX_LOG_RANGE", 5),
     pollIntervalMs: env.integer("ETHEREUM_MONITOR_POLL_INTERVAL_MS", 30000),
@@ -51,7 +52,7 @@ export function getLocalConfig(env: Env): Config {
 
   const optimismModuleConfig: OptimismModuleConfig = {
     enabled: env.boolean("OPTIMISM_MODULE_ENABLED", true),
-    chainId: 10,
+    chainId: chains.Optimism.chainId,
     startBlock: env.integer("OPTIMISM_START_BLOCK"),
     maxBlockRange: env.integer("OPTIMISM_MAX_BLOCK_RANGE", 50),
     pollIntervalMs: env.integer("OPTIMISM_POLL_INTERVAL_MS", 15000),

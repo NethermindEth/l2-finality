@@ -1,0 +1,11 @@
+{
+  "Ethereum": {
+    "chainId": 1
+  },
+  "Optimism": {
+    "chainId": 10
+  },
+  "Starknet": {
+    "chainId": -1
+  }
+}

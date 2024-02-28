@@ -10,7 +10,8 @@
     "lint:check": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "prettier:check": "prettier --check .",
-    "prettier:fix": "prettier --write ."
+    "prettier:fix": "prettier --write .",
+    "generate:l2": "ts-node ./src/core/clients/coingecko/assets/addL2Addresses.ts"
   },
   "keywords": [],
   "license": "MIT",
