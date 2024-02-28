@@ -3,8 +3,9 @@ import path from "path";
 import axios from "axios";
 import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import { Logger } from "@/tools/Logger";
+import chains from "@/core/types/chains.json";
+import Chains from "@/core/types/chains.json";
 
-const ChainIds = { Ethereum: 1, Optimism: 10, Starknet: -1 };
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");
 
 const optimismUrl =
@@ -32,11 +33,11 @@ async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
 
   return new Map<string, AssetL2Data>(
     response.data.tokens
-      .filter((t) => t.chainId == ChainIds.Optimism)
+      .filter((t) => t.chainId == chains.Optimism.chainId)
       .map((t) => [
         t.symbol,
         {
-          chainId: ChainIds.Optimism,
+          chainId: chains.Optimism.chainId,
           addressL2: t.address,
           decimals: t.decimals,
         },
@@ -59,7 +60,7 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
       .map((t) => [
         t.symbol,
         {
-          chainId: ChainIds.Starknet,
+          chainId: Chains.Starknet.chainId,
           addressL2: t.l2_token_address,
           decimals: t.decimals,
           addressL1: t.l1_token_address,
@@ -70,7 +71,7 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
 
 function match(asset: WhitelistedAsset, dataL2: AssetL2Data): boolean {
   if (
-    asset.chainId == ChainIds.Ethereum &&
+    asset.chainId == Chains.Ethereum.chainId &&
     dataL2.addressL1 &&
     asset.address &&
     dataL2.addressL1.toUpperCase() !== asset.address.toUpperCase()
@@ -106,13 +107,13 @@ async function main() {
     ) as WhitelistedAsset[];
 
     const l2Data: { [chainId: number]: Map<string, AssetL2Data> } = {
-      [ChainIds.Optimism]: await getOptimismAddressMapAsync(),
-      [ChainIds.Starknet]: await getStarknetAddressMapAsync(),
+      [Chains.Optimism.chainId]: await getOptimismAddressMapAsync(),
+      [Chains.Starknet.chainId]: await getStarknetAddressMapAsync(),
     };
 
     // Skip existing L2 entries
     for (const asset of whitelisted) {
-      if (asset.chainId == ChainIds.Ethereum) continue;
+      if (asset.chainId == Chains.Ethereum.chainId) continue;
 
       const assetL2Data = l2Data[asset.chainId]?.get(asset.symbol);
       if (!assetL2Data) continue;
@@ -134,7 +135,10 @@ async function main() {
     for (const asset of whitelisted) {
       whitelistedNew.push(asset);
 
-      for (const chainId of [ChainIds.Optimism, ChainIds.Starknet]) {
+      for (const chainId of [
+        Chains.Optimism.chainId,
+        Chains.Starknet.chainId,
+      ]) {
         const assetL2Data = l2Data[chainId]?.get(asset.symbol);
         if (!assetL2Data || !match(asset, assetL2Data)) continue;
 
