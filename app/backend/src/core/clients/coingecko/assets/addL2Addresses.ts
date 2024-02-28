@@ -12,7 +12,12 @@ const optimismUrl =
 const starknetUrl =
   "https://raw.githubusercontent.com/starknet-io/starknet-addresses/a200bcbeccc8b1cf1bfd9ce423dd0356a2ebab12/bridged_tokens/mainnet.json";
 
-type AssetL2Data = { addressL1?: string; addressL2: string; decimals?: number };
+type AssetL2Data = {
+  chainId: number;
+  addressL1?: string;
+  addressL2: string;
+  decimals?: number;
+};
 
 async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
   type OptimismResponse = {
@@ -28,7 +33,14 @@ async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
   return new Map<string, AssetL2Data>(
     response.data.tokens
       .filter((t) => t.chainId == ChainIds.Optimism)
-      .map((t) => [t.symbol, { addressL2: t.address, decimals: t.decimals }]),
+      .map((t) => [
+        t.symbol,
+        {
+          chainId: ChainIds.Optimism,
+          addressL2: t.address,
+          decimals: t.decimals,
+        },
+      ]),
   );
 }
 
@@ -47,6 +59,7 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
       .map((t) => [
         t.symbol,
         {
+          chainId: ChainIds.Starknet,
           addressL2: t.l2_token_address,
           decimals: t.decimals,
           addressL1: t.l1_token_address,
@@ -55,20 +68,32 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
   );
 }
 
-function match(assetL1: WhitelistedAsset, dataL2: AssetL2Data): boolean {
+function match(asset: WhitelistedAsset, dataL2: AssetL2Data): boolean {
   if (
+    asset.chainId == ChainIds.Ethereum &&
     dataL2.addressL1 &&
-    assetL1.address &&
-    dataL2.addressL1.toUpperCase() !== assetL1.address.toUpperCase()
-  )
+    asset.address &&
+    dataL2.addressL1.toUpperCase() !== asset.address.toUpperCase()
+  ) {
     return false;
+  }
+
+  if (
+    asset.chainId == dataL2.chainId &&
+    dataL2.addressL2 &&
+    asset.address &&
+    dataL2.addressL2.toUpperCase() !== asset.address.toUpperCase()
+  ) {
+    return false;
+  }
 
   if (
     dataL2.decimals != undefined &&
-    assetL1.decimals &&
-    dataL2.decimals !== assetL1.decimals
-  )
+    asset.decimals &&
+    dataL2.decimals !== asset.decimals
+  ) {
     return false;
+  }
 
   return true;
 }
@@ -87,19 +112,21 @@ async function main() {
 
     // Skip existing L2 entries
     for (const asset of whitelisted) {
-      if (asset.chainId != ChainIds.Ethereum) continue;
+      if (asset.chainId == ChainIds.Ethereum) continue;
 
       const assetL2Data = l2Data[asset.chainId]?.get(asset.symbol);
       if (!assetL2Data) continue;
 
-      if (match(asset, assetL2Data!))
+      if (match(asset, assetL2Data)) {
+        l2Data[asset.chainId]!.delete(asset.symbol);
         logger.debug(
           `Skipping ${asset.symbol} on chain #${asset.chainId} as present`,
         );
-      else
+      } else {
         logger.warn(
-          `L2 address mismatch for ${asset.symbol} on chain #${asset.chainId}`,
+          `L2 data mismatch for ${asset.symbol} on chain #${asset.chainId}`,
         );
+      }
     }
 
     // Insert new L2 entries
@@ -107,12 +134,11 @@ async function main() {
     for (const asset of whitelisted) {
       whitelistedNew.push(asset);
 
-      if (asset.chainId != ChainIds.Ethereum) continue;
-
       for (const chainId of [ChainIds.Optimism, ChainIds.Starknet]) {
         const assetL2Data = l2Data[chainId]?.get(asset.symbol);
         if (!assetL2Data || !match(asset, assetL2Data)) continue;
 
+        l2Data[chainId]?.delete(asset.symbol);
         whitelistedNew.push({
           name: asset.name,
           coingeckoId: asset.coingeckoId,
