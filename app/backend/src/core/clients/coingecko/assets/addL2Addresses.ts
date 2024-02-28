@@ -11,6 +11,8 @@ const optimismUrl =
   "https://raw.githubusercontent.com/ethereum-optimism/ethereum-optimism.github.io/f023572ab94140ab5c5e37226521ff7326badc1e/optimism.tokenlist.json";
 const starknetUrl =
   "https://raw.githubusercontent.com/starknet-io/starknet-addresses/a200bcbeccc8b1cf1bfd9ce423dd0356a2ebab12/bridged_tokens/mainnet.json";
+const zkEvmUrl =
+  "https://raw.githubusercontent.com/maticnetwork/polygon-token-list/45c653bd85643772999fe9af52b986dcaf2e0669/src/tokens/zkevmPopularTokens.json";
 
 type AssetL2Data = {
   chainId: number;
@@ -70,6 +72,27 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
   );
 }
 
+type zkEvmResponse = {
+  symbol: string;
+  address: string;
+  decimals: number;
+}[];
+
+async function getZkEvmAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
+  const response = await axios.get<zkEvmResponse>(zkEvmUrl);
+
+  return new Map<string, AssetL2Data>(
+    response.data.map((t) => [
+      t.symbol,
+      {
+        chainId: chains.zkEVM.chainId,
+        addressL2: t.address,
+        decimals: t.decimals,
+      },
+    ]),
+  );
+}
+
 function match(asset: WhitelistedAsset, dataL2: AssetL2Data): boolean {
   if (
     asset.chainId == chains.Ethereum.chainId &&
@@ -108,6 +131,7 @@ async function main() {
 
   const l2Data: { [chainId: number]: Map<string, AssetL2Data> } = {
     [chains.Optimism.chainId]: await getOptimismAddressMapAsync(),
+    [chains.zkEVM.chainId]: await getZkEvmAddressMapAsync(),
     [chains.Starknet.chainId]: await getStarknetAddressMapAsync(),
   };
 
@@ -135,7 +159,7 @@ async function main() {
   for (const asset of whitelisted) {
     whitelistedNew.push(asset);
 
-    for (const chainId of [chains.Optimism.chainId, chains.Starknet.chainId]) {
+    for (const chainId in l2Data) {
       const assetL2Data = l2Data[chainId]?.get(asset.symbol);
       if (!assetL2Data || !match(asset, assetL2Data)) continue;
 
@@ -148,7 +172,7 @@ async function main() {
         decimals: asset.decimals,
         deploymentTimestamp: asset.deploymentTimestamp,
         coingeckoListingTimestamp: asset.coingeckoListingTimestamp,
-        chainId: chainId,
+        chainId: +chainId,
       });
 
       logger.info(
