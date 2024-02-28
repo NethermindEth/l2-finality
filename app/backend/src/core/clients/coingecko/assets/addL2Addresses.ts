@@ -4,7 +4,6 @@ import axios from "axios";
 import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import { Logger } from "@/tools/Logger";
 import chains from "@/core/types/chains.json";
-import Chains from "@/core/types/chains.json";
 
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");
 
@@ -20,15 +19,16 @@ type AssetL2Data = {
   decimals?: number;
 };
 
+type OptimismResponse = {
+  tokens: {
+    symbol: string;
+    chainId: number;
+    address: string;
+    decimals: number;
+  }[];
+};
+
 async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
-  type OptimismResponse = {
-    tokens: {
-      symbol: string;
-      chainId: number;
-      address: string;
-      decimals: number;
-    }[];
-  };
   const response = await axios.get<OptimismResponse>(optimismUrl);
 
   return new Map<string, AssetL2Data>(
@@ -45,13 +45,14 @@ async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
   );
 }
 
+type StarknetResponse = {
+  symbol: string;
+  l1_token_address: string;
+  l2_token_address: string;
+  decimals: number;
+}[];
+
 async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
-  type StarknetResponse = {
-    symbol: string;
-    l1_token_address: string;
-    l2_token_address: string;
-    decimals: number;
-  }[];
   const response = await axios.get<StarknetResponse>(starknetUrl);
 
   return new Map<string, AssetL2Data>(
@@ -60,7 +61,7 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
       .map((t) => [
         t.symbol,
         {
-          chainId: Chains.Starknet.chainId,
+          chainId: chains.Starknet.chainId,
           addressL2: t.l2_token_address,
           decimals: t.decimals,
           addressL1: t.l1_token_address,
@@ -71,7 +72,7 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
 
 function match(asset: WhitelistedAsset, dataL2: AssetL2Data): boolean {
   if (
-    asset.chainId == Chains.Ethereum.chainId &&
+    asset.chainId == chains.Ethereum.chainId &&
     dataL2.addressL1 &&
     asset.address &&
     dataL2.addressL1.toUpperCase() !== asset.address.toUpperCase()
@@ -100,83 +101,76 @@ function match(asset: WhitelistedAsset, dataL2: AssetL2Data): boolean {
 }
 
 async function main() {
-  try {
-    const whitelistedPath = path.resolve(__dirname, "whitelisted.json");
-    const whitelisted = JSON.parse(
-      await fs.readFile(whitelistedPath, "utf8"),
-    ) as WhitelistedAsset[];
+  const whitelistedPath = path.resolve(__dirname, "whitelisted.json");
+  const whitelisted = JSON.parse(
+    await fs.readFile(whitelistedPath, "utf8"),
+  ) as WhitelistedAsset[];
 
-    const l2Data: { [chainId: number]: Map<string, AssetL2Data> } = {
-      [Chains.Optimism.chainId]: await getOptimismAddressMapAsync(),
-      [Chains.Starknet.chainId]: await getStarknetAddressMapAsync(),
-    };
+  const l2Data: { [chainId: number]: Map<string, AssetL2Data> } = {
+    [chains.Optimism.chainId]: await getOptimismAddressMapAsync(),
+    [chains.Starknet.chainId]: await getStarknetAddressMapAsync(),
+  };
 
-    // Skip existing L2 entries
-    for (const asset of whitelisted) {
-      if (asset.chainId == Chains.Ethereum.chainId) continue;
+  // Skip existing L2 entries
+  for (const asset of whitelisted) {
+    if (asset.chainId == chains.Ethereum.chainId) continue;
 
-      const assetL2Data = l2Data[asset.chainId]?.get(asset.symbol);
-      if (!assetL2Data) continue;
+    const assetL2Data = l2Data[asset.chainId]?.get(asset.symbol);
+    if (!assetL2Data) continue;
 
-      if (match(asset, assetL2Data)) {
-        l2Data[asset.chainId]!.delete(asset.symbol);
-        logger.debug(
-          `Skipping ${asset.symbol} on chain #${asset.chainId} as present`,
-        );
-      } else {
-        logger.warn(
-          `L2 data mismatch for ${asset.symbol} on chain #${asset.chainId}`,
-        );
-      }
-    }
-
-    // Insert new L2 entries
-    const whitelistedNew: WhitelistedAsset[] = [];
-    for (const asset of whitelisted) {
-      whitelistedNew.push(asset);
-
-      for (const chainId of [
-        Chains.Optimism.chainId,
-        Chains.Starknet.chainId,
-      ]) {
-        const assetL2Data = l2Data[chainId]?.get(asset.symbol);
-        if (!assetL2Data || !match(asset, assetL2Data)) continue;
-
-        l2Data[chainId]?.delete(asset.symbol);
-        whitelistedNew.push({
-          name: asset.name,
-          coingeckoId: asset.coingeckoId,
-          address: assetL2Data.addressL2,
-          symbol: asset.symbol,
-          decimals: asset.decimals,
-          deploymentTimestamp: asset.deploymentTimestamp,
-          coingeckoListingTimestamp: asset.coingeckoListingTimestamp,
-          chainId: chainId,
-        });
-
-        logger.info(
-          `Adding ${asset.symbol} as ${assetL2Data.addressL2} on chain #${chainId}`,
-        );
-      }
-    }
-
-    // Save new JSON
-    if (whitelistedNew.length > whitelisted.length) {
-      await fs.writeFile(
-        whitelistedPath,
-        JSON.stringify(whitelistedNew, null, 2) + "\n",
-        "utf8",
+    if (match(asset, assetL2Data)) {
+      l2Data[asset.chainId].delete(asset.symbol);
+      logger.debug(
+        `Skipping ${asset.symbol} on chain #${asset.chainId} as present`,
       );
+    } else {
+      logger.warn(
+        `L2 data mismatch for ${asset.symbol} on chain #${asset.chainId}`,
+      );
+    }
+  }
+
+  // Insert new L2 entries
+  const whitelistedNew: WhitelistedAsset[] = [];
+  for (const asset of whitelisted) {
+    whitelistedNew.push(asset);
+
+    for (const chainId of [chains.Optimism.chainId, chains.Starknet.chainId]) {
+      const assetL2Data = l2Data[chainId]?.get(asset.symbol);
+      if (!assetL2Data || !match(asset, assetL2Data)) continue;
+
+      l2Data[chainId].delete(asset.symbol);
+      whitelistedNew.push({
+        name: asset.name,
+        coingeckoId: asset.coingeckoId,
+        address: assetL2Data.addressL2,
+        symbol: asset.symbol,
+        decimals: asset.decimals,
+        deploymentTimestamp: asset.deploymentTimestamp,
+        coingeckoListingTimestamp: asset.coingeckoListingTimestamp,
+        chainId: chainId,
+      });
+
       logger.info(
-        `Added ${whitelistedNew.length - whitelisted.length} new L2 addresses`,
+        `Adding ${asset.symbol} as ${assetL2Data.addressL2} on chain #${chainId}`,
       );
     }
-  } catch (e) {
-    console.error(e);
-    throw e;
+  }
+
+  // Save new JSON
+  if (whitelistedNew.length > whitelisted.length) {
+    await fs.writeFile(
+      whitelistedPath,
+      JSON.stringify(whitelistedNew, null, 2) + "\n",
+      "utf8",
+    );
+    logger.info(
+      `Added ${whitelistedNew.length - whitelisted.length} new L2 addresses`,
+    );
   }
 }
 
-main().catch(() => {
+main().catch((e) => {
+  console.error(e);
   process.exit(1);
 });
