@@ -82,6 +82,16 @@
   {
     "name": "Aave Token",
     "coingeckoId": "aave",
+    "address": "0x68791cfe079814c46e0e25c19bcc5bfc71a744f7",
+    "symbol": "AAVE",
+    "decimals": 18,
+    "deploymentTimestamp": 1600970788,
+    "coingeckoListingTimestamp": 1601683200,
+    "chainId": 1101
+  },
+  {
+    "name": "Aave Token",
+    "coingeckoId": "aave",
     "address": "0x76FB31fb4af56892A25e32cFC43De717950c9278",
     "symbol": "AAVE",
     "decimals": 18,
@@ -328,6 +338,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Balancer",
+    "coingeckoId": "balancer",
+    "address": "0x120ef59b80774f02211563834d8e3b72cb1649d6",
+    "symbol": "BAL",
+    "decimals": 18,
+    "deploymentTimestamp": 1592616779,
+    "coingeckoListingTimestamp": 1592870400,
+    "chainId": 1101
   },
   {
     "name": "Balancer",
@@ -603,6 +623,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "ChainLink Token",
+    "coingeckoId": "chainlink",
+    "address": "0x4b16e4752711a7abec32799c976f3cefc0111f2b",
+    "symbol": "LINK",
+    "decimals": 18,
+    "deploymentTimestamp": 1505597189,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "name": "ChainLink Token",
@@ -917,6 +947,16 @@
   {
     "name": "Curve DAO Token",
     "coingeckoId": "curve-dao-token",
+    "address": "0x3d5320821bfca19fb0b5428f2c79d63bd5246f89",
+    "symbol": "CRV",
+    "decimals": 18,
+    "deploymentTimestamp": 1597270648,
+    "coingeckoListingTimestamp": 1597363200,
+    "chainId": 1101
+  },
+  {
+    "name": "Curve DAO Token",
+    "coingeckoId": "curve-dao-token",
     "address": "0x0994206dfe8de6ec6920ff4d779b0d950605fb53",
     "symbol": "CRV",
     "decimals": 18,
@@ -938,6 +978,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Dai Stablecoin",
+    "coingeckoId": "dai",
+    "address": "0xc5015b9d9161dca7e18e32f6f25c4ad850731fd4",
+    "symbol": "DAI",
+    "decimals": 18,
+    "deploymentTimestamp": 1573672677,
+    "coingeckoListingTimestamp": 1574121600,
+    "chainId": 1101
   },
   {
     "name": "Dai Stablecoin",
@@ -1211,6 +1261,16 @@
   {
     "name": "Ether",
     "coingeckoId": "ethereum",
+    "address": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
+    "decimals": 18,
+    "deploymentTimestamp": 0,
+    "coingeckoListingTimestamp": 0,
+    "chainId": 1101
+  },
+  {
+    "name": "Ether",
+    "coingeckoId": "ethereum",
     "address": "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000",
     "symbol": "ETH",
     "decimals": 18,
@@ -1346,6 +1406,16 @@
   {
     "name": "Frax",
     "coingeckoId": "frax",
+    "address": "0xFf8544feD5379D9ffa8D47a74cE6b91e632AC44D",
+    "symbol": "FRAX",
+    "decimals": 18,
+    "deploymentTimestamp": 1608140520,
+    "coingeckoListingTimestamp": 1608508800,
+    "chainId": 1101
+  },
+  {
+    "name": "Frax",
+    "coingeckoId": "frax",
     "address": "0x2E3D870790dC77A83DD1d18184Acc7439A53f475",
     "symbol": "FRAX",
     "decimals": 18,
@@ -1377,6 +1447,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Frax Share",
+    "coingeckoId": "frax-share",
+    "address": "0x6b856a14CeA1d7dCfaF80fA6936c0b75972cCacE",
+    "symbol": "FXS",
+    "decimals": 18,
+    "deploymentTimestamp": 1608140560,
+    "coingeckoListingTimestamp": 1608508800,
+    "chainId": 1101
   },
   {
     "name": "Frax Share",
@@ -1826,6 +1906,16 @@
   {
     "name": "Lido DAO Token",
     "coingeckoId": "lido-dao",
+    "address": "0x7e2feea957b7d1606335e339754f4e52b452b792",
+    "symbol": "LDO",
+    "decimals": 18,
+    "deploymentTimestamp": 1608242396,
+    "coingeckoListingTimestamp": 1609804800,
+    "chainId": 1101
+  },
+  {
+    "name": "Lido DAO Token",
+    "coingeckoId": "lido-dao",
     "address": "0xFdb794692724153d1488CcdBE0C56c252596735F",
     "symbol": "LDO",
     "decimals": 18,
@@ -2102,6 +2192,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Matic Token",
+    "coingeckoId": "matic-network",
+    "address": "0xa2036f0538221a77a3937f1379699f44945018d0",
+    "symbol": "MATIC",
+    "decimals": 18,
+    "deploymentTimestamp": 1555778052,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "id": "meld-meld",
@@ -2896,6 +2996,16 @@
   {
     "name": "Rocket Pool ETH",
     "coingeckoId": "rocket-pool-eth",
+    "address": "0xb23C20EFcE6e24Acca0Cef9B7B7aA196b84EC942",
+    "symbol": "rETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1632980684,
+    "coingeckoListingTimestamp": 1637625600,
+    "chainId": 1101
+  },
+  {
+    "name": "Rocket Pool ETH",
+    "coingeckoId": "rocket-pool-eth",
     "address": "0x6c2f7b6110a37b3B0fbdd811876be368df02E8B0",
     "symbol": "rETH",
     "decimals": 18,
@@ -3082,6 +3192,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Staked Frax Ether",
+    "coingeckoId": "staked-frax-ether",
+    "address": "0x7c2af1fb79d0b1c67d4eb802d44c673d0a1d2c04",
+    "symbol": "sfrxETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1665022895,
+    "coingeckoListingTimestamp": 1669852800,
+    "chainId": 1101
   },
   {
     "name": "Staked Frax Ether",
@@ -3384,6 +3504,16 @@
     "formula": "locked"
   },
   {
+    "name": "Tether Gold",
+    "coingeckoId": "tether-gold",
+    "address": "0xa7bd526e698a7ee6261982607d7b64cc8e7be0ef",
+    "symbol": "XAUt",
+    "decimals": 6,
+    "deploymentTimestamp": 1635679310,
+    "coingeckoListingTimestamp": 1579996800,
+    "chainId": 1101
+  },
+  {
     "id": "usdt-tether-usd",
     "name": "Tether USD",
     "coingeckoId": "tether",
@@ -3397,6 +3527,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Tether USD",
+    "coingeckoId": "tether",
+    "address": "0x1e4a5963abfd975d8c9021ce480b42188849d41d",
+    "symbol": "USDT",
+    "decimals": 6,
+    "deploymentTimestamp": 1511829681,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "name": "Tether USD",
@@ -3576,6 +3716,16 @@
   {
     "name": "Uniswap",
     "coingeckoId": "uniswap",
+    "address": "0x2548c94a3092494db3af864cc2cf781a72f55678",
+    "symbol": "UNI",
+    "decimals": 18,
+    "deploymentTimestamp": 1600107086,
+    "coingeckoListingTimestamp": 1600300800,
+    "chainId": 1101
+  },
+  {
+    "name": "Uniswap",
+    "coingeckoId": "uniswap",
     "address": "0x6fd9d7ad17242c41f7131d257212c54a0e816691",
     "symbol": "UNI",
     "decimals": 18,
@@ -3607,6 +3757,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "USD Coin",
+    "coingeckoId": "usd-coin",
+    "address": "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035",
+    "symbol": "USDC",
+    "decimals": 6,
+    "deploymentTimestamp": 1533324504,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "name": "USD Coin",
@@ -3791,6 +3951,16 @@
   {
     "name": "Wrapped BTC",
     "coingeckoId": "wrapped-bitcoin",
+    "address": "0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1",
+    "symbol": "WBTC",
+    "decimals": 8,
+    "deploymentTimestamp": 1543095952,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
+  },
+  {
+    "name": "Wrapped BTC",
+    "coingeckoId": "wrapped-bitcoin",
     "address": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
     "symbol": "WBTC",
     "decimals": 8,
@@ -3826,6 +3996,16 @@
   {
     "name": "Wrapped Ether",
     "coingeckoId": "weth",
+    "address": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
+    "symbol": "WETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1513077455,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
+  },
+  {
+    "name": "Wrapped Ether",
+    "coingeckoId": "weth",
     "address": "0x4200000000000000000000000000000000000006",
     "symbol": "WETH",
     "decimals": 18,
@@ -3847,6 +4027,16 @@
     "chainId": 1,
     "type": "CBV",
     "formula": "locked"
+  },
+  {
+    "name": "Wrapped liquid staked Ether 2.0",
+    "coingeckoId": "wrapped-steth",
+    "address": "0x5D8cfF95D7A57c0BF50B30b43c7CC0D52825D4a9",
+    "symbol": "wstETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1613752640,
+    "coingeckoListingTimestamp": 1633564800,
+    "chainId": 1101
   },
   {
     "name": "Wrapped liquid staked Ether 2.0",
