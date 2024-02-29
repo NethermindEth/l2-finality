@@ -75,7 +75,7 @@ export function getTestConfig(env: Env): Config {
 
   const polygonZkEvmModuleConfig: PolygonZkEvmModuleConfig = {
     enabled: env.boolean("POLYGONZK_MODULE_ENABLED", true),
-    chainId: 1101,
+    chainId: chains.zkEVM.chainId,
     startBlock: env.integer("POLYGONZK_START_BLOCK", 10290000),
     maxBlockRange: env.integer("POLYGONZK_MAX_BLOCK_RANGE", 50),
     pollIntervalMs: env.integer("POLYGONZK_POLL_INTERVAL_MS", 15000),

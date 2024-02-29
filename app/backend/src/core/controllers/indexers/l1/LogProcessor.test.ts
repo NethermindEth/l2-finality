@@ -13,9 +13,10 @@ import {
 import { beforeEach } from "mocha";
 import Logger from "@/tools/Logger";
 import { getConfig } from "@/config";
-import EthereumClient from "@/core/clients/ethereum/EthereumClient";
-import PolygonZkEvmClient from "@/core/clients/polygonzk/PolygonZkEvmClient";
-import { PolygonZkEvmBatch } from "@/core/clients/polygonzk/types";
+import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
+import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
+import { PolygonZkEvmBatch } from "@/core/clients/blockchain/polygonzk/types";
+import { Block } from "@/core/clients/blockchain/IBlockchainClient";
 describe(LogProcessors.name, () => {
   let ethClient: EthereumClient;
   let polygonZkEvmClient: PolygonZkEvmClient;
@@ -121,18 +122,15 @@ function mockBlockchainClients(
   ethClient: EthereumClient,
   polygonZkEvmClient: PolygonZkEvmClient,
 ) {
-  ethClient.getBlock = async (
-    blockNumber: number,
-  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> => {
-    const mockBlock: ethers.Block = {
+  ethClient.getBlock = async (blockNumber: number): Promise<Block> => {
+    const mockBlock: Block = {
       timestamp: 1111111111,
       number: blockNumber,
       hash: "0xethBlockHashMock",
-    } as ethers.Block;
+      transactions: [],
+    } as unknown as Block;
 
-    const mockTransactions: ethers.TransactionResponse[] = [];
-
-    return [mockBlock, mockTransactions];
+    return mockBlock;
   };
 
   polygonZkEvmClient.getBatchByNumber = async (
@@ -144,15 +142,14 @@ function mockBlockchainClients(
 
   polygonZkEvmClient.getBlock = async (
     blockNumber: number | string,
-  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> => {
-    const mockBlock: ethers.Block = {
+  ): Promise<Block> => {
+    const mockBlock = {
       timestamp: 1234567890,
       number: 8888888,
       hash: "0xpolygonBlockHashMock",
-    } as ethers.Block;
+      transactions: [],
+    } as unknown as Block;
 
-    const mockTransactions: ethers.TransactionResponse[] = [];
-
-    return [mockBlock, mockTransactions];
+    return mockBlock;
   };
 }

@@ -4,14 +4,14 @@ import {
 } from "@/database/repositories/SyncStatusRepository";
 import { ethers } from "ethers";
 import { ContractName } from "@/core/clients/blockchain/ethereum/contracts/types";
-import { OptimismOutputProposed } from "@/core/controllers/indexers/shared/types";
 import {
   OptimismOutputProposed,
   PolygonSequenceBatch,
   PolygonVerifyBatch,
 } from "@/core/controllers/indexers/shared/types";
-import PolygonZkEvmClient from "@/core/clients/polygonzk/PolygonZkEvmClient";
+import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
+import chains from "@/core/types/chains.json";
 
 type CallbackFunction = (...args: any[]) => any;
 
@@ -54,7 +54,7 @@ export class LogProcessors {
     decodedLog: OptimismOutputProposed,
   ): SyncStatusRecord {
     return {
-      chain_id: 10,
+      chain_id: chains.Optimism.chainId,
       l2_block_number: decodedLog.l2BlockNumber,
       l2_block_hash: null,
       l1_block_number: Number(log.blockNumber),
@@ -71,8 +71,8 @@ export class LogProcessors {
     const batchDetails = await this.polygonZkEvmClient.getBatchByNumber(
       Number(decodedLog.numBatch),
     );
-    const [ethBlock] = await this.ethereumClient.getBlock(log.blockNumber);
-    const [l2Block] = await this.polygonZkEvmClient.getBlock(
+    const ethBlock = await this.ethereumClient.getBlock(log.blockNumber);
+    const l2Block = await this.polygonZkEvmClient.getBlock(
       batchDetails.blocks[batchDetails.blocks.length - 1],
     );
 
@@ -89,7 +89,7 @@ export class LogProcessors {
       submissionType = SubmissionType.DataSubmission;
     }
     return {
-      chain_id: 1101,
+      chain_id: chains.zkEVM.chainId,
       l2_block_number: BigInt(l2Block.number),
       l2_block_hash: l2Block.hash,
       l1_block_number: Number(log.blockNumber),

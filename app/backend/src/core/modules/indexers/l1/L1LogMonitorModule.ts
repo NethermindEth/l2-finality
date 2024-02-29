@@ -4,7 +4,7 @@ import { Config } from "@/config/Config";
 import L1LogMonitorController from "@/core/controllers/indexers/l1/L1LogMonitorController";
 import { TaskScheduler } from "@/core/scheduler/TaskScheduler";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
-import PolygonZkEvmClient from "@/core/clients/polygonzk/PolygonZkEvmClient";
+import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import LogProcessors from "@/core/controllers/indexers/l1/LogProcessor";
 
 export function createL1MonitorModule(
