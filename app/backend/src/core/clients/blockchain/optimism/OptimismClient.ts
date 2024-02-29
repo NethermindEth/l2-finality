@@ -2,8 +2,15 @@ import { ethers, Network } from "ethers";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
 import { OptimismSyncStatus } from "./types";
+import {
+  Block,
+  ethersToBlock,
+  ethersToTransactionReceipt,
+  IBlockchainClient,
+  TransactionReceipt,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
-class OptimismClient {
+class OptimismClient implements IBlockchainClient {
   private provider: ethers.JsonRpcProvider;
   private network: Network;
   private logger: Logger;
@@ -24,20 +31,22 @@ class OptimismClient {
     return await this.provider.getBlockNumber();
   }
 
-  public async getBlock(
-    blockHeight: number,
-  ): Promise<[ethers.Block, ethers.TransactionResponse[]] | [null, null]> {
+  public async getBlock(blockHeight: number): Promise<Block | undefined> {
     const block = await this.provider.getBlock(blockHeight, true);
-    if (!block) {
-      return [null, null];
+    if (block) {
+      return ethersToBlock(block);
     }
+    this.logger.error(`Block not found: ${blockHeight}`);
+  }
 
-    const txs = await Promise.all(
-      block.transactions.map((hash: string) =>
-        block.getPrefetchedTransaction(hash),
-      ),
-    );
-    return [block, txs];
+  public async getTransactionReceipt(
+    txHash: string,
+  ): Promise<TransactionReceipt | undefined> {
+    const receipt = await this.provider.getTransactionReceipt(txHash);
+    if (receipt) {
+      return ethersToTransactionReceipt(receipt);
+    }
+    this.logger.error(`Transaction receipt not found: ${txHash}`);
   }
 
   public async getSyncStatus(): Promise<OptimismSyncStatus> {

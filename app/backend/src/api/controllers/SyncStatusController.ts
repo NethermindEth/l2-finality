@@ -1,4 +1,7 @@
-import { SyncStatusRepository } from "@/database/repositories/SyncStatusRepository";
+import {
+  SyncStatusRecord,
+  SyncStatusRepository,
+} from "@/database/repositories/SyncStatusRepository";
 import Logger from "@/tools/Logger";
 import { Request, Response } from "express";
 import {
@@ -27,7 +30,7 @@ export class SyncStatusController {
         return;
       }
 
-      const syncStatusRecords =
+      const syncStatusRecords: SyncStatusRecord[] =
         await this.syncStatusRepository.getPaginatedSyncStatus(
           chainId,
           page,

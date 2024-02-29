@@ -1,7 +1,7 @@
 import Logger from "@/tools/Logger";
-import OptimismClient from "@/core/clients/optimism/OptimismClient";
+import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { Database } from "@/database/Database";
-import { OptimismSyncStatus } from "@/core/clients/optimism/types";
+import { OptimismSyncStatus } from "@/core/clients/blockchain/optimism/types";
 import SyncStatusRepository, {
   SubmissionType,
   SyncStatusRecord,

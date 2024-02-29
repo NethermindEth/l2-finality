@@ -1,18 +1,19 @@
 import { Knex } from "knex";
+import { AggregatedTransferResults } from "@/core/controllers/appraiser/types";
 
 export const chainTableMapping: Record<number, string> = {
   10: "optimism_blocks",
 };
 
-export interface ContractValue {
-  [contractAddress: string]: number;
-}
-
 export interface BlockValueRecord {
   l2_block_number: bigint;
   l2_block_hash: string;
   l2_block_timestamp: Date;
-  value: ContractValue;
+  value: AggregatedTransferResults;
+  gas_fees: bigint;
+  gas_fees_usd: number;
+  block_reward: bigint;
+  block_reward_usd: number;
 }
 
 export class BlockValueRepository {

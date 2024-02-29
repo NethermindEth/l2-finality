@@ -3,11 +3,11 @@ import { Api } from "./api/Api";
 import { Database } from "./database/Database";
 import { Config } from "./config/Config";
 import { createL1MonitorModule } from "./core/modules/indexers/l1/L1LogMonitorModule";
-import EthereumClient from "./core/clients/ethereum/EthereumClient";
+import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 import { createPriceUpdaterModule } from "./core/modules/pricing/PriceUpdaterModule";
 import { CoinGeckoClient } from "@/core/clients/coingecko/CoinGeckoClient";
 import { createOptimismFinalityModule } from "./core/modules/indexers/l2/optimism/OptimismFinalityModule";
-import OptimismClient from "./core/clients/optimism/OptimismClient";
+import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/OptimismBlockModule";
 
 export class Application {

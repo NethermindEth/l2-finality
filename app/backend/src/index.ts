@@ -1,5 +1,5 @@
 import { getConfig } from "./config";
-import { Application } from "./Application";
+import { Application } from "@/Application";
 
 async function main() {
   try {
