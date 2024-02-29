@@ -20,6 +20,7 @@ export function createOptimismBlockModule(
     logger.for("OP Appraiser"),
     database,
   );
+
   const optimismBlockController = new OptimismBlockController(
     optimismClient,
     blockAppraiser,
