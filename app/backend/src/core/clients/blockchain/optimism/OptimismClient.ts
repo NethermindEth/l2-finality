@@ -34,11 +34,6 @@ class OptimismClient implements IBlockchainClient {
   public async getBlock(blockHeight: number): Promise<Block | undefined> {
     const block = await this.provider.getBlock(blockHeight, true);
     if (block) {
-      try {
-        return ethersToBlock(block);
-      } catch (e) {
-        this.logger.error(`Error getting block: ${e}`);
-      }
       return ethersToBlock(block);
     }
     this.logger.error(`Block not found: ${blockHeight}`);

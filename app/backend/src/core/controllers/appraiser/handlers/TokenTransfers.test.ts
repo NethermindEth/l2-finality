@@ -322,7 +322,7 @@ function setUpMockProvider(
   mockTransactionData: any,
 ): { mockProvider: IBlockchainClient; mockPriceService: PriceService } {
   mockProvider.getTransactionReceipt = mockFn().returns(mockTransactionData);
-  mockPriceService.getPriceWithRetry = mockFn().returns({ priceUsd: 5 });
+  mockPriceService.getPriceForContract = mockFn().returns({ priceUsd: 5 });
 
   return { mockProvider, mockPriceService };
 }

@@ -1,17 +1,13 @@
 import { AppraisalSummary } from "../handlers/BaseHandler";
-import {
-  AggregatedMappedTransfer,
-  AggregatedTransferResults,
-  AggregatedUnmappedTransfer,
-} from "../types";
+import { AggregatedMappedTransfer, AggregatedTransferResults } from "../types";
 
 export class TransferValueSummarizer {
   static aggregate(summaries: AppraisalSummary[]): AggregatedTransferResults {
     const mapped: Record<string, AggregatedMappedTransfer> = {};
-    const unmapped: Record<string, AggregatedUnmappedTransfer> = {};
+    const unmapped: Set<string> = new Set(); // Use a Set to avoid duplicates easily
 
     summaries.forEach((summary) => {
-      const { contractAddress, rawAmount, usdValue } = summary;
+      const { contractAddress, usdValue } = summary;
 
       // Handle mapped transfers (with usdValue)
       if (usdValue !== undefined) {
@@ -21,19 +17,13 @@ export class TransferValueSummarizer {
         mapped[contractAddress].usdTotalValue += usdValue;
       } else {
         // Handle unmapped transfers (without usdValue)
-        if (!unmapped[contractAddress]) {
-          unmapped[contractAddress] = {
-            contractAddress,
-            rawTotalAmount: BigInt(0),
-          };
-        }
-        unmapped[contractAddress].rawTotalAmount += rawAmount;
+        unmapped.add(contractAddress);
       }
     });
 
-    const filteredUnmapped: AggregatedUnmappedTransfer[] = Object.values(
-      unmapped,
-    ).filter((transfer) => !mapped[transfer.contractAddress]);
+    const filteredUnmapped = Array.from(unmapped).filter(
+      (address) => !mapped[address],
+    );
 
     return {
       mapped: Object.values(mapped),

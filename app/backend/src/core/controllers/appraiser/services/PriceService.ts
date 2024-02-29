@@ -4,24 +4,24 @@ import {
 } from "@/database/repositories/PricingRepository";
 import { UnixTime } from "@/core/types/UnixTime";
 import Logger from "@/tools/Logger";
+import whitelist from "@/core/clients/coingecko/assets/whitelisted.json";
+import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
+import { ethers } from "ethers";
 
 export class PriceService {
-  private logger: Logger;
-  private useFake: boolean;
+  private readonly monitoredAssets: WhitelistedAsset[];
+
   constructor(
     private pricingRepository: PriceRepository,
-    logger: Logger,
-    useFake: boolean = false,
+    private logger: Logger,
+    private useFake: boolean = false,
   ) {
-    this.useFake = useFake;
-    this.logger = logger;
+    this.monitoredAssets = whitelist as WhitelistedAsset[];
   }
 
-  async getPriceWithRetry(
+  async getPriceForContract(
     contractAddress: string,
     timestamp: UnixTime,
-    retryInterval = 5000,
-    maxRetries = 12,
   ): Promise<PriceRecord | undefined> {
     if (this.useFake) {
       return {
@@ -31,18 +31,30 @@ export class PriceService {
       };
     }
 
-    for (let i = 0; i < maxRetries; i++) {
-      const priceRecord = await this.pricingRepository.findByTimestampAndToken(
-        timestamp,
-        contractAddress,
-      );
-      if (priceRecord) return priceRecord;
+    let assetId: string;
 
-      await new Promise((resolve) => setTimeout(resolve, retryInterval));
+    if (contractAddress === ethers.ZeroAddress) {
+      assetId = "ethereum";
+    } else {
+      const asset = this.monitoredAssets.find(
+        (a: WhitelistedAsset) => a.address === contractAddress,
+      );
+      if (!asset) {
+        this.logger.error(`Asset not found for ${contractAddress}`);
+        return undefined;
+      }
+      assetId = asset.coingeckoId;
     }
-    this.logger.error(
-      `Critical error: could not find price for ${contractAddress} at ${timestamp} after ${maxRetries} retries.`,
+
+    const priceRecord = await this.pricingRepository.findByTimestampAndToken(
+      timestamp,
+      assetId,
     );
-    return undefined;
+    if (!priceRecord) {
+      this.logger.error(
+        `Price not found for ${contractAddress} at ${timestamp.toDate()}`,
+      );
+    }
+    return priceRecord;
   }
 }

@@ -47,13 +47,11 @@ export class PriceRepository {
     timestamp: UnixTime,
     assetId: string,
   ): Promise<PriceRecord | undefined> {
-    const oneDayAgo = timestamp.add(-1, "days").toDate();
-
     const row = await this.knex(TABLE_NAME)
       .where({
         asset_id: assetId,
       })
-      .where("timestamp", "<=", oneDayAgo)
+      .where("timestamp", "<=", timestamp.toDate())
       .orderBy("timestamp", "desc")
       .first();
 

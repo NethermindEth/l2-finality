@@ -7,15 +7,10 @@ export type BlockValue = {
 
 export type AggregatedTransferResults = {
   mapped: AggregatedMappedTransfer[];
-  unmapped: AggregatedUnmappedTransfer[];
+  unmapped: string[];
 };
 
 export type AggregatedMappedTransfer = {
   contractAddress: string;
   usdTotalValue: number;
-};
-
-export type AggregatedUnmappedTransfer = {
-  contractAddress: string;
-  rawTotalAmount: bigint;
 };

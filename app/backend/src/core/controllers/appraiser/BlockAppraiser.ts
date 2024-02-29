@@ -16,9 +16,7 @@ export class BlockAppraiser {
   ) {}
 
   public async value(block: Block): Promise<BlockValue> {
-    const timestamp: UnixTime = UnixTime.fromDate(
-      new Date(block.timestamp * 1000),
-    );
+    const timestamp: UnixTime = new UnixTime(block.timestamp);
 
     const blockRewardSummary: BlockRewardSummary =
       await this.blockRewardsHandler.handleBlockRewards(block);

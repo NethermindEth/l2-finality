@@ -1,5 +1,3 @@
-Based on the file structure in the screenshot and your instructions, here is an updated README for the Block Appraiser System:
-
 ````markdown
 # Block Appraiser System
 

@@ -106,6 +106,10 @@ export class TokenTransferHandler extends BaseHandler {
   }
 
   private hasReciprocalTransfers(transferEvents: TransferLogEvent[]): boolean {
+    if (transferEvents.length <= 1) {
+      return false;
+    }
+
     const senders = new Set();
     const receivers = new Set();
 
@@ -114,7 +118,7 @@ export class TokenTransferHandler extends BaseHandler {
       receivers.add(event.toAddress);
     }
 
-    return [...senders].some((sender) => receivers.has(sender));
+    return Array.from(senders).some((sender) => receivers.has(sender));
   }
 
   private async priceTransferLogEvents(
@@ -132,7 +136,7 @@ export class TokenTransferHandler extends BaseHandler {
         if (asset) {
           // Asset is whitelisted
           const decimals = asset.decimals;
-          const priceRecord = await this.priceService.getPriceWithRetry(
+          const priceRecord = await this.priceService.getPriceForContract(
             event.contractAddress,
             timestamp,
           );

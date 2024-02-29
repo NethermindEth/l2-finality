@@ -95,7 +95,7 @@ describe(BlockValueRepository.name, () => {
         l2_block_timestamp: new Date(),
         value: {
           mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
-          unmapped: [{ contractAddress: "0xABC", rawTotalAmount: 10n }],
+          unmapped: ["xxx"],
         },
         gas_fees: 100n,
         gas_fees_usd: 10,

@@ -60,21 +60,8 @@ export class BlockValueRepository {
     records: BlockValueRecord[],
   ): Promise<void> {
     const tableName = this.getTable(chainId);
-    const serializedRecords = records.map((record) => ({
-      ...record,
-      value: JSON.stringify({
-        ...record.value,
-        unmapped: record.value.unmapped.map((item) => ({
-          ...item,
-          rawTotalAmount: item.rawTotalAmount.toString(),
-        })),
-      }),
-      gas_fees: record.gas_fees.toString(),
-      block_reward: record.block_reward.toString(),
-    }));
-
     await this.knex(tableName)
-      .insert(serializedRecords)
+      .insert(records)
       .onConflict(["l2_block_number", "l2_block_hash"])
       .merge();
   }

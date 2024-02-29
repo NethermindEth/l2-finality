@@ -28,7 +28,7 @@ export class NativeTransferHandler extends BaseHandler {
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
     const adjustedAmount = Number(tx.value) / 1e18;
-    const priceRecord = await this.priceService.getPriceWithRetry(
+    const priceRecord = await this.priceService.getPriceForContract(
       this.ethContract,
       timestamp,
     );

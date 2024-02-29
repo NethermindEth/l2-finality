@@ -210,7 +210,7 @@ function setUpMockProvider(
     priceUsd: 5,
   });
 
-  mockPriceService.getPriceWithRetry = mockGetPriceWithRetry;
+  mockPriceService.getPriceForContract = mockGetPriceWithRetry;
 
   return { mockProvider, mockPriceService };
 }

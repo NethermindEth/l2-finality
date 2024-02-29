@@ -123,7 +123,7 @@ function setUpMockProvider(
     hash: mockTransactionData.hash,
     value: mockTransactionData.value,
   });
-  mockPriceService.getPriceWithRetry = mockGetPriceWithRetry;
+  mockPriceService.getPriceForContract = mockGetPriceWithRetry;
 
   return { mockProvider, mockPriceService };
 }

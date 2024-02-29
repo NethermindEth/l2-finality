@@ -18,7 +18,7 @@ describe(TransferValueSummarizer.name, () => {
         { contractAddress: "0x1", usdTotalValue: 30 },
         { contractAddress: "0x3", usdTotalValue: 40 },
       ],
-      unmapped: [{ contractAddress: "0x2", rawTotalAmount: BigInt(800) }],
+      unmapped: ["0x2"],
     };
 
     const results = TransferValueSummarizer.aggregate(mockSummaries);

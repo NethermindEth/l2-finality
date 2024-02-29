@@ -53,7 +53,7 @@ export class BlockRewardsHandler {
       totalTips += tips;
     }
 
-    const priceRecord = await this.priceService.getPriceWithRetry(
+    const priceRecord = await this.priceService.getPriceForContract(
       ethers.ZeroAddress,
       UnixTime.fromDate(new Date(block.timestamp * 1000)),
     );
