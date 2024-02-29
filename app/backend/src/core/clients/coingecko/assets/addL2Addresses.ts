@@ -4,6 +4,7 @@ import axios from "axios";
 import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import { Logger } from "@/tools/Logger";
 import chains from "@/core/types/chains.json";
+import { ethers } from "ethers";
 
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");
 
@@ -86,7 +87,7 @@ async function getZkEvmAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
       t.symbol,
       {
         chainId: chains.zkEVM.chainId,
-        addressL2: t.address,
+        addressL2: t.address.toLowerCase(),
         decimals: t.decimals,
       },
     ]),
@@ -167,7 +168,10 @@ async function main() {
       whitelistedNew.push({
         name: asset.name,
         coingeckoId: asset.coingeckoId,
-        address: assetL2Data.addressL2,
+        address:
+          assetL2Data.addressL2.length > 42
+            ? assetL2Data.addressL2
+            : ethers.getAddress(assetL2Data.addressL2.toLowerCase()), // Ensure checksum for EVM
         symbol: asset.symbol,
         decimals: asset.decimals,
         deploymentTimestamp: asset.deploymentTimestamp,
