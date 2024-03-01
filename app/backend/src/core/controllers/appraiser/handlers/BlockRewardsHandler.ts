@@ -37,7 +37,6 @@ export class BlockRewardsHandler {
     }
 
     for (const receipt of blockTransactionReceipts) {
-      if (!receipt) continue;
       const gasUsed = receipt.gasUsed ? BigInt(receipt.gasUsed) : BigInt(0);
 
       const transaction = block.transactions.find(
@@ -60,7 +59,7 @@ export class BlockRewardsHandler {
           ? baseFeePerGas + priorityFeePerGas
           : maxFeePerGas;
 
-      const gasFees = gasUsed * effectiveGasPrice;
+      const gasFees = gasUsed * transaction.gasPrice;
       const tips = gasUsed * priorityFeePerGas;
 
       totalGasFees += gasFees;
