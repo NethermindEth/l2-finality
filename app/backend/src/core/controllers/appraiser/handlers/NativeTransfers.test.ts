@@ -11,6 +11,7 @@ import { NativeTransferHandler } from "@/core/controllers/appraiser/handlers/Nat
 import {
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 
@@ -65,6 +66,7 @@ describe(NativeTransferHandler.name, () => {
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      [] as TransactionReceipt[],
       timestamp,
     );
     const expectedValue = (mockTransactionData.value / 1e18) * 5;
@@ -100,6 +102,7 @@ describe(NativeTransferHandler.name, () => {
 
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      [] as TransactionReceipt[],
       timestamp,
     );
 

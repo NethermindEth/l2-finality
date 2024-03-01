@@ -7,10 +7,14 @@ import {
   BlockRewardsHandler,
   BlockRewardSummary,
 } from "@/core/controllers/appraiser/handlers/BlockRewardsHandler";
-import { Block } from "@/core/clients/blockchain/IBlockchainClient";
+import {
+  Block,
+  IBlockchainClient,
+} from "@/core/clients/blockchain/IBlockchainClient";
 
 export class BlockAppraiser {
   constructor(
+    private provider: IBlockchainClient,
     private transferService: TransferService,
     private blockRewardsHandler: BlockRewardsHandler,
   ) {}
@@ -18,11 +22,21 @@ export class BlockAppraiser {
   public async value(block: Block): Promise<BlockValue> {
     const timestamp: UnixTime = new UnixTime(block.timestamp);
 
+    const blockTransactionReceipts =
+      await this.provider.getBlockTransactionReceipts(block);
+
     const blockRewardSummary: BlockRewardSummary =
-      await this.blockRewardsHandler.handleBlockRewards(block);
+      await this.blockRewardsHandler.handleBlockRewards(
+        block,
+        blockTransactionReceipts,
+      );
 
     const transfers: AppraisalSummary[] =
-      await this.transferService.handleTransfers(block.transactions, timestamp);
+      await this.transferService.handleTransfers(
+        block.transactions,
+        blockTransactionReceipts,
+        timestamp,
+      );
     const aggregatedResults: AggregatedTransferResults =
       TransferValueSummarizer.aggregate(transfers);
 

@@ -12,6 +12,7 @@ import {
   Block,
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 
@@ -65,10 +66,7 @@ describe(BlockRewardsHandler.name, () => {
         priceService,
         mockTransactionData,
       );
-      blockRewardsHandler = new BlockRewardsHandler(
-        mockProvider,
-        mockPriceService,
-      );
+      blockRewardsHandler = new BlockRewardsHandler(mockPriceService);
 
       const txs = mockTransactionData.map((txData) => ({
         hash: txData.hash,
@@ -80,7 +78,14 @@ describe(BlockRewardsHandler.name, () => {
         mockTransactionData[0].blockNumber,
       )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block);
+      const receipts = (await mockProvider.getBlockTransactionReceipts(
+        block,
+      )) as TransactionReceipt[];
+
+      const result = await blockRewardsHandler.handleBlockRewards(
+        block,
+        receipts,
+      );
       const expected = {
         gasFees: 438513250744200n,
         gasFeesUsd: (Number(438513250744200n) / 1e18) * 5,
@@ -146,16 +151,19 @@ describe(BlockRewardsHandler.name, () => {
         priceService,
         mockTransactionData,
       );
-      blockRewardsHandler = new BlockRewardsHandler(
-        mockProvider,
-        mockPriceService,
-      );
+      blockRewardsHandler = new BlockRewardsHandler(mockPriceService);
 
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
       )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block);
+      const receipts = (await mockProvider.getBlockTransactionReceipts(
+        block,
+      )) as TransactionReceipt[];
+      const result = await blockRewardsHandler.handleBlockRewards(
+        block,
+        receipts,
+      );
       const expected = {
         gasFees: 498190237979734n,
         gasFeesUsd: (Number(498190237979734n) / 1e18) * 5,
@@ -175,15 +183,16 @@ function setUpMockProvider(
 ) {
   const mockGetPriceWithRetry = mockFn();
 
-  const mockGetTransactionReceipt = mockFn<(hash: string) => any>().executes(
-    (hash: string) => {
-      const txData = mockTransactionData.find((tx) => tx.hash === hash);
-      return {
-        transactionHash: txData ? txData.hash : "",
-        gasUsed: txData ? txData.gasUsed : BigInt(0),
-      };
-    },
-  );
+  const mockGetTransactionReceipts = mockFn<
+    (blockNumber: Block) => Promise<any>
+  >().executes((blockNumber: Block) => {
+    return Promise.resolve(
+      mockTransactionData.map((txData) => ({
+        hash: txData.hash,
+        gasUsed: txData.gasUsed ? BigInt(txData.gasUsed) : BigInt(0),
+      })),
+    );
+  });
 
   const mockGetBlock = mockFn<(blockNumber: number) => any>().executes(
     (blockNumber: number) => {
@@ -203,7 +212,7 @@ function setUpMockProvider(
     },
   );
 
-  mockProvider.getTransactionReceipt = mockGetTransactionReceipt;
+  mockProvider.getBlockTransactionReceipts = mockGetTransactionReceipts;
   mockProvider.getBlock = mockGetBlock;
 
   mockGetPriceWithRetry.returns({

@@ -6,6 +6,7 @@ import Logger from "@/tools/Logger";
 import {
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 export class NativeTransferHandler extends BaseHandler {
@@ -25,6 +26,7 @@ export class NativeTransferHandler extends BaseHandler {
 
   async handleTransferEvents(
     tx: Transaction,
+    blockTransactionReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
     const adjustedAmount = Number(tx.value) / 1e18;

@@ -11,8 +11,10 @@ import PricingRepository from "@/database/repositories/PricingRepository";
 import { getTestDatabase } from "@/database/getTestDatabase";
 import { afterEach } from "mocha";
 import {
+  Block,
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { AppraisalSummary } from "@/core/controllers/appraiser/handlers/BaseHandler";
@@ -64,7 +66,7 @@ describe(TokenTransferHandler.name, () => {
           data: "0x1000",
         },
       ],
-      transactionHash: "0xmockTransactionHash",
+      hash: "0xmockTransactionHash",
     };
 
     const { mockProvider, mockPriceService } = setUpMockProvider(
@@ -81,11 +83,15 @@ describe(TokenTransferHandler.name, () => {
 
     const timestamp: UnixTime = UnixTime.now();
     const mockTxResponse: Transaction = {
-      hash: mockTransactionReceiptLogs.transactionHash,
+      hash: mockTransactionReceiptLogs.hash,
     } as Transaction;
 
+    const receipts = await mockProvider.getBlockTransactionReceipts(
+      1 as unknown as Block,
+    );
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      receipts,
       timestamp,
     );
     const totalUsdValue = appraisals.reduce(
@@ -122,7 +128,7 @@ describe(TokenTransferHandler.name, () => {
           data: "0x1000",
         },
       ],
-      transactionHash: "0xmockTransactionHash",
+      hash: "0xmockTransactionHash",
     };
 
     const { mockProvider, mockPriceService } = setUpMockProvider(
@@ -139,11 +145,15 @@ describe(TokenTransferHandler.name, () => {
 
     const timestamp: UnixTime = UnixTime.now();
     const mockTxResponse: Transaction = {
-      hash: mockTransactionReceiptLogs.transactionHash,
+      hash: mockTransactionReceiptLogs.hash,
     } as Transaction;
 
+    const receipts = await mockProvider.getBlockTransactionReceipts(
+      1 as unknown as Block,
+    );
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      receipts,
       timestamp,
     );
     const totalUsdValue = appraisals.reduce(
@@ -195,7 +205,7 @@ describe(TokenTransferHandler.name, () => {
           data: "0x1000232",
         },
       ],
-      transactionHash: "0xmockTransactionHash",
+      hash: "0xmockTransactionHash",
     };
 
     const { mockProvider, mockPriceService } = setUpMockProvider(
@@ -212,11 +222,15 @@ describe(TokenTransferHandler.name, () => {
 
     const timestamp: UnixTime = UnixTime.now();
     const mockTxResponse: Transaction = {
-      hash: mockTransactionReceiptLogs.transactionHash,
+      hash: mockTransactionReceiptLogs.hash,
     } as Transaction;
 
+    const receipts = await mockProvider.getBlockTransactionReceipts(
+      1 as unknown as Block,
+    );
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      receipts,
       timestamp,
     );
     const adjustedAmount =
@@ -275,7 +289,7 @@ describe(TokenTransferHandler.name, () => {
           data: "0x66063a17448bd82", // Hexadecimal representation of 459476707083599234
         },
       ],
-      transactionHash: "0xmockTransactionHash",
+      hash: "0xmockTransactionHash",
     };
 
     const { mockProvider, mockPriceService } = setUpMockProvider(
@@ -292,11 +306,15 @@ describe(TokenTransferHandler.name, () => {
 
     const timestamp: UnixTime = UnixTime.now();
     const mockTxResponse: Transaction = {
-      hash: mockTransactionReceiptLogs.transactionHash,
+      hash: mockTransactionReceiptLogs.hash,
     } as Transaction;
 
+    const receipts = await mockProvider.getBlockTransactionReceipts(
+      1 as unknown as Block,
+    );
     const appraisals = await handler.handleTransferEvents(
       mockTxResponse,
+      receipts,
       timestamp,
     );
 
@@ -321,7 +339,9 @@ function setUpMockProvider(
   mockPriceService: PriceService,
   mockTransactionData: any,
 ): { mockProvider: IBlockchainClient; mockPriceService: PriceService } {
-  mockProvider.getTransactionReceipt = mockFn().returns(mockTransactionData);
+  mockProvider.getBlockTransactionReceipts = mockFn().returns([
+    mockTransactionData,
+  ]);
   mockPriceService.getPriceForContract = mockFn().returns({ priceUsd: 5 });
 
   return { mockProvider, mockPriceService };

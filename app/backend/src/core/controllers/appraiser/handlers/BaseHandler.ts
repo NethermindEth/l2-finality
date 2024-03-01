@@ -3,6 +3,7 @@ import Logger from "@/tools/Logger";
 import {
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface AppraisalSummary {
@@ -35,6 +36,7 @@ export abstract class BaseHandler {
 
   abstract handleTransferEvents(
     tx: Transaction,
+    blockTransactionReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]>;
 }
