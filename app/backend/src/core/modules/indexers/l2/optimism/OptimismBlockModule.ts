@@ -20,6 +20,7 @@ export function createOptimismBlockModule(
     logger.for("OP Appraiser"),
     database,
   );
+
   const optimismBlockController = new OptimismBlockController(
     optimismClient,
     blockAppraiser,
@@ -38,7 +39,7 @@ export function createOptimismBlockModule(
     return {
       start: async () => {
         logger.info("Starting Optimism block module...");
-        await optimismBlockControllerTask.start();
+        optimismBlockControllerTask.start();
       },
     };
   } else {

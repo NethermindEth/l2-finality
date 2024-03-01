@@ -17,6 +17,7 @@ import { LogProcessors } from "./LogProcessor";
 class L1LogMonitorController {
   private logger: Logger;
   private schedulerConfig: EthereumMonitorConfig;
+  private logProcessor: LogProcessors;
   private ethClient: EthereumClient;
   private database: Database;
 
@@ -27,6 +28,7 @@ class L1LogMonitorController {
   private readonly timeoutMs = 1000;
 
   constructor(
+    logProcessor: LogProcessors,
     ethClient: EthereumClient,
     config: EthereumMonitorConfig,
     database: Database,
@@ -34,6 +36,7 @@ class L1LogMonitorController {
   ) {
     this.logger = logger;
     this.schedulerConfig = config;
+    this.logProcessor = logProcessor;
     this.ethClient = ethClient;
     this.database = database;
 
@@ -111,11 +114,11 @@ class L1LogMonitorController {
     log: ethers.Log,
     decodedLogs: Record<string, any>,
   ): Promise<void> {
-    const eventCallbacks = LogProcessors.callbackMapping[contractName];
+    const eventCallbacks = this.logProcessor.callbackMapping[contractName];
     if (eventCallbacks) {
       const eventCallback = eventCallbacks[eventName];
       if (eventCallback) {
-        const syncStatusRecord = eventCallback(log, decodedLogs);
+        const syncStatusRecord = await eventCallback(log, decodedLogs);
         if (syncStatusRecord) {
           await this.syncStatusRepository.insertSyncStatus(syncStatusRecord);
         }

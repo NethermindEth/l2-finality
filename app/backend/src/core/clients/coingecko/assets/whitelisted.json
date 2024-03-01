@@ -82,22 +82,22 @@
   {
     "name": "Aave Token",
     "coingeckoId": "aave",
-    "address": "0x68791cfe079814c46e0e25c19bcc5bfc71a744f7",
-    "symbol": "AAVE",
-    "decimals": 18,
-    "deploymentTimestamp": 1600970788,
-    "coingeckoListingTimestamp": 1601683200,
-    "chainId": 1101
-  },
-  {
-    "name": "Aave Token",
-    "coingeckoId": "aave",
     "address": "0x76FB31fb4af56892A25e32cFC43De717950c9278",
     "symbol": "AAVE",
     "decimals": 18,
     "deploymentTimestamp": 1600970788,
     "coingeckoListingTimestamp": 1601683200,
     "chainId": 10
+  },
+  {
+    "name": "Aave Token",
+    "coingeckoId": "aave",
+    "address": "0x68791CFE079814c46e0E25C19Bcc5BFC71A744f7",
+    "symbol": "AAVE",
+    "decimals": 18,
+    "deploymentTimestamp": 1600970788,
+    "coingeckoListingTimestamp": 1601683200,
+    "chainId": 1101
   },
   {
     "id": "ageur-ageur",
@@ -342,22 +342,22 @@
   {
     "name": "Balancer",
     "coingeckoId": "balancer",
-    "address": "0x120ef59b80774f02211563834d8e3b72cb1649d6",
-    "symbol": "BAL",
-    "decimals": 18,
-    "deploymentTimestamp": 1592616779,
-    "coingeckoListingTimestamp": 1592870400,
-    "chainId": 1101
-  },
-  {
-    "name": "Balancer",
-    "coingeckoId": "balancer",
     "address": "0xFE8B128bA8C78aabC59d4c64cEE7fF28e9379921",
     "symbol": "BAL",
     "decimals": 18,
     "deploymentTimestamp": 1592616779,
     "coingeckoListingTimestamp": 1592870400,
     "chainId": 10
+  },
+  {
+    "name": "Balancer",
+    "coingeckoId": "balancer",
+    "address": "0x120eF59b80774F02211563834d8E3b72cb1649d6",
+    "symbol": "BAL",
+    "decimals": 18,
+    "deploymentTimestamp": 1592616779,
+    "coingeckoListingTimestamp": 1592870400,
+    "chainId": 1101
   },
   {
     "id": "bnt-bancor-network-token",
@@ -627,22 +627,22 @@
   {
     "name": "ChainLink Token",
     "coingeckoId": "chainlink",
-    "address": "0x4b16e4752711a7abec32799c976f3cefc0111f2b",
-    "symbol": "LINK",
-    "decimals": 18,
-    "deploymentTimestamp": 1505597189,
-    "coingeckoListingTimestamp": 1573689600,
-    "chainId": 1101
-  },
-  {
-    "name": "ChainLink Token",
-    "coingeckoId": "chainlink",
-    "address": "0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6",
+    "address": "0x350a791Bfc2C21F9Ed5d10980Dad2e2638ffa7f6",
     "symbol": "LINK",
     "decimals": 18,
     "deploymentTimestamp": 1505597189,
     "coingeckoListingTimestamp": 1573689600,
     "chainId": 10
+  },
+  {
+    "name": "ChainLink Token",
+    "coingeckoId": "chainlink",
+    "address": "0x4B16e4752711A7ABEc32799C976F3CeFc0111f2B",
+    "symbol": "LINK",
+    "decimals": 18,
+    "deploymentTimestamp": 1505597189,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "id": "portx-chainport-token",
@@ -947,22 +947,22 @@
   {
     "name": "Curve DAO Token",
     "coingeckoId": "curve-dao-token",
-    "address": "0x3d5320821bfca19fb0b5428f2c79d63bd5246f89",
-    "symbol": "CRV",
-    "decimals": 18,
-    "deploymentTimestamp": 1597270648,
-    "coingeckoListingTimestamp": 1597363200,
-    "chainId": 1101
-  },
-  {
-    "name": "Curve DAO Token",
-    "coingeckoId": "curve-dao-token",
-    "address": "0x0994206dfe8de6ec6920ff4d779b0d950605fb53",
+    "address": "0x0994206dfE8De6Ec6920FF4D779B0d950605Fb53",
     "symbol": "CRV",
     "decimals": 18,
     "deploymentTimestamp": 1597270648,
     "coingeckoListingTimestamp": 1597363200,
     "chainId": 10
+  },
+  {
+    "name": "Curve DAO Token",
+    "coingeckoId": "curve-dao-token",
+    "address": "0x3d5320821BfCa19fb0B5428F2c79d63bd5246f89",
+    "symbol": "CRV",
+    "decimals": 18,
+    "deploymentTimestamp": 1597270648,
+    "coingeckoListingTimestamp": 1597363200,
+    "chainId": 1101
   },
   {
     "id": "dai-dai-stablecoin",
@@ -982,22 +982,22 @@
   {
     "name": "Dai Stablecoin",
     "coingeckoId": "dai",
-    "address": "0xc5015b9d9161dca7e18e32f6f25c4ad850731fd4",
-    "symbol": "DAI",
-    "decimals": 18,
-    "deploymentTimestamp": 1573672677,
-    "coingeckoListingTimestamp": 1574121600,
-    "chainId": 1101
-  },
-  {
-    "name": "Dai Stablecoin",
-    "coingeckoId": "dai",
     "address": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
     "symbol": "DAI",
     "decimals": 18,
     "deploymentTimestamp": 1573672677,
     "coingeckoListingTimestamp": 1574121600,
     "chainId": 10
+  },
+  {
+    "name": "Dai Stablecoin",
+    "coingeckoId": "dai",
+    "address": "0xC5015b9d9161Dca7e18e32f6f25C4aD850731Fd4",
+    "symbol": "DAI",
+    "decimals": 18,
+    "deploymentTimestamp": 1573672677,
+    "coingeckoListingTimestamp": 1574121600,
+    "chainId": 1101
   },
   {
     "name": "Dai Stablecoin",
@@ -1261,22 +1261,22 @@
   {
     "name": "Ether",
     "coingeckoId": "ethereum",
-    "address": "0x0000000000000000000000000000000000000000",
-    "symbol": "ETH",
-    "decimals": 18,
-    "deploymentTimestamp": 0,
-    "coingeckoListingTimestamp": 0,
-    "chainId": 1101
-  },
-  {
-    "name": "Ether",
-    "coingeckoId": "ethereum",
     "address": "0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000",
     "symbol": "ETH",
     "decimals": 18,
     "deploymentTimestamp": 0,
     "coingeckoListingTimestamp": 0,
     "chainId": 10
+  },
+  {
+    "name": "Ether",
+    "coingeckoId": "ethereum",
+    "address": "0x0000000000000000000000000000000000000000",
+    "symbol": "ETH",
+    "decimals": 18,
+    "deploymentTimestamp": 0,
+    "coingeckoListingTimestamp": 0,
+    "chainId": 1101
   },
   {
     "name": "Ether",
@@ -1406,22 +1406,22 @@
   {
     "name": "Frax",
     "coingeckoId": "frax",
-    "address": "0xFf8544feD5379D9ffa8D47a74cE6b91e632AC44D",
-    "symbol": "FRAX",
-    "decimals": 18,
-    "deploymentTimestamp": 1608140520,
-    "coingeckoListingTimestamp": 1608508800,
-    "chainId": 1101
-  },
-  {
-    "name": "Frax",
-    "coingeckoId": "frax",
     "address": "0x2E3D870790dC77A83DD1d18184Acc7439A53f475",
     "symbol": "FRAX",
     "decimals": 18,
     "deploymentTimestamp": 1608140520,
     "coingeckoListingTimestamp": 1608508800,
     "chainId": 10
+  },
+  {
+    "name": "Frax",
+    "coingeckoId": "frax",
+    "address": "0xFf8544feD5379D9ffa8D47a74cE6b91e632AC44D",
+    "symbol": "FRAX",
+    "decimals": 18,
+    "deploymentTimestamp": 1608140520,
+    "coingeckoListingTimestamp": 1608508800,
+    "chainId": 1101
   },
   {
     "name": "Frax",
@@ -1451,22 +1451,22 @@
   {
     "name": "Frax Share",
     "coingeckoId": "frax-share",
-    "address": "0x6b856a14CeA1d7dCfaF80fA6936c0b75972cCacE",
-    "symbol": "FXS",
-    "decimals": 18,
-    "deploymentTimestamp": 1608140560,
-    "coingeckoListingTimestamp": 1608508800,
-    "chainId": 1101
-  },
-  {
-    "name": "Frax Share",
-    "coingeckoId": "frax-share",
     "address": "0x67CCEA5bb16181E7b4109c9c2143c24a1c2205Be",
     "symbol": "FXS",
     "decimals": 18,
     "deploymentTimestamp": 1608140560,
     "coingeckoListingTimestamp": 1608508800,
     "chainId": 10
+  },
+  {
+    "name": "Frax Share",
+    "coingeckoId": "frax-share",
+    "address": "0x6b856a14CeA1d7dCfaF80fA6936c0b75972cCacE",
+    "symbol": "FXS",
+    "decimals": 18,
+    "deploymentTimestamp": 1608140560,
+    "coingeckoListingTimestamp": 1608508800,
+    "chainId": 1101
   },
   {
     "name": "Frax Share",
@@ -1691,7 +1691,7 @@
   {
     "name": "Hop",
     "coingeckoId": "hop-protocol",
-    "address": "0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc",
+    "address": "0xc5102fE9359FD9a28f877a67E36B0F050d81a3CC",
     "symbol": "HOP",
     "decimals": 18,
     "deploymentTimestamp": 1654646411,
@@ -1906,22 +1906,22 @@
   {
     "name": "Lido DAO Token",
     "coingeckoId": "lido-dao",
-    "address": "0x7e2feea957b7d1606335e339754f4e52b452b792",
-    "symbol": "LDO",
-    "decimals": 18,
-    "deploymentTimestamp": 1608242396,
-    "coingeckoListingTimestamp": 1609804800,
-    "chainId": 1101
-  },
-  {
-    "name": "Lido DAO Token",
-    "coingeckoId": "lido-dao",
     "address": "0xFdb794692724153d1488CcdBE0C56c252596735F",
     "symbol": "LDO",
     "decimals": 18,
     "deploymentTimestamp": 1608242396,
     "coingeckoListingTimestamp": 1609804800,
     "chainId": 10
+  },
+  {
+    "name": "Lido DAO Token",
+    "coingeckoId": "lido-dao",
+    "address": "0x7e2feEa957b7D1606335e339754F4e52b452B792",
+    "symbol": "LDO",
+    "decimals": 18,
+    "deploymentTimestamp": 1608242396,
+    "coingeckoListingTimestamp": 1609804800,
+    "chainId": 1101
   },
   {
     "id": "steth-liquid-staked-ether-2.0",
@@ -2009,6 +2009,21 @@
     "formula": "locked"
   },
   {
+    "id": "lqty-lqty",
+    "name": "LQTY",
+    "coingeckoId": "liquity",
+    "address": "0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D",
+    "symbol": "LQTY",
+    "decimals": 18,
+    "deploymentTimestamp": 1617611590,
+    "coingeckoListingTimestamp": 1617580800,
+    "category": "other",
+    "iconUrl": "https://assets.coingecko.com/coins/images/14665/large/200-lqty-icon.png?1696514340",
+    "chainId": 1,
+    "type": "CBV",
+    "formula": "locked"
+  },
+  {
     "id": "lyxe-lukso-token",
     "name": "LUKSO Token",
     "coingeckoId": "lukso-token",
@@ -2041,7 +2056,7 @@
   {
     "name": "LUSD Stablecoin",
     "coingeckoId": "liquity-usd",
-    "address": "0xc40f949f8a4e094d1b49a23ea9241d289b7b2819",
+    "address": "0xc40F949F8a4e094D1b49a23ea9241D289B7b2819",
     "symbol": "LUSD",
     "decimals": 18,
     "deploymentTimestamp": 1617611299,
@@ -2131,7 +2146,7 @@
   {
     "name": "Maker",
     "coingeckoId": "maker",
-    "address": "0xab7badef82e9fe11f6f33f87bc9bc2aa27f2fcb5",
+    "address": "0xab7bAdEF82E9Fe11f6f33f87BC9bC2AA27F2fCB5",
     "symbol": "MKR",
     "decimals": 18,
     "deploymentTimestamp": 1511634257,
@@ -2196,7 +2211,7 @@
   {
     "name": "Matic Token",
     "coingeckoId": "matic-network",
-    "address": "0xa2036f0538221a77a3937f1379699f44945018d0",
+    "address": "0xa2036f0538221a77A3937F1379699f44945018d0",
     "symbol": "MATIC",
     "decimals": 18,
     "deploymentTimestamp": 1555778052,
@@ -2866,7 +2881,7 @@
   {
     "name": "Rari Governance Token",
     "coingeckoId": "rari-governance-token",
-    "address": "0xb548f63d4405466b36c0c0ac3318a22fdcec711a",
+    "address": "0xB548f63D4405466B36C0c0aC3318a22fDcec711a",
     "symbol": "RGT",
     "decimals": 18,
     "deploymentTimestamp": 1603212673,
@@ -2996,22 +3011,22 @@
   {
     "name": "Rocket Pool ETH",
     "coingeckoId": "rocket-pool-eth",
-    "address": "0xb23C20EFcE6e24Acca0Cef9B7B7aA196b84EC942",
-    "symbol": "rETH",
-    "decimals": 18,
-    "deploymentTimestamp": 1632980684,
-    "coingeckoListingTimestamp": 1637625600,
-    "chainId": 1101
-  },
-  {
-    "name": "Rocket Pool ETH",
-    "coingeckoId": "rocket-pool-eth",
     "address": "0x6c2f7b6110a37b3B0fbdd811876be368df02E8B0",
     "symbol": "rETH",
     "decimals": 18,
     "deploymentTimestamp": 1632980684,
     "coingeckoListingTimestamp": 1637625600,
     "chainId": 10
+  },
+  {
+    "name": "Rocket Pool ETH",
+    "coingeckoId": "rocket-pool-eth",
+    "address": "0xb23C20EFcE6e24Acca0Cef9B7B7aA196b84EC942",
+    "symbol": "rETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1632980684,
+    "coingeckoListingTimestamp": 1637625600,
+    "chainId": 1101
   },
   {
     "name": "Rocket Pool ETH",
@@ -3196,22 +3211,22 @@
   {
     "name": "Staked Frax Ether",
     "coingeckoId": "staked-frax-ether",
-    "address": "0x7c2af1fb79d0b1c67d4eb802d44c673d0a1d2c04",
-    "symbol": "sfrxETH",
-    "decimals": 18,
-    "deploymentTimestamp": 1665022895,
-    "coingeckoListingTimestamp": 1669852800,
-    "chainId": 1101
-  },
-  {
-    "name": "Staked Frax Ether",
-    "coingeckoId": "staked-frax-ether",
     "address": "0x484c2D6e3cDd945a8B2DF735e079178C1036578c",
     "symbol": "sfrxETH",
     "decimals": 18,
     "deploymentTimestamp": 1665022895,
     "coingeckoListingTimestamp": 1669852800,
     "chainId": 10
+  },
+  {
+    "name": "Staked Frax Ether",
+    "coingeckoId": "staked-frax-ether",
+    "address": "0x7c2aF1Fb79D0b1c67d4eb802d44C673D0A1D2C04",
+    "symbol": "sfrxETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1665022895,
+    "coingeckoListingTimestamp": 1669852800,
+    "chainId": 1101
   },
   {
     "name": "Staked Frax Ether",
@@ -3466,7 +3481,7 @@
   {
     "name": "Synthetix Network Token",
     "coingeckoId": "havven",
-    "address": "0x8700daec35af8ff88c16bdf0418774cb3d7599b4",
+    "address": "0x8700dAec35aF8Ff88c16BdF0418774CB3D7599B4",
     "symbol": "SNX",
     "decimals": 18,
     "deploymentTimestamp": 1565329008,
@@ -3506,7 +3521,7 @@
   {
     "name": "Tether Gold",
     "coingeckoId": "tether-gold",
-    "address": "0xa7bd526e698a7ee6261982607d7b64cc8e7be0ef",
+    "address": "0xa7Bd526e698a7EE6261982607D7B64cc8e7be0ef",
     "symbol": "XAUt",
     "decimals": 6,
     "deploymentTimestamp": 1635679310,
@@ -3531,22 +3546,22 @@
   {
     "name": "Tether USD",
     "coingeckoId": "tether",
-    "address": "0x1e4a5963abfd975d8c9021ce480b42188849d41d",
-    "symbol": "USDT",
-    "decimals": 6,
-    "deploymentTimestamp": 1511829681,
-    "coingeckoListingTimestamp": 1573689600,
-    "chainId": 1101
-  },
-  {
-    "name": "Tether USD",
-    "coingeckoId": "tether",
     "address": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
     "symbol": "USDT",
     "decimals": 6,
     "deploymentTimestamp": 1511829681,
     "coingeckoListingTimestamp": 1573689600,
     "chainId": 10
+  },
+  {
+    "name": "Tether USD",
+    "coingeckoId": "tether",
+    "address": "0x1E4a5963aBFD975d8c9021ce480b42188849D41d",
+    "symbol": "USDT",
+    "decimals": 6,
+    "deploymentTimestamp": 1511829681,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "name": "Tether USD",
@@ -3716,22 +3731,22 @@
   {
     "name": "Uniswap",
     "coingeckoId": "uniswap",
-    "address": "0x2548c94a3092494db3af864cc2cf781a72f55678",
-    "symbol": "UNI",
-    "decimals": 18,
-    "deploymentTimestamp": 1600107086,
-    "coingeckoListingTimestamp": 1600300800,
-    "chainId": 1101
-  },
-  {
-    "name": "Uniswap",
-    "coingeckoId": "uniswap",
-    "address": "0x6fd9d7ad17242c41f7131d257212c54a0e816691",
+    "address": "0x6fd9d7AD17242c41f7131d257212c54A0e816691",
     "symbol": "UNI",
     "decimals": 18,
     "deploymentTimestamp": 1600107086,
     "coingeckoListingTimestamp": 1600300800,
     "chainId": 10
+  },
+  {
+    "name": "Uniswap",
+    "coingeckoId": "uniswap",
+    "address": "0x2548C94A3092494dB3aF864cc2cF781a72f55678",
+    "symbol": "UNI",
+    "decimals": 18,
+    "deploymentTimestamp": 1600107086,
+    "coingeckoListingTimestamp": 1600300800,
+    "chainId": 1101
   },
   {
     "name": "Uniswap",
@@ -3761,7 +3776,7 @@
   {
     "name": "USD Coin",
     "coingeckoId": "usd-coin",
-    "address": "0xa8ce8aee21bc2a48a5ef670afcc9274c7bbbc035",
+    "address": "0xA8CE8aee21bC2A48a5EF670afCc9274C7bbbC035",
     "symbol": "USDC",
     "decimals": 6,
     "deploymentTimestamp": 1533324504,
@@ -3951,22 +3966,22 @@
   {
     "name": "Wrapped BTC",
     "coingeckoId": "wrapped-bitcoin",
-    "address": "0xea034fb02eb1808c2cc3adbc15f447b93cbe08e1",
-    "symbol": "WBTC",
-    "decimals": 8,
-    "deploymentTimestamp": 1543095952,
-    "coingeckoListingTimestamp": 1573689600,
-    "chainId": 1101
-  },
-  {
-    "name": "Wrapped BTC",
-    "coingeckoId": "wrapped-bitcoin",
     "address": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
     "symbol": "WBTC",
     "decimals": 8,
     "deploymentTimestamp": 1543095952,
     "coingeckoListingTimestamp": 1573689600,
     "chainId": 10
+  },
+  {
+    "name": "Wrapped BTC",
+    "coingeckoId": "wrapped-bitcoin",
+    "address": "0xEA034fb02eB1808C2cc3adbC15f447B93CbE08e1",
+    "symbol": "WBTC",
+    "decimals": 8,
+    "deploymentTimestamp": 1543095952,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "name": "Wrapped BTC",
@@ -3996,22 +4011,22 @@
   {
     "name": "Wrapped Ether",
     "coingeckoId": "weth",
-    "address": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
-    "symbol": "WETH",
-    "decimals": 18,
-    "deploymentTimestamp": 1513077455,
-    "coingeckoListingTimestamp": 1573689600,
-    "chainId": 1101
-  },
-  {
-    "name": "Wrapped Ether",
-    "coingeckoId": "weth",
     "address": "0x4200000000000000000000000000000000000006",
     "symbol": "WETH",
     "decimals": 18,
     "deploymentTimestamp": 1513077455,
     "coingeckoListingTimestamp": 1573689600,
     "chainId": 10
+  },
+  {
+    "name": "Wrapped Ether",
+    "coingeckoId": "weth",
+    "address": "0x4F9A0e7FD2Bf6067db6994CF12E4495Df938E6e9",
+    "symbol": "WETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1513077455,
+    "coingeckoListingTimestamp": 1573689600,
+    "chainId": 1101
   },
   {
     "id": "wsteth-wrapped-liquid-staked-ether-2.0",
@@ -4031,22 +4046,22 @@
   {
     "name": "Wrapped liquid staked Ether 2.0",
     "coingeckoId": "wrapped-steth",
-    "address": "0x5D8cfF95D7A57c0BF50B30b43c7CC0D52825D4a9",
-    "symbol": "wstETH",
-    "decimals": 18,
-    "deploymentTimestamp": 1613752640,
-    "coingeckoListingTimestamp": 1633564800,
-    "chainId": 1101
-  },
-  {
-    "name": "Wrapped liquid staked Ether 2.0",
-    "coingeckoId": "wrapped-steth",
     "address": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
     "symbol": "wstETH",
     "decimals": 18,
     "deploymentTimestamp": 1613752640,
     "coingeckoListingTimestamp": 1633564800,
     "chainId": 10
+  },
+  {
+    "name": "Wrapped liquid staked Ether 2.0",
+    "coingeckoId": "wrapped-steth",
+    "address": "0x5D8cfF95D7A57c0BF50B30b43c7CC0D52825D4a9",
+    "symbol": "wstETH",
+    "decimals": 18,
+    "deploymentTimestamp": 1613752640,
+    "coingeckoListingTimestamp": 1633564800,
+    "chainId": 1101
   },
   {
     "name": "Wrapped liquid staked Ether 2.0",
@@ -4267,7 +4282,7 @@
     "id": "optimism:velo-velodrome-finance",
     "name": "VelodromeV2",
     "coingeckoId": "velodrome-finance",
-    "address": "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
+    "address": "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05",
     "symbol": "VELO",
     "decimals": 18,
     "deploymentTimestamp": 1687392369,
@@ -4279,14 +4294,19 @@
     "formula": "circulatingSupply"
   },
   {
+    "id": "optimism:velo-velodrome-finance",
     "name": "VelodromeV2",
     "coingeckoId": "velodrome-finance",
-    "address": "0x3c8B650257cFb5f272f799F5e2b4e65093a11a05",
+    "address": "0x9560e827aF36c94D2Ac33a39bCE1Fe78631088Db",
     "symbol": "VELO",
     "decimals": 18,
     "deploymentTimestamp": 1687392369,
     "coingeckoListingTimestamp": 1654128000,
-    "chainId": 10
+    "category": "other",
+    "iconUrl": "https://assets.coingecko.com/coins/images/25783/large/velo.png?1696524870",
+    "chainId": 10,
+    "type": "NMV",
+    "formula": "circulatingSupply"
   },
   {
     "id": "mantapacific:manta-manta",

@@ -5,6 +5,7 @@ import {
   EthereumMonitorConfig,
   IndexerConfig,
   OptimismModuleConfig,
+  PolygonZkEvmModuleConfig,
   PricingModuleConfig,
 } from "./Config";
 import { Env } from "@/tools/Env";
@@ -30,6 +31,7 @@ export function getLocalConfig(env: Env): Config {
   const indexerConfig: IndexerConfig = {
     ethereumRpcEndpoint: env.string("ETHEREUM_RPC_ENDPOINT"),
     optimismRpcEndpoint: env.string("OPTIMISM_RPC_ENDPOINT"),
+    polygonZkEvmRpcEndpoint: env.string("POLYGONZK_RPC_ENDPOINT"),
     useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 
@@ -59,6 +61,14 @@ export function getLocalConfig(env: Env): Config {
     pollIntervalMs: env.integer("OPTIMISM_POLL_INTERVAL_MS", 15000),
   };
 
+  const polygonZkEvmModuleConfig: PolygonZkEvmModuleConfig = {
+    enabled: env.boolean("POLYGONZK_MODULE_ENABLED", true),
+    chainId: chains.zkEVM.chainId,
+    startBlock: env.integer("POLYGONZK_START_BLOCK", 10290000),
+    maxBlockRange: env.integer("POLYGONZK_MAX_BLOCK_RANGE", 50),
+    pollIntervalMs: env.integer("POLYGONZK_POLL_INTERVAL_MS", 15000),
+  };
+
   return {
     database: databaseConfig,
     api: apiConfig,
@@ -66,5 +76,6 @@ export function getLocalConfig(env: Env): Config {
     pricingModule: pricingModuleConfig,
     ethereumMonitorModule: ethereumMonitorModuleConfig,
     optimismModule: optimismModuleConfig,
+    polygonZkEvmModule: polygonZkEvmModuleConfig,
   };
 }

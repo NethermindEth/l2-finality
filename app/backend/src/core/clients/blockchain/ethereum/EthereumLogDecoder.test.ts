@@ -17,21 +17,19 @@ describe("ABI Files Check", () => {
     });
   });
 
-  it("should have checksummed addresses for all assets", () => {
-    // Skip the test if running in GitHub Actions
-    if (process.env.CI || process.env.GITHUB_ACTIONS) {
-      console.log("Skipping checksum test in GitHub Actions");
-      return;
-    }
-
+  it("should have checksummed addresses for all assets in EVM chains", () => {
     assets.forEach((asset) => {
       if (!asset.address) {
         expect(asset.coingeckoId).toEqual("ethereum");
-      } else {
-        const checksummedAddress: string = ethers.getAddress(
-          asset.address.toLowerCase(),
+      } else if (asset.address.length > 42) {
+        // Skip checksum validation for non-EVM chain addresses or handle them differently
+        console.log(
+          `Skipping checksum validation for non-EVM address of ${asset.name} (${asset.symbol})`,
         );
+      } else {
+        // Proceed with checksum validation for EVM chain addresses
         try {
+          const checksummedAddress: string = ethers.getAddress(asset.address);
           expect(checksummedAddress).toEqual(asset.address);
         } catch (error) {
           throw new Error(
