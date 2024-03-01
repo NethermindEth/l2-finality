@@ -1,9 +1,10 @@
 import { Knex } from "knex";
 import { AggregatedTransferResults } from "@/core/controllers/appraiser/types";
+import chains from "@/core/types/chains.json";
 
 export const chainTableMapping: Record<number, string> = {
-  10: "optimism_blocks",
-  1101: "polygon_zk_evm_blocks",
+  [chains.Optimism.chainId]: "optimism_blocks",
+  [chains.zkEVM.chainId]: "polygon_zk_evm_blocks",
 };
 
 export interface BlockValueRecord {

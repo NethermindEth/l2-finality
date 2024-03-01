@@ -11,9 +11,9 @@ export enum SubmissionType {
 export interface SyncStatusRecord {
   chain_id: number;
   l2_block_number: bigint;
-  l2_block_hash?: string | null;
-  l1_block_number?: number | null;
-  l1_block_hash?: string | null;
+  l2_block_hash: string | null;
+  l1_block_number: number | null;
+  l1_block_hash: string | null;
   timestamp: Date;
   submission_type: SubmissionType;
 }

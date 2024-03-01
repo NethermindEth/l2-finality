@@ -6,6 +6,11 @@ export async function up(knex: Knex): Promise<void> {
     table.string("l2_block_hash", 66).notNullable();
     table.timestamp("l2_block_timestamp").notNullable();
     table.jsonb("value").notNullable();
+
+    table.bigInteger("gas_fees").notNullable();
+    table.decimal("gas_fees_usd", 18, 4).notNullable().defaultTo(0);
+    table.bigInteger("block_reward").notNullable();
+    table.decimal("block_reward_usd", 18, 4).notNullable().defaultTo(0);
     table.primary(["l2_block_number", "l2_block_hash"]);
 
     table.index("l2_block_number");
