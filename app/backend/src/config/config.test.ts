@@ -7,6 +7,7 @@ import {
   OptimismModuleConfig,
   PolygonZkEvmModuleConfig,
   PricingModuleConfig,
+  StarknetModuleConfig,
 } from "./Config";
 import { Env } from "@/tools/Env";
 import { LogLevel } from "@/tools/Logger";
@@ -45,6 +46,11 @@ export function getTestConfig(env: Env): Config {
       "POLYGONZK_RPC_ENDPOINT",
       "https://polygon-zkevm.drpc.org",
     ),
+    starknetRpcEndpoint: env.string(
+      "STARKNET_RPC_ENDPOINT",
+      "https://rpc.nethermind.io/mainnet-juno",
+    ),
+    starknetApiKey: env.string("STARKNET_RPC_API_KEY", "starknetApiKey"),
     useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 
@@ -82,6 +88,14 @@ export function getTestConfig(env: Env): Config {
     pollIntervalMs: env.integer("POLYGONZK_POLL_INTERVAL_MS", 15000),
   };
 
+  const starknetModuleConfig: StarknetModuleConfig = {
+    enabled: env.boolean("STARKNET_MODULE_ENABLED", true),
+    chainId: chains.Starknet.chainId,
+    startBlock: env.integer("STARKNET_START_BLOCK", 600365),
+    maxBlockRange: env.integer("STARKNET_MAX_BLOCK_RANGE", 50),
+    pollIntervalMs: env.integer("STARKNET_POLL_INTERVAL_MS", 60000),
+  };
+
   return {
     database: databaseConfig,
     api: apiConfig,
@@ -90,5 +104,6 @@ export function getTestConfig(env: Env): Config {
     ethereumMonitorModule: ethereumMonitorConfig,
     optimismModule: optimismModuleConfig,
     polygonZkEvmModule: polygonZkEvmModuleConfig,
+    starknetModule: starknetModuleConfig,
   };
 }

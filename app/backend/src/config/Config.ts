@@ -9,6 +9,7 @@ export interface Config {
   readonly ethereumMonitorModule: EthereumMonitorConfig;
   readonly optimismModule: OptimismModuleConfig;
   readonly polygonZkEvmModule: PolygonZkEvmModuleConfig;
+  readonly starknetModule: StarknetModuleConfig;
 }
 
 export interface ApiConfig {
@@ -31,6 +32,8 @@ export interface IndexerConfig {
   readonly ethereumRpcEndpoint: string;
   readonly optimismRpcEndpoint: string;
   readonly polygonZkEvmRpcEndpoint: string;
+  readonly starknetRpcEndpoint: string;
+  readonly starknetApiKey: string;
   readonly useFakePricing: boolean;
 }
 
@@ -61,6 +64,14 @@ export interface OptimismModuleConfig {
 }
 
 export interface PolygonZkEvmModuleConfig {
+  readonly enabled: boolean;
+  readonly chainId: number;
+  readonly startBlock: number;
+  readonly maxBlockRange: number;
+  readonly pollIntervalMs: number;
+}
+
+export interface StarknetModuleConfig {
   readonly enabled: boolean;
   readonly chainId: number;
   readonly startBlock: number;
