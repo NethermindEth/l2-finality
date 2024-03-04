@@ -14,6 +14,7 @@ import {
   IBlockchainClient,
   Log,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 export class TokenTransferHandler extends BaseHandler {
@@ -32,9 +33,12 @@ export class TokenTransferHandler extends BaseHandler {
 
   async handleTransferEvents(
     tx: Transaction,
+    txReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
   ): Promise<AppraisalSummary[]> {
-    const receipt = await this.provider.getTransactionReceipt(tx.hash);
+    if (!txReceipts) return [];
+
+    const receipt = txReceipts.find((rcpt) => rcpt.hash === tx.hash);
     if (!receipt) return [];
     const transferEvents: TransferLogEvent[] = this.extractTransferEvents(
       receipt.logs,

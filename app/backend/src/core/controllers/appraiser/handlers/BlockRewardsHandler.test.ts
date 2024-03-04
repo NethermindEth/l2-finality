@@ -12,6 +12,7 @@ import {
   Block,
   IBlockchainClient,
   Transaction,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 
@@ -23,6 +24,7 @@ interface MockTransactionData {
   maxFeePerGas: bigint;
   blockNumber: number;
   blockBaseFeePerGas: bigint;
+  gasPrice: bigint;
 }
 
 describe(BlockRewardsHandler.name, () => {
@@ -57,6 +59,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(120000000),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
       ];
 
@@ -65,27 +68,38 @@ describe(BlockRewardsHandler.name, () => {
         priceService,
         mockTransactionData,
       );
-      blockRewardsHandler = new BlockRewardsHandler(
-        mockProvider,
-        mockPriceService,
-      );
+      blockRewardsHandler = new BlockRewardsHandler(mockPriceService);
 
       const txs = mockTransactionData.map((txData) => ({
         hash: txData.hash,
         maxPriorityFeePerGas: txData.priorityFeePerGas,
         maxFeePerGas: txData.maxFeePerGas,
+        gasPrice: txData.gasPrice,
       })) as Transaction[];
 
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
       )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block);
+      const receipts = (await mockProvider.getBlockTransactionReceipts(
+        block,
+      )) as TransactionReceipt[];
+
+      const result = await blockRewardsHandler.handleBlockRewards(
+        block,
+        receipts,
+      );
+
+      const sumGasUsed = mockTransactionData.reduce(
+        (acc, curr) => acc + curr.gasUsed,
+        BigInt(0),
+      );
+
       const expected = {
-        gasFees: 438513250744200n,
-        gasFeesUsd: (Number(438513250744200n) / 1e18) * 5,
-        blockReward: 11577926402350n,
-        blockRewardUsd: (Number(11577926402350n) / 1e18) * 5,
+        gasFees: sumGasUsed * mockTransactionData[0].gasPrice,
+        gasFeesUsd: (Number(sumGasUsed) / 1e18) * 5,
+        blockReward: 438513250744200n,
+        blockRewardUsd: (Number(438513250744200n) / 1e18) * 5,
       };
 
       expect(result).toEqual(expected);
@@ -102,6 +116,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(0),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
         {
           hash: "0x813dcf690099ae283c350429260801e5c66bf0abaafc174f28e532cffaaf3f6d",
@@ -111,6 +126,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(1000000000),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
         {
           hash: "0x0fa6f1b75e79ad3d1c6286007c6298039cf6645936d65fa434d511879736cd97",
@@ -120,6 +136,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(0),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
         {
           hash: "0xc54ce6966222b355ec19a44e7919f14bdc418fcef9d9056d24652c62864ee71a",
@@ -129,6 +146,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(308723945),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
         {
           hash: "0xd613f68aea43ecd39e06b46ff9fc22caed7935e26393210cced949c3f1d2e870",
@@ -138,6 +156,7 @@ describe(BlockRewardsHandler.name, () => {
           maxFeePerGas: BigInt(120000000),
           blockNumber: 116121074,
           blockBaseFeePerGas: BigInt(101223550),
+          gasPrice: 1n,
         },
       ];
 
@@ -146,21 +165,29 @@ describe(BlockRewardsHandler.name, () => {
         priceService,
         mockTransactionData,
       );
-      blockRewardsHandler = new BlockRewardsHandler(
-        mockProvider,
-        mockPriceService,
-      );
+      blockRewardsHandler = new BlockRewardsHandler(mockPriceService);
 
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
       )) as Block;
 
-      const result = await blockRewardsHandler.handleBlockRewards(block);
+      const receipts = (await mockProvider.getBlockTransactionReceipts(
+        block,
+      )) as TransactionReceipt[];
+      const result = await blockRewardsHandler.handleBlockRewards(
+        block,
+        receipts,
+      );
+
+      const sumGasUsed = mockTransactionData.reduce(
+        (acc, curr) => acc + curr.gasUsed,
+        BigInt(0),
+      );
       const expected = {
-        gasFees: 498190237979734n,
-        gasFeesUsd: (Number(498190237979734n) / 1e18) * 5,
-        blockReward: 52265476881434n,
-        blockRewardUsd: (Number(52265476881434n) / 1e18) * 5,
+        gasFees: sumGasUsed,
+        gasFeesUsd: (Number(sumGasUsed) / 1e18) * 5,
+        blockReward: 498190237979734n,
+        blockRewardUsd: (Number(498190237979734n) / 1e18) * 5,
       };
 
       expect(result).toEqual(expected);
@@ -175,15 +202,16 @@ function setUpMockProvider(
 ) {
   const mockGetPriceWithRetry = mockFn();
 
-  const mockGetTransactionReceipt = mockFn<(hash: string) => any>().executes(
-    (hash: string) => {
-      const txData = mockTransactionData.find((tx) => tx.hash === hash);
-      return {
-        transactionHash: txData ? txData.hash : "",
-        gasUsed: txData ? txData.gasUsed : BigInt(0),
-      };
-    },
-  );
+  const mockGetTransactionReceipts = mockFn<
+    (blockNumber: Block) => Promise<any>
+  >().executes((blockNumber: Block) => {
+    return Promise.resolve(
+      mockTransactionData.map((txData) => ({
+        hash: txData.hash,
+        gasUsed: txData.gasUsed ? BigInt(txData.gasUsed) : BigInt(0),
+      })),
+    );
+  });
 
   const mockGetBlock = mockFn<(blockNumber: number) => any>().executes(
     (blockNumber: number) => {
@@ -198,12 +226,13 @@ function setUpMockProvider(
           hash: tx.hash,
           maxPriorityFeePerGas: tx.priorityFeePerGas,
           maxFeePerGas: tx.maxFeePerGas,
+          gasPrice: tx.gasPrice,
         })),
       };
     },
   );
 
-  mockProvider.getTransactionReceipt = mockGetTransactionReceipt;
+  mockProvider.getBlockTransactionReceipts = mockGetTransactionReceipts;
   mockProvider.getBlock = mockGetBlock;
 
   mockGetPriceWithRetry.returns({

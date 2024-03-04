@@ -3,7 +3,7 @@ import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
 import {
   Block,
-  IBlockchainClient,
+  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface BlockRewardSummary {
@@ -14,31 +14,45 @@ export interface BlockRewardSummary {
 }
 
 export class BlockRewardsHandler {
-  private provider: IBlockchainClient;
   private priceService: PriceService;
 
-  constructor(provider: IBlockchainClient, priceService: PriceService) {
-    this.provider = provider;
+  constructor(priceService: PriceService) {
     this.priceService = priceService;
   }
 
-  async handleBlockRewards(block: Block): Promise<BlockRewardSummary> {
+  async handleBlockRewards(
+    block: Block,
+    blockTransactionReceipts: TransactionReceipt[] | undefined,
+  ): Promise<BlockRewardSummary> {
     let totalGasFees = BigInt(0);
     let totalTips = BigInt(0);
 
-    for (const tx of block.transactions) {
-      const receipt = await this.provider.getTransactionReceipt(tx.hash);
+    if (!blockTransactionReceipts) {
+      return {
+        gasFees: totalGasFees,
+        gasFeesUsd: 0,
+        blockReward: totalTips,
+        blockRewardUsd: 0,
+      };
+    }
+
+    for (const receipt of blockTransactionReceipts) {
       if (!receipt) continue;
       const gasUsed = receipt.gasUsed ? BigInt(receipt.gasUsed) : BigInt(0);
+
+      const transaction = block.transactions.find(
+        (tx) => tx.hash === receipt.hash,
+      );
+      if (!transaction) continue;
 
       const baseFeePerGas = block.baseFeePerGas
         ? BigInt(block.baseFeePerGas)
         : BigInt(0);
-      const priorityFeePerGas = tx.maxPriorityFeePerGas
-        ? BigInt(tx.maxPriorityFeePerGas)
+      const priorityFeePerGas = transaction.maxPriorityFeePerGas
+        ? BigInt(transaction.maxPriorityFeePerGas)
         : BigInt(0);
-      const maxFeePerGas = tx.maxFeePerGas
-        ? BigInt(tx.maxFeePerGas)
+      const maxFeePerGas = transaction.maxFeePerGas
+        ? BigInt(transaction.maxFeePerGas)
         : BigInt(0);
 
       const effectiveGasPrice =
@@ -46,9 +60,10 @@ export class BlockRewardsHandler {
           ? baseFeePerGas + priorityFeePerGas
           : maxFeePerGas;
 
-      const gasFees = gasUsed * effectiveGasPrice;
-      const tips = gasUsed * priorityFeePerGas;
+      const gasFees = gasUsed * transaction.gasPrice;
+      const tips = gasUsed * effectiveGasPrice;
 
+      // TODO: Abstract this for chains other than OPTIMISM
       totalGasFees += gasFees;
       totalTips += tips;
     }

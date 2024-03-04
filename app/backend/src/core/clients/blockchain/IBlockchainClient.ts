@@ -3,9 +3,9 @@ import { ethers } from "ethers";
 export interface IBlockchainClient {
   getBlock(blockNumberOrHash: string | number): Promise<Block | undefined>;
   getTransaction?(txHash: string): Promise<Transaction | undefined>;
-  getTransactionReceipt(
-    txHash: string,
-  ): Promise<TransactionReceipt | undefined>;
+  getBlockTransactionReceipts(
+    block: Block,
+  ): Promise<TransactionReceipt[] | undefined>;
 }
 
 export interface Block {
@@ -118,18 +118,20 @@ export function ethersToTransaction(
 
 export function ethersToTransactionReceipt(
   ethersReceipt: ethers.TransactionReceipt,
+  hash?: string,
+  gasPrice?: bigint,
 ): TransactionReceipt {
   return {
     to: ethersReceipt.to,
     from: ethersReceipt.from,
     contractAddress: ethersReceipt.contractAddress,
-    hash: ethersReceipt.hash,
+    hash: hash ? hash : ethersReceipt.hash,
     index: ethersReceipt.index,
     blockHash: ethersReceipt.blockHash,
     blockNumber: ethersReceipt.blockNumber,
     logsBloom: ethersReceipt.logsBloom,
     gasUsed: ethersReceipt.gasUsed,
-    gasPrice: ethersReceipt.gasPrice,
+    gasPrice: gasPrice ? gasPrice : ethersReceipt.gasPrice,
     type: ethersReceipt.type,
     status: ethersReceipt.status,
     root: ethersReceipt.root || null,

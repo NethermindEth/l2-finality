@@ -39,14 +39,22 @@ class OptimismClient implements IBlockchainClient {
     this.logger.error(`Block not found: ${blockHeight}`);
   }
 
-  public async getTransactionReceipt(
-    txHash: string,
-  ): Promise<TransactionReceipt | undefined> {
-    const receipt = await this.provider.getTransactionReceipt(txHash);
-    if (receipt) {
-      return ethersToTransactionReceipt(receipt);
+  public async getBlockTransactionReceipts(
+    block: Block,
+  ): Promise<TransactionReceipt[] | undefined> {
+    const receipts = await this.provider.send("eth_getBlockReceipts", [
+      block.hash,
+    ]);
+    if (receipts) {
+      return receipts.map((receipt: any) =>
+        ethersToTransactionReceipt(
+          receipt,
+          receipt.transactionHash,
+          receipt.l1GasPrice,
+        ),
+      );
     }
-    this.logger.error(`Transaction receipt not found: ${txHash}`);
+    this.logger.error(`Transaction receipts not found for block ${block.hash}`);
   }
 
   public async getSyncStatus(): Promise<OptimismSyncStatus> {

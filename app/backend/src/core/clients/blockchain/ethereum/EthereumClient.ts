@@ -49,6 +49,20 @@ class EthereumClient implements IBlockchainClient {
     this.logger.error(`Block not found: ${blockHeight}`);
   }
 
+  public async getBlockTransactionReceipts(
+    block: Block,
+  ): Promise<TransactionReceipt[] | undefined> {
+    const receipts: TransactionReceipt[] = [];
+
+    for (const tx of block.transactions) {
+      const receipt = await this.getTransactionReceipt(tx.hash);
+      if (receipt) {
+        receipts.push(receipt);
+      }
+    }
+    return receipts;
+  }
+
   public async getTransactionReceipt(
     txHash: string,
   ): Promise<TransactionReceipt | undefined> {
