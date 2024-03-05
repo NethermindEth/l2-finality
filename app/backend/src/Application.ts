@@ -11,6 +11,9 @@ import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/O
 import { createPolygonZkEvmBlockModule } from "@/core/modules/indexers/l2/polygonzk/PolygonZkEvmBlockModule";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import { createPriceUpdaterModule } from "@/core/modules/pricing/PriceUpdaterModule";
+import { getEnv } from "@/tools/Env";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { FetchRequest } from "ethers";
 
 export class Application {
   constructor(config: Config) {
@@ -40,6 +43,17 @@ export class Application {
 
       const api: Api = new Api(config.api.port, logger, database);
       await api.listen();
+
+      // Make axios proxy to work with ethers.js
+      const env = getEnv();
+      const httpProxy = env.optionalString("HTTPS_PROXY");
+      if (httpProxy) {
+        FetchRequest.registerGetUrl(
+          FetchRequest.createGetUrlFunc({
+            agent: new HttpsProxyAgent(httpProxy),
+          }),
+        );
+      }
 
       const modules = [
         createPriceUpdaterModule(config, logger, database, pricingClient),
