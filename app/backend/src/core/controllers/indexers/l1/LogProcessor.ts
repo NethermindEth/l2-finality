@@ -6,8 +6,9 @@ import { ethers } from "ethers";
 import { ContractName } from "@/core/clients/blockchain/ethereum/contracts/types";
 import {
   OptimismOutputProposed,
-  PolygonSequenceBatch,
-  PolygonVerifyBatch,
+  PolygonDecodedLog,
+  PolygonVerifyBatchPOL,
+  PolygonVerifyBatchStale,
 } from "@/core/controllers/indexers/shared/types";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
@@ -37,10 +38,15 @@ export class LogProcessors {
       StarknetCoreContract: {
         LogStateUpdate: LogProcessors.pass,
       },
-      PolygonZkEVMProxy: {
+      PolygonZkEVMProxyStale: {
         VerifyBatchesTrustedAggregator:
           this.polygonZkEvmProcessBatchUpdate.bind(this),
         SequenceBatches: this.polygonZkEvmProcessBatchUpdate.bind(this),
+      },
+      PolygonZkEVMProxyPOL: {
+        VerifyBatchesTrustedAggregator:
+          this.polygonZkEvmProcessBatchUpdate.bind(this),
+        OnSequenceBatches: this.polygonZkEvmProcessBatchUpdate.bind(this),
       },
     };
   }
@@ -66,10 +72,26 @@ export class LogProcessors {
 
   async polygonZkEvmProcessBatchUpdate(
     log: ethers.Log,
-    decodedLog: PolygonVerifyBatch | PolygonSequenceBatch,
+    decodedLog: PolygonDecodedLog,
   ): Promise<SyncStatusRecord> {
+    const getBatchNumberFromDecodedLog = (
+      decodedLog: PolygonDecodedLog,
+    ): bigint => {
+      if ("numBatch" in decodedLog) {
+        return decodedLog.numBatch;
+      } else if ("lastBatchSequenced" in decodedLog) {
+        return decodedLog.lastBatchSequenced;
+      } else {
+        throw new Error(
+          "Decoded log does not have a recognizable batch number field.",
+        );
+      }
+    };
+
+    const batchNumber = getBatchNumberFromDecodedLog(decodedLog);
+
     const batchDetails = await this.polygonZkEvmClient.getBatchByNumber(
-      Number(decodedLog.numBatch),
+      Number(batchNumber),
     );
     const ethBlock = await this.ethereumClient.getBlock(log.blockNumber);
     const l2Block = await this.polygonZkEvmClient.getBlock(
@@ -78,7 +100,7 @@ export class LogProcessors {
 
     if (!l2Block || !ethBlock) {
       throw new Error(
-        `Could not get block for batch ${decodedLog.numBatch}, l2Block: ${l2Block?.number}, ethBlock: ${ethBlock?.number}`,
+        `Could not get block for batch ${batchNumber}, l2Block: ${l2Block?.number}, ethBlock: ${ethBlock?.number}`,
       );
     }
 
@@ -101,9 +123,9 @@ export class LogProcessors {
 }
 
 function isPolygonVerifyBatch(
-  decodedLog: PolygonVerifyBatch | PolygonSequenceBatch,
-): decodedLog is PolygonVerifyBatch {
-  return (decodedLog as PolygonVerifyBatch).aggregator !== undefined;
+  decodedLog: PolygonDecodedLog,
+): decodedLog is PolygonVerifyBatchStale | PolygonVerifyBatchPOL {
+  return "aggregator" in decodedLog;
 }
 
 export default LogProcessors;

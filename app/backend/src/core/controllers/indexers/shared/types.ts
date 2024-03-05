@@ -5,12 +5,31 @@ export interface OptimismOutputProposed {
   l1Timestamp: bigint;
 }
 
-export interface PolygonVerifyBatch {
+export interface PolygonVerifyBatchStale {
   numBatch: bigint;
   stateRoot: string;
   aggregator: string;
 }
 
-export interface PolygonSequenceBatch {
+export interface PolygonSequenceBatchStale {
   numBatch: bigint;
 }
+
+export interface PolygonVerifyBatchPOL {
+  rollupID: bigint;
+  numBatch: bigint;
+  stateRoot: string;
+  exitRoot: string;
+  aggregator: string;
+}
+
+export interface PolygonSequenceBatchPOL {
+  rollupID: bigint;
+  lastBatchSequenced: bigint;
+}
+
+export type PolygonDecodedLog =
+  | PolygonVerifyBatchStale
+  | PolygonSequenceBatchStale
+  | PolygonVerifyBatchPOL
+  | PolygonSequenceBatchPOL;
