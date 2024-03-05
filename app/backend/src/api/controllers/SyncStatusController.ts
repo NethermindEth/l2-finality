@@ -1,4 +1,5 @@
 import {
+  GroupRange,
   SyncStatusRecord,
   SyncStatusRepository,
 } from "@/database/repositories/SyncStatusRepository";
@@ -41,6 +42,35 @@ export class SyncStatusController {
       } else {
         sendErrorResponse(res, 404, "No records found");
       }
+    } catch (error) {
+      this.logger.error("Error sync status:", error);
+      sendErrorResponse(res, 500, "Internal error getting metadata");
+    }
+  }
+
+  async getAvgDiffBySubmission(req: Request, res: Response): Promise<void> {
+    try {
+      const chainId: number = parseInt(req.query.chainId as string);
+      const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
+      const from: Date | undefined = req.query.from
+        ? new Date(req.query.from as string)
+        : undefined;
+      const to: Date | undefined = req.query.to
+        ? new Date(req.query.to as string)
+        : undefined;
+
+      if (!Object.keys(chainTableMapping).includes(chainId.toString())) {
+        sendErrorResponse(res, 400, "Invalid chain ID");
+        return;
+      }
+
+      const diffs = await this.syncStatusRepository.getAverageStateDiff(
+        chainId,
+        groupRange,
+        from,
+        to,
+      );
+      sendSuccessResponse(res, Object.fromEntries(diffs));
     } catch (error) {
       this.logger.error("Error sync status:", error);
       sendErrorResponse(res, 500, "Internal error getting metadata");

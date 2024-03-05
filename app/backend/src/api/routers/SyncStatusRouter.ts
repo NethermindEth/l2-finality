@@ -11,5 +11,10 @@ export function createSyncStatusRouter(
     syncStatusController.getPaginatedByChain.bind(syncStatusController),
   );
 
+  router.get(
+    "/diff",
+    syncStatusController.getAvgDiffBySubmission.bind(syncStatusController),
+  );
+
   return router;
 }
