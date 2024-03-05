@@ -8,7 +8,7 @@ import {
 } from "@/database/repositories/SyncStatusRepository";
 import {
   OptimismOutputProposed,
-  PolygonSequenceBatch,
+  PolygonSequenceBatchPOL,
 } from "@/core/controllers/indexers/shared/types";
 import { beforeEach } from "mocha";
 import Logger from "@/tools/Logger";
@@ -95,8 +95,9 @@ describe(LogProcessors.name, () => {
         blockHash: "LogL1BlockHash",
       } as ethers.Log;
 
-      const decodedLog: PolygonSequenceBatch = {
-        numBatch: BigInt(1),
+      const decodedLog: PolygonSequenceBatchPOL = {
+        rollupID: 1n,
+        lastBatchSequenced: BigInt(1),
       };
 
       const expected: SyncStatusRecord = {
