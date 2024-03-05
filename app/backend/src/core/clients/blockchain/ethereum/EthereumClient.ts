@@ -16,10 +16,11 @@ class EthereumClient implements IBlockchainClient {
   private network: Network;
   private logger: Logger;
 
+  public readonly chainId: number;
+
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(
-      ethers.Network.from(config.ethereumMonitorModule.chainId),
-    );
+    this.chainId = config.ethereumMonitorModule.chainId;
+    this.network = Network.from(ethers.Network.from(this.chainId));
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.ethereumRpcEndpoint,
       this.network,

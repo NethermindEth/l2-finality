@@ -5,6 +5,7 @@ import {
   Block,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import chains from "@/core/types/chains.json";
 
 export interface BlockRewardSummary {
   gasFees: bigint;
@@ -14,9 +15,11 @@ export interface BlockRewardSummary {
 }
 
 export class BlockRewardsHandler {
+  private chainId: number;
   private priceService: PriceService;
 
-  constructor(priceService: PriceService) {
+  constructor(chainId: number, priceService: PriceService) {
+    this.chainId = chainId;
     this.priceService = priceService;
   }
 
@@ -55,15 +58,14 @@ export class BlockRewardsHandler {
         ? BigInt(transaction.maxFeePerGas)
         : BigInt(0);
 
-      const effectiveGasPrice =
-        baseFeePerGas + priorityFeePerGas < maxFeePerGas
-          ? baseFeePerGas + priorityFeePerGas
-          : maxFeePerGas;
+      const { gasFees, tips } = this.calculateBlockRewardByChainId(
+        gasUsed,
+        transaction.gasPrice,
+        baseFeePerGas,
+        priorityFeePerGas,
+        maxFeePerGas,
+      );
 
-      const gasFees = gasUsed * transaction.gasPrice;
-      const tips = gasUsed * effectiveGasPrice;
-
-      // TODO: Abstract this for chains other than OPTIMISM
       totalGasFees += gasFees;
       totalTips += tips;
     }
@@ -84,6 +86,51 @@ export class BlockRewardsHandler {
       gasFeesUsd: gasFeesUsd,
       blockReward: totalTips,
       blockRewardUsd: tipsUsd,
+    };
+  }
+
+  calculateBlockRewardByChainId(
+    gasUsed: bigint,
+    gasPrice: bigint,
+    baseFeePerGas: bigint,
+    priorityFeePerGas: bigint,
+    maxFeePerGas: bigint,
+  ): { gasFees: bigint; tips: bigint } {
+    const effectiveGasPrice =
+      baseFeePerGas + priorityFeePerGas != BigInt(0)
+        ? baseFeePerGas + priorityFeePerGas
+        : gasPrice;
+
+    let gasFees: bigint;
+    let tips: bigint;
+
+    switch (this.chainId) {
+      case chains.Optimism.chainId:
+        // Base fee isn't burned in OP
+        gasFees = gasUsed * effectiveGasPrice;
+        tips = gasUsed * effectiveGasPrice;
+        break;
+
+      case chains.zkEVM.chainId:
+        // maxFeePerGas, priorityFeePerGas and baseFeePerGas are null in zkEVM
+        gasFees = gasUsed * gasPrice;
+        tips = gasUsed * gasPrice;
+        break;
+
+      case chains.Starknet.chainId:
+        // TODO: Implement this
+        gasFees = BigInt(-1);
+        tips = BigInt(-1);
+        break;
+
+      default:
+        gasFees = BigInt(-1234);
+        tips = BigInt(-1234);
+    }
+
+    return {
+      gasFees,
+      tips,
     };
   }
 }

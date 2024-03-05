@@ -15,10 +15,11 @@ class OptimismClient implements IBlockchainClient {
   private network: Network;
   private logger: Logger;
 
+  public readonly chainId: number;
+
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(
-      ethers.Network.from(config.optimismModule.chainId),
-    );
+    this.chainId = config.optimismModule.chainId;
+    this.network = Network.from(ethers.Network.from(this.chainId));
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.optimismRpcEndpoint,
       this.network,
