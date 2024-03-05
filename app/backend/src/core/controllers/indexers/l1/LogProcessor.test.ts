@@ -72,7 +72,7 @@ describe(LogProcessors.name, () => {
       const result: SyncStatusRecord = LogProcessors.optimismStateUpdate(
         log,
         decodedLog,
-      );
+      ) as SyncStatusRecord;
 
       const expected: SyncStatusRecord = {
         chain_id: 10,

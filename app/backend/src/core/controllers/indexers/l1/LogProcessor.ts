@@ -58,7 +58,7 @@ export class LogProcessors {
   static optimismStateUpdate(
     log: ethers.Log,
     decodedLog: OptimismOutputProposed,
-  ): SyncStatusRecord {
+  ): SyncStatusRecord | null {
     return {
       chain_id: chains.Optimism.chainId,
       l2_block_number: decodedLog.l2BlockNumber,
@@ -73,7 +73,7 @@ export class LogProcessors {
   async polygonZkEvmProcessBatchUpdate(
     log: ethers.Log,
     decodedLog: PolygonDecodedLog,
-  ): Promise<SyncStatusRecord> {
+  ): Promise<SyncStatusRecord | null> {
     const getBatchNumberFromDecodedLog = (
       decodedLog: PolygonDecodedLog,
     ): bigint => {
@@ -87,6 +87,12 @@ export class LogProcessors {
         );
       }
     };
+
+    if ("rollupID" in decodedLog) {
+      if (decodedLog.rollupID !== BigInt(1)) {
+        return null;
+      }
+    }
 
     const batchNumber = getBatchNumberFromDecodedLog(decodedLog);
 
