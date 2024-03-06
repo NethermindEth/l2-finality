@@ -21,13 +21,13 @@ export interface SyncStatusRecord {
   submission_type: SubmissionType;
 }
 
-export interface StateDiff {
+export interface SubmissionInterval {
   timestamp: Date;
   timeDiff: UnixTime;
   blockDiff: number;
 }
 
-interface StateDiffRow {
+interface SubmissionIntervalRow {
   submission_type: SubmissionType;
   timestamp: Date;
   time_diff: UnixTime;
@@ -41,7 +41,7 @@ export interface AvgVarHistoryEntry {
 
 export type AvgVarHistoryMap = {
   [submission in SubmissionType]: {
-    [contract: string]: AvgVarHistoryEntry[]
+    [contract: string]: AvgVarHistoryEntry[];
   };
 };
 
@@ -54,7 +54,7 @@ interface AvgVarHistoryRow {
 
 export type ActiveVarMap = {
   [submission in SubmissionType]: {
-    [contract: string]: number
+    [contract: string]: number;
   };
 };
 
@@ -111,12 +111,12 @@ export class SyncStatusRepository {
       .offset(offset);
   }
 
-  async getAverageStateDiff(
+  async getAverageSubmissionInterval(
     chainId: number,
     groupRange: GroupRange,
     from?: Date,
     to?: Date,
-  ): Promise<Map<SubmissionType, StateDiff[]>> {
+  ): Promise<Map<SubmissionType, SubmissionInterval[]>> {
     let subquery = this.knex(TABLE_NAME)
       .select(
         "submission_type",
@@ -137,7 +137,7 @@ export class SyncStatusRepository {
 
     const groupExpression = `DATE_TRUNC('${rangeMapping[groupRange]}', timestamp)`;
     const rows = await this.knex
-      .select<StateDiffRow[]>(
+      .select<SubmissionIntervalRow[]>(
         "submission_type",
         this.knex.raw(`${groupExpression} as timestamp`),
         this.knex.raw("EXTRACT(EPOCH FROM AVG(time_diff)) as time_diff"),
@@ -147,10 +147,10 @@ export class SyncStatusRepository {
       .groupBy("submission_type")
       .groupByRaw(groupExpression);
 
-    const result = new Map<SubmissionType, StateDiff[]>(
+    const result = new Map<SubmissionType, SubmissionInterval[]>(
       Object.values(SubmissionType).map((st) => [
         st as SubmissionType,
-        [] as StateDiff[],
+        [] as SubmissionInterval[],
       ]),
     );
 
@@ -176,14 +176,15 @@ export class SyncStatusRepository {
   ): Promise<AvgVarHistoryMap> {
     const rangeGroupExpression = `DATE_TRUNC('${rangeMapping[groupRange]}', timestamp)`;
 
-    let submissions = this.knex.table(TABLE_NAME)
-      .where('chain_id', chainId)
-      .groupBy('submission_type')
+    let submissions = this.knex
+      .table(TABLE_NAME)
+      .where("chain_id", chainId)
+      .groupBy("submission_type")
       .groupByRaw(rangeGroupExpression)
       .select(
-        'submission_type',
+        "submission_type",
         this.knex.raw(`${rangeGroupExpression} as timestamp`),
-        this.knex.raw('count(*) as submissions_count')
+        this.knex.raw("count(*) as submissions_count"),
       );
 
     if (from) submissions = submissions.where("timestamp", ">=", from);
@@ -193,7 +194,7 @@ export class SyncStatusRepository {
       .table(chainTableMapping[chainId])
       .select(
         this.knex.raw("jsonb_array_elements(value->'mapped') as cval"),
-        "l2_block_timestamp as timestamp"
+        "l2_block_timestamp as timestamp",
       );
 
     if (from) contracts = contracts.where("l2_block_timestamp", ">=", from);
@@ -203,31 +204,34 @@ export class SyncStatusRepository {
       .select(
         this.knex.raw(`${rangeGroupExpression} as timestamp`),
         this.knex.raw("cval->>'contractAddress' as contract_address"),
-        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total")
+        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total"),
       )
       .from(contracts.as("c"))
       .groupByRaw("cval->>'contractAddress'")
       .groupByRaw(rangeGroupExpression);
 
     const rows = await this.knex
-      .with('range_submissions', submissions)
-      .with('range_contract_value', contract_value)
-      .select<AvgVarHistoryRow[]>(
-        "submission_type",
-        'contract_address',
+      .with("range_submissions", submissions)
+      .with("range_contract_value", contract_value)
+      .select<
+        AvgVarHistoryRow[]
+      >("submission_type", "contract_address", "range_submissions.timestamp", this.knex.raw("total / (submissions_count + 1) as avg"))
+      .from("range_submissions")
+      .join(
+        "range_contract_value",
         "range_submissions.timestamp",
-        this.knex.raw("total / (submissions_count + 1) as avg")
+        "range_contract_value.timestamp",
       )
-      .from('range_submissions')
-      .join('range_contract_value', 'range_submissions.timestamp', 'range_contract_value.timestamp')
       .orderBy("submission_type")
       .orderBy("contract_address")
       .orderBy("timestamp", "desc");
 
-    const result = Object.fromEntries(Object.values(SubmissionType).map((st) => [
-      st as SubmissionType,
-      {} as {[contract: string]: AvgVarHistoryEntry[]},
-    ]));
+    const result = Object.fromEntries(
+      Object.values(SubmissionType).map((st) => [
+        st as SubmissionType,
+        {} as { [contract: string]: AvgVarHistoryEntry[] },
+      ]),
+    );
 
     for (const row of rows) {
       const contractVars = result[row.submission_type];
@@ -235,7 +239,7 @@ export class SyncStatusRepository {
         contractVars[row.contract_address] ??= [] as AvgVarHistoryEntry[];
         contractVars[row.contract_address].push({
           timestamp: row.timestamp,
-          avg_var: row.avg
+          avg_var: row.avg,
         });
       }
     }
@@ -243,49 +247,48 @@ export class SyncStatusRepository {
     return result as AvgVarHistoryMap;
   }
 
-  async getActiveValueAtRisk(
-    chainId: number
-  ): Promise<ActiveVarMap> {
-    const last_submission = this.knex.table(TABLE_NAME)
-      .where('chain_id', chainId)
-      .groupBy('submission_type')
+  async getActiveValueAtRisk(chainId: number): Promise<ActiveVarMap> {
+    const last_submission = this.knex
+      .table(TABLE_NAME)
+      .where("chain_id", chainId)
+      .groupBy("submission_type")
       .select(
-        'submission_type',
-        this.knex.raw(`max(l2_block_number) as block`)
+        "submission_type",
+        this.knex.raw(`max(l2_block_number) as block`),
       );
 
     const contract_value = this.knex
       .select(
         "submission_type",
-        this.knex.raw("jsonb_array_elements(value->'mapped') as cval")
+        this.knex.raw("jsonb_array_elements(value->'mapped') as cval"),
       )
       .from(chainTableMapping[chainId])
-      .crossJoin('last_submission' as any)
-      .whereRaw('l2_block_number > last_submission.block');
+      .crossJoin("last_submission" as any)
+      .whereRaw("l2_block_number > last_submission.block");
 
     const rows = await this.knex
-      .with('last_submission', last_submission)
-      .with('contract_value', contract_value)
-      .select<ActiveVarRow[]>(
-        "submission_type",
-        this.knex.raw("cval->>'contractAddress' as contract_address"),
-        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total")
-      )
-      .from('contract_value')
-      .groupBy('submission_type')
+      .with("last_submission", last_submission)
+      .with("contract_value", contract_value)
+      .select<
+        ActiveVarRow[]
+      >("submission_type", this.knex.raw("cval->>'contractAddress' as contract_address"), this.knex.raw("sum((cval->>'usdTotalValue')::float) as total"))
+      .from("contract_value")
+      .groupBy("submission_type")
       .groupByRaw("cval->>'contractAddress'")
       .orderBy("submission_type")
       .orderBy("contract_address");
 
-    const result = Object.fromEntries(Object.values(SubmissionType).map((st) => [
-      st as SubmissionType,
-      {} as {[contract: string]: number}
-    ]));
+    const result = Object.fromEntries(
+      Object.values(SubmissionType).map((st) => [
+        st as SubmissionType,
+        {} as { [contract: string]: number },
+      ]),
+    );
 
     for (const row of rows) {
       const contractVars = result[row.submission_type];
       if (contractVars) {
-        contractVars[row.contract_address] = row.total
+        contractVars[row.contract_address] = row.total;
       }
     }
 

@@ -12,18 +12,20 @@ export function createSyncStatusRouter(
   );
 
   router.get(
-    "/diff",
-    syncStatusController.getAvgDiffBySubmission.bind(syncStatusController),
+    "/interval",
+    syncStatusController.getAverageSubmissionInterval.bind(
+      syncStatusController,
+    ),
   );
 
   router.get(
     "/var/history",
-    syncStatusController.getAverageVarHistoryByChain.bind(syncStatusController),
+    syncStatusController.getAverageVarHistory.bind(syncStatusController),
   );
 
   router.get(
     "/var/active",
-    syncStatusController.getActiveVarByChain.bind(syncStatusController),
+    syncStatusController.getActiveVar.bind(syncStatusController),
   );
 
   return router;

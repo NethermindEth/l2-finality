@@ -48,36 +48,29 @@ export class SyncStatusController {
     }
   }
 
-  async getAvgDiffBySubmission(req: Request, res: Response): Promise<void> {
+  async getAverageSubmissionInterval(
+    req: Request,
+    res: Response,
+  ): Promise<void> {
     try {
-      const chainId: number = parseInt(req.query.chainId as string);
-      const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
-      const from: Date | undefined = req.query.from
-        ? new Date(req.query.from as string)
-        : undefined;
-      const to: Date | undefined = req.query.to
-        ? new Date(req.query.to as string)
-        : undefined;
+      const params = this.extractParams(req, res);
+      if (!params) return;
 
-      if (!Object.keys(chainTableMapping).includes(chainId.toString())) {
-        sendErrorResponse(res, 400, "Invalid chain ID");
-        return;
-      }
-
-      const diffs = await this.syncStatusRepository.getAverageStateDiff(
-        chainId,
-        groupRange,
-        from,
-        to,
-      );
+      const diffs =
+        await this.syncStatusRepository.getAverageSubmissionInterval(
+          params.chainId,
+          params.groupRange,
+          params.from,
+          params.to,
+        );
       sendSuccessResponse(res, Object.fromEntries(diffs));
     } catch (error) {
-      this.logger.error("Error sync status:", error);
-      sendErrorResponse(res, 500, "Internal error getting metadata");
+      this.logger.error("Error getting average submission interval:", error);
+      sendErrorResponse(res, 500, "Internal error getting interval");
     }
   }
 
-  async getAverageVarHistoryByChain(req: Request, res: Response): Promise<void> {
+  async getAverageVarHistory(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
@@ -95,13 +88,13 @@ export class SyncStatusController {
     }
   }
 
-  async getActiveVarByChain(req: Request, res: Response): Promise<void> {
+  async getActiveVar(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
 
       const vars = await this.syncStatusRepository.getActiveValueAtRisk(
-        params.chainId
+        params.chainId,
       );
       sendSuccessResponse(res, vars);
     } catch (error) {
@@ -110,8 +103,12 @@ export class SyncStatusController {
     }
   }
 
-  extractParams(req: Request, res: Response): {chainId: number, groupRange: GroupRange, from?: Date, to?: Date} | undefined
-  {
+  extractParams(
+    req: Request,
+    res: Response,
+  ):
+    | { chainId: number; groupRange: GroupRange; from?: Date; to?: Date }
+    | undefined {
     const chainId: number = parseInt(req.query.chainId as string);
     const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
     const from: Date | undefined = req.query.from
@@ -126,6 +123,6 @@ export class SyncStatusController {
       return;
     }
 
-    return {chainId, groupRange, from, to};
+    return { chainId, groupRange, from, to };
   }
 }
