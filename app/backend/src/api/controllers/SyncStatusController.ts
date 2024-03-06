@@ -1,5 +1,6 @@
 import {
   GroupRange,
+  SubmissionType,
   SyncStatusRecord,
   SyncStatusRepository,
 } from "@/database/repositories/SyncStatusRepository";
@@ -10,14 +11,32 @@ import {
   sendSuccessResponse,
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
+import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
+import { ethers } from "ethers";
+
+interface AssetMap {
+  [chainId: number]: {
+    [address: string]: string;
+  };
+}
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;
   private logger: Logger;
+  private readonly assetMap: AssetMap;
 
   constructor(syncStatusRepository: SyncStatusRepository, logger: Logger) {
     this.syncStatusRepository = syncStatusRepository;
     this.logger = logger;
+
+    this.assetMap = {};
+    for (const asset of whitelisted) {
+      if (!asset.address) continue;
+      this.assetMap[asset.chainId] ??= {
+        ["0x0000000000000000000000000000000000000000"]: "ETH",
+      };
+      this.assetMap[asset.chainId][asset.address] = asset.symbol;
+    }
   }
 
   async getPaginatedByChain(req: Request, res: Response): Promise<void> {
@@ -81,6 +100,9 @@ export class SyncStatusController {
         params.from,
         params.to,
       );
+
+      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
+
       sendSuccessResponse(res, vars);
     } catch (error) {
       this.logger.error("Error getting average VaR history:", error);
@@ -96,6 +118,9 @@ export class SyncStatusController {
       const vars = await this.syncStatusRepository.getActiveValueAtRisk(
         params.chainId,
       );
+
+      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
+
       sendSuccessResponse(res, vars);
     } catch (error) {
       this.logger.error("Error getting active VaR:", error);
@@ -107,10 +132,17 @@ export class SyncStatusController {
     req: Request,
     res: Response,
   ):
-    | { chainId: number; groupRange: GroupRange; from?: Date; to?: Date }
+    | {
+        chainId: number;
+        groupRange: GroupRange;
+        useNames: boolean;
+        from?: Date;
+        to?: Date;
+      }
     | undefined {
     const chainId: number = parseInt(req.query.chainId as string);
     const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
+    const useNames: boolean = req.query.useNames === "true";
     const from: Date | undefined = req.query.from
       ? new Date(req.query.from as string)
       : undefined;
@@ -123,6 +155,23 @@ export class SyncStatusController {
       return;
     }
 
-    return { chainId, groupRange, from, to };
+    return { chainId, groupRange, useNames, from, to };
+  }
+
+  replaceAddressesWithNames<T>(
+    map: { [sub in SubmissionType]: { [address: string]: T } },
+    chainId: number,
+  ) {
+    for (const entries of Object.values(map)) {
+      for (const address of Object.keys(entries)) {
+        const assetChainMap = this.assetMap[chainId];
+        const symbol =
+          assetChainMap && assetChainMap[ethers.getAddress(address)];
+        if (symbol) {
+          entries[symbol] = entries[address];
+          delete entries[address];
+        }
+      }
+    }
   }
 }
