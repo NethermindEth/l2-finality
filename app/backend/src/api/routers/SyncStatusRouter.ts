@@ -16,5 +16,15 @@ export function createSyncStatusRouter(
     syncStatusController.getAvgDiffBySubmission.bind(syncStatusController),
   );
 
+  router.get(
+    "/var/history",
+    syncStatusController.getAverageVarHistoryByChain.bind(syncStatusController),
+  );
+
+  router.get(
+    "/var/active",
+    syncStatusController.getActiveVarByChain.bind(syncStatusController),
+  );
+
   return router;
 }

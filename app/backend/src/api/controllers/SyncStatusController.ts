@@ -76,4 +76,56 @@ export class SyncStatusController {
       sendErrorResponse(res, 500, "Internal error getting metadata");
     }
   }
+
+  async getAverageVarHistoryByChain(req: Request, res: Response): Promise<void> {
+    try {
+      const params = this.extractParams(req, res);
+      if (!params) return;
+
+      const vars = await this.syncStatusRepository.getAverageValueAtRiskHistory(
+        params.chainId,
+        params.groupRange,
+        params.from,
+        params.to,
+      );
+      sendSuccessResponse(res, vars);
+    } catch (error) {
+      this.logger.error("Error getting average VaR history:", error);
+      sendErrorResponse(res, 500, "Internal error getting average VaR history");
+    }
+  }
+
+  async getActiveVarByChain(req: Request, res: Response): Promise<void> {
+    try {
+      const params = this.extractParams(req, res);
+      if (!params) return;
+
+      const vars = await this.syncStatusRepository.getActiveValueAtRisk(
+        params.chainId
+      );
+      sendSuccessResponse(res, vars);
+    } catch (error) {
+      this.logger.error("Error getting active VaR:", error);
+      sendErrorResponse(res, 500, "Internal error getting active VaR");
+    }
+  }
+
+  extractParams(req: Request, res: Response): {chainId: number, groupRange: GroupRange, from?: Date, to?: Date} | undefined
+  {
+    const chainId: number = parseInt(req.query.chainId as string);
+    const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
+    const from: Date | undefined = req.query.from
+      ? new Date(req.query.from as string)
+      : undefined;
+    const to: Date | undefined = req.query.to
+      ? new Date(req.query.to as string)
+      : undefined;
+
+    if (!Object.keys(chainTableMapping).includes(chainId.toString())) {
+      sendErrorResponse(res, 400, "Invalid chain ID");
+      return;
+    }
+
+    return {chainId, groupRange, from, to};
+  }
 }

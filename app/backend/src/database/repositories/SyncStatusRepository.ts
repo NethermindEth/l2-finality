@@ -1,5 +1,6 @@
 import { Knex } from "knex";
 import { UnixTime } from "@/core/types/UnixTime";
+import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
 
 export const TABLE_NAME = "sync_status";
 
@@ -31,6 +32,36 @@ interface StateDiffRow {
   timestamp: Date;
   time_diff: UnixTime;
   block_diff: number;
+}
+
+export interface AvgVarHistoryEntry {
+  timestamp: Date;
+  avg_var: number;
+}
+
+export type AvgVarHistoryMap = {
+  [submission in SubmissionType]: {
+    [contract: string]: AvgVarHistoryEntry[]
+  };
+};
+
+interface AvgVarHistoryRow {
+  submission_type: SubmissionType;
+  contract_address: string;
+  timestamp: Date;
+  avg: number;
+}
+
+export type ActiveVarMap = {
+  [submission in SubmissionType]: {
+    [contract: string]: number
+  };
+};
+
+interface ActiveVarRow {
+  submission_type: SubmissionType;
+  contract_address: string;
+  total: number;
 }
 
 export type GroupRange = "hour" | "day" | "week" | "month" | "quarter" | "year";
@@ -135,6 +166,130 @@ export class SyncStatusRepository {
     }
 
     return result;
+  }
+
+  async getAverageValueAtRiskHistory(
+    chainId: number,
+    groupRange: GroupRange,
+    from?: Date,
+    to?: Date,
+  ): Promise<AvgVarHistoryMap> {
+    const rangeGroupExpression = `DATE_TRUNC('${rangeMapping[groupRange]}', timestamp)`;
+
+    let submissions = this.knex.table(TABLE_NAME)
+      .where('chain_id', chainId)
+      .groupBy('submission_type')
+      .groupByRaw(rangeGroupExpression)
+      .select(
+        'submission_type',
+        this.knex.raw(`${rangeGroupExpression} as timestamp`),
+        this.knex.raw('count(*) as submissions_count')
+      );
+
+    if (from) submissions = submissions.where("timestamp", ">=", from);
+    if (to) submissions = submissions.where("timestamp", "<", to);
+
+    let contracts = this.knex
+      .table(chainTableMapping[chainId])
+      .select(
+        this.knex.raw("jsonb_array_elements(value->'mapped') as cval"),
+        "l2_block_timestamp as timestamp"
+      );
+
+    if (from) contracts = contracts.where("l2_block_timestamp", ">=", from);
+    if (to) contracts = contracts.where("l2_block_timestamp", "<", to);
+
+    const contract_value = this.knex
+      .select(
+        this.knex.raw(`${rangeGroupExpression} as timestamp`),
+        this.knex.raw("cval->>'contractAddress' as contract_address"),
+        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total")
+      )
+      .from(contracts.as("c"))
+      .groupByRaw("cval->>'contractAddress'")
+      .groupByRaw(rangeGroupExpression);
+
+    const rows = await this.knex
+      .with('range_submissions', submissions)
+      .with('range_contract_value', contract_value)
+      .select<AvgVarHistoryRow[]>(
+        "submission_type",
+        'contract_address',
+        "range_submissions.timestamp",
+        this.knex.raw("total / (submissions_count + 1) as avg")
+      )
+      .from('range_submissions')
+      .join('range_contract_value', 'range_submissions.timestamp', 'range_contract_value.timestamp')
+      .orderBy("submission_type")
+      .orderBy("contract_address")
+      .orderBy("timestamp", "desc");
+
+    const result = Object.fromEntries(Object.values(SubmissionType).map((st) => [
+      st as SubmissionType,
+      {} as {[contract: string]: AvgVarHistoryEntry[]},
+    ]));
+
+    for (const row of rows) {
+      const contractVars = result[row.submission_type];
+      if (contractVars) {
+        contractVars[row.contract_address] ??= [] as AvgVarHistoryEntry[];
+        contractVars[row.contract_address].push({
+          timestamp: row.timestamp,
+          avg_var: row.avg
+        });
+      }
+    }
+
+    return result as AvgVarHistoryMap;
+  }
+
+  async getActiveValueAtRisk(
+    chainId: number
+  ): Promise<ActiveVarMap> {
+    const last_submission = this.knex.table(TABLE_NAME)
+      .where('chain_id', chainId)
+      .groupBy('submission_type')
+      .select(
+        'submission_type',
+        this.knex.raw(`max(l2_block_number) as block`)
+      );
+
+    const contract_value = this.knex
+      .select(
+        "submission_type",
+        this.knex.raw("jsonb_array_elements(value->'mapped') as cval")
+      )
+      .from(chainTableMapping[chainId])
+      .crossJoin('last_submission' as any)
+      .whereRaw('l2_block_number > last_submission.block');
+
+    const rows = await this.knex
+      .with('last_submission', last_submission)
+      .with('contract_value', contract_value)
+      .select<ActiveVarRow[]>(
+        "submission_type",
+        this.knex.raw("cval->>'contractAddress' as contract_address"),
+        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total")
+      )
+      .from('contract_value')
+      .groupBy('submission_type')
+      .groupByRaw("cval->>'contractAddress'")
+      .orderBy("submission_type")
+      .orderBy("contract_address");
+
+    const result = Object.fromEntries(Object.values(SubmissionType).map((st) => [
+      st as SubmissionType,
+      {} as {[contract: string]: number}
+    ]));
+
+    for (const row of rows) {
+      const contractVars = result[row.submission_type];
+      if (contractVars) {
+        contractVars[row.contract_address] = row.total
+      }
+    }
+
+    return result as ActiveVarMap;
   }
 }
 
