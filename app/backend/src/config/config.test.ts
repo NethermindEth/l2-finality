@@ -29,6 +29,7 @@ export function getTestConfig(env: Env): Config {
   const apiConfig: ApiConfig = {
     port: env.integer("API_PORT", 3005),
     logLevel: env.string("LOG_LEVEL", "debug") as LogLevel,
+    httpsProxy: env.optionalString("HTTPS_PROXY"),
   };
 
   const indexerConfig: IndexerConfig = {

@@ -26,6 +26,7 @@ export function getLocalConfig(env: Env): Config {
   const apiConfig: ApiConfig = {
     port: env.integer("API_PORT", 3005),
     logLevel: env.string("LOG_LEVEL", "info") as LogLevel,
+    httpsProxy: env.optionalString("HTTPS_PROXY"),
   };
 
   const indexerConfig: IndexerConfig = {

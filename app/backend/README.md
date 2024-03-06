@@ -162,3 +162,24 @@ The PolygonZkEVM Module gets blocks only gets each block for it to be appraised.
 - **OptimismFinalityController**: This class interacts with the OptimismClient to fetch the current synchronization status, comparing it with the previous state to detect any changes in the safe L2 origin number.
 - **OptimismBlockController**: This class is responsible for fetching blocks within a specified range from the Optimism network
 - **PolygonZkEvmBlockController**: This class is responsible for fetching blocks within a specified range from the PolygonZkEvm network
+
+### Proxy module
+
+This module is responsible for setting up a proxy for all the external requests.
+
+**Environment Variables**
+
+- **`HTTPS_PROXY`**: Proxy URL
+
+  - Example: http://127.0.0.1:8888
+  - No proxy will be used if the variable is missing or empty.
+
+- **`NODE_TLS_REJECT_UNAUTHORIZED`**: Whether disable certificate validation for TLS connections.
+
+  - Default: `1`.
+  - You may need to set it to `0` if your proxy certificate is not trusted by Node.js.
+
+**Logic**:
+
+- The `HTTPS_PROXY` variable is picked up by the Axios client out of the box and applies to all requests made using it.
+  This module ensures that all other libraries respect it, for example, ether.js.

@@ -14,6 +14,7 @@ export interface Config {
 export interface ApiConfig {
   readonly port: number;
   readonly logLevel: LogLevel;
+  readonly httpsProxy: string | undefined;
 }
 
 export interface DatabaseConfig {
