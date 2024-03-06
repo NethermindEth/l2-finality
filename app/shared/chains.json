@@ -1,0 +1,26 @@
+{
+  "Ethereum": {
+    "chainId": 1,
+    "frontEndName": "Ethereum",
+    "isFrontendEnabled": false,
+    "explorerUri": "https://etherscan.io"
+  },
+  "Optimism": {
+    "chainId": 10,
+    "frontEndName": "Optimism",
+    "isFrontendEnabled": true,
+    "explorerUri": "https://optimistic.etherscan.io"
+  },
+  "zkEVM": {
+    "chainId": 1101,
+    "frontEndName": "Polygon zkEVM",
+    "isFrontendEnabled": true,
+    "explorerUri": "https://zkevm.polygonscan.com"
+  },
+  "Starknet": {
+    "chainId": -1,
+    "frontEndName": "Starknet",
+    "isFrontendEnabled": true,
+    "explorerUri": "https://voyager.online"
+  }
+}
