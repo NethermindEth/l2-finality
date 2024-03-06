@@ -117,15 +117,10 @@ export class BlockRewardsHandler {
         tips = gasUsed * gasPrice;
         break;
 
-      case chains.Starknet.chainId:
-        // TODO: Implement this
-        gasFees = BigInt(-1);
-        tips = BigInt(-1);
-        break;
-
       default:
-        gasFees = BigInt(-1234);
-        tips = BigInt(-1234);
+        throw Error(
+          `Chain ID ${this.chainId} not supported in calculateBlockRewardByChainId`,
+        );
     }
 
     return {
