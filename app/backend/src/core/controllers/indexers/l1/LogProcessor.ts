@@ -12,7 +12,7 @@ import {
 } from "@/core/controllers/indexers/shared/types";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
-import chains from "@/core/types/chains.json";
+import chains from "../../../../../../shared/chains.json";
 
 type CallbackFunction = (...args: any[]) => any;
 
