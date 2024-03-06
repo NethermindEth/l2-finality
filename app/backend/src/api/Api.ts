@@ -16,6 +16,7 @@ import { createPricingRouter } from "@/api/routers/PriceRouter";
 import { createBlockValueRouter } from "@/api/routers/BlockValueRouter";
 import { BlockValueController } from "@/api/controllers/BlockValueController";
 import BlockValueRepository from "@/database/repositories/BlockValueRepository";
+import cors from "cors";
 
 export class Api {
   private readonly app: express.Application;
@@ -28,6 +29,7 @@ export class Api {
     this.logger = this.logger.for("Api");
     this.app = express();
 
+    this.app.use(cors());
     this.app.use(apiLogger);
     this.app.use(express.json());
 
@@ -52,7 +54,7 @@ export class Api {
     this.app.use("/api/blocks", createBlockValueRouter(blockValueController));
     this.app.use("/api/prices", createPricingRouter(pricingController));
     this.app.use("/api/state", createSyncStatusRouter(syncStatusController));
-    this.app.use("/health", createHealthRouter(new HealthController()));
+    this.app.use("/api/health", createHealthRouter(new HealthController()));
   }
 
   listen() {
