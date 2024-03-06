@@ -16,7 +16,7 @@ export function getTestConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
     client: "pg",
     connection: env.string(
-      "DB_URI",
+      "TEST_DB_URI",
       "postgresql://postgres:postgres@localhost:5432/postgres",
     ),
     freshStart: env.boolean("DB_FRESH_START", true),
