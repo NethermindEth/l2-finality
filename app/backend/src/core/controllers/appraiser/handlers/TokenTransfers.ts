@@ -57,7 +57,7 @@ export class TokenTransferHandler extends BaseHandler {
 
     for (const log of logs) {
       if (log.topics[0] === transferEventSigHash) {
-        const contractAddress = log.address;
+        const contractAddress = ethers.getAddress(log.address);
         const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
         const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
         const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);

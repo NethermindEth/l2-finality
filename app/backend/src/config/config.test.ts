@@ -16,7 +16,7 @@ export function getTestConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
     client: "pg",
     connection: env.string(
-      "DB_URI",
+      "TEST_DB_URI",
       "postgresql://postgres:postgres@localhost:5432/postgres",
     ),
     freshStart: env.boolean("DB_FRESH_START", true),
@@ -29,6 +29,7 @@ export function getTestConfig(env: Env): Config {
   const apiConfig: ApiConfig = {
     port: env.integer("API_PORT", 3005),
     logLevel: env.string("LOG_LEVEL", "debug") as LogLevel,
+    httpsProxy: env.optionalString("HTTPS_PROXY"),
   };
 
   const indexerConfig: IndexerConfig = {

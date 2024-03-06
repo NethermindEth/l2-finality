@@ -107,6 +107,7 @@ describe(TokenTransferHandler.name, () => {
   });
 
   it("Appraise distribution-like transfer with some unknown assets", async () => {
+    const unknownAddress = "0x1234567890123456789012345678901234567890";
     const mockTransactionReceiptLogs = {
       logs: [
         {
@@ -119,7 +120,7 @@ describe(TokenTransferHandler.name, () => {
           data: "0x1000",
         },
         {
-          address: "UNKNOWN_ADDRESS",
+          address: unknownAddress,
           topics: [
             ethers.id("Transfer(address,address,uint256)"),
             "0x0000000000000000000000001111111111111111111111111111111111111111",
@@ -172,7 +173,7 @@ describe(TokenTransferHandler.name, () => {
         usdValue: adjustedAmount * 5,
       },
       {
-        contractAddress: "UNKNOWN_ADDRESS",
+        contractAddress: unknownAddress,
         rawAmount: 4096n,
         adjustedAmount: undefined,
         usdValue: undefined,

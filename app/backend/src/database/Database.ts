@@ -22,7 +22,14 @@ export class Database {
           path.join(__dirname, "migrations"),
         ),
       },
-      pool: config.connectionPoolSize,
+      pool: {
+        ...config.connectionPoolSize,
+        afterCreate: function (connection: any, callback: any) {
+          connection.query("SET TIMEZONE TO 'UTC';", function (err: any) {
+            callback(err, connection);
+          });
+        },
+      },
     });
 
     this.logger = logger.for("Database");

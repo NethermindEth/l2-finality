@@ -11,6 +11,7 @@ import { createOptimismBlockModule } from "./core/modules/indexers/l2/optimism/O
 import { createPolygonZkEvmBlockModule } from "@/core/modules/indexers/l2/polygonzk/PolygonZkEvmBlockModule";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import { createPriceUpdaterModule } from "@/core/modules/pricing/PriceUpdaterModule";
+import { createProxyModule } from "@/core/modules/proxy/ProxyModule";
 
 export class Application {
   constructor(config: Config) {
@@ -42,6 +43,7 @@ export class Application {
       await api.listen();
 
       const modules = [
+        createProxyModule(config, logger),
         createPriceUpdaterModule(config, logger, database, pricingClient),
         createOptimismFinalityModule(config, logger, database, optimismClient),
         createL1MonitorModule(
