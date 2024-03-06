@@ -11,32 +11,15 @@ import {
   sendSuccessResponse,
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
-import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
-import { ethers } from "ethers";
-
-interface AssetMap {
-  [chainId: number]: {
-    [address: string]: string;
-  };
-}
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;
   private logger: Logger;
-  private readonly assetMap: AssetMap;
 
   constructor(syncStatusRepository: SyncStatusRepository, logger: Logger) {
     this.syncStatusRepository = syncStatusRepository;
     this.logger = logger;
-
-    this.assetMap = {};
-    for (const asset of whitelisted) {
-      if (!asset.address) continue;
-      this.assetMap[asset.chainId] ??= {
-        ["0x0000000000000000000000000000000000000000"]: "ETH",
-      };
-      this.assetMap[asset.chainId][asset.address] = asset.symbol;
-    }
   }
 
   async getPaginatedByChain(req: Request, res: Response): Promise<void> {
@@ -164,9 +147,8 @@ export class SyncStatusController {
   ) {
     for (const entries of Object.values(map)) {
       for (const address of Object.keys(entries)) {
-        const assetChainMap = this.assetMap[chainId];
-        const symbol =
-          assetChainMap && assetChainMap[ethers.getAddress(address)];
+        const symbol = whitelistedMap.getSymbolByAddress(chainId, address);
+
         if (symbol) {
           entries[symbol] = entries[address];
           delete entries[address];
