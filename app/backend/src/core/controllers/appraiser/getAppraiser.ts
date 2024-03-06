@@ -40,7 +40,10 @@ export function createBlockAppraiser(
 
   const transferService = new TransferService(tokenService, nativeService);
 
-  const blockRewardsHandler = new BlockRewardsHandler(priceService);
+  const blockRewardsHandler = new BlockRewardsHandler(
+    blockchainClient.chainId,
+    priceService,
+  );
 
   return new BlockAppraiser(
     blockchainClient,

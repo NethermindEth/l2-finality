@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 
 export interface IBlockchainClient {
+  chainId: number;
   getBlock(blockNumberOrHash: string | number): Promise<Block | undefined>;
   getTransaction?(txHash: string): Promise<Transaction | undefined>;
   getBlockTransactionReceipts(

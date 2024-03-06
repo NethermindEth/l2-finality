@@ -15,10 +15,11 @@ class PolygonZkEvmClient implements IBlockchainClient {
   private network: Network;
   private logger: Logger;
 
+  public readonly chainId: number;
+
   constructor(config: Config, logger: Logger) {
-    this.network = Network.from(
-      ethers.Network.from(config.polygonZkEvmModule.chainId),
-    );
+    this.chainId = config.polygonZkEvmModule.chainId;
+    this.network = Network.from(ethers.Network.from(this.chainId));
     this.provider = new ethers.JsonRpcProvider(
       config.indexers.polygonZkEvmRpcEndpoint,
       this.network,
