@@ -1,26 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSpring, animated } from 'react-spring'
+import { FETCH_LIVE_DATA_INTERVAL_MS } from '@/pages'
 
-const AutoIncrementComponent: React.FC = () => {
-  const [targetCount, setTargetCount] = useState(0)
-  const prevCountRef = useRef(0)
+interface AutoIncrementComponentProps {
+  initialValue: number
+  newValue: number
+}
+
+const AutoIncrementComponent: React.FC<AutoIncrementComponentProps> = ({
+  initialValue,
+  newValue,
+}) => {
+  const [currentCount, setCurrentCount] = useState(initialValue)
+  const [isFirstRender, setIsFirstRender] = useState(true)
+  const prevCountRef = useRef(initialValue)
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const newCount = prevCountRef.current + Math.random() * 100
-      setTargetCount(newCount)
-    }, 5000)
-
-    return () => clearInterval(intervalId)
-  }, [])
+    setCurrentCount(newValue)
+  }, [newValue])
 
   const { number } = useSpring({
     reset: true,
-    from: { number: prevCountRef.current },
-    number: targetCount,
-    config: { duration: 4500 },
+    from: { number: isFirstRender ? initialValue : prevCountRef.current },
+    number: currentCount,
+    config: { duration: FETCH_LIVE_DATA_INTERVAL_MS - 1000 },
+    onStart: () => {
+      if (isFirstRender) {
+        setIsFirstRender(false)
+      }
+    },
     onRest: () => {
-      prevCountRef.current = targetCount
+      prevCountRef.current = currentCount
     },
   })
 
