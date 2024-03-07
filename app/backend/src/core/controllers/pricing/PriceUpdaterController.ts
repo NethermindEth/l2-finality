@@ -48,7 +48,11 @@ export class PriceUpdaterController {
     const now = UnixTime.now();
     const boundaries = await this.priceRepository.findBoundariesByToken();
 
+    const backfilledIds = new Set<string>();
     for (const asset of this.whitelistedAssets) {
+      if (backfilledIds.has(asset.coingeckoId)) continue;
+      else backfilledIds.add(asset.coingeckoId);
+
       await this.tryBackfillHistoryFor(
         asset,
         { from: now.add(-backfillPeriodDays, "days"), to: now },
