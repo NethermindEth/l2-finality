@@ -4,7 +4,7 @@ import { PriceService } from "../services/PriceService";
 import Logger from "@/tools/Logger";
 import { UnixTime } from "@/core/types/UnixTime";
 import { TokenTransferHandler } from "@/core/controllers/appraiser/handlers/TokenTransfers";
-import monitoredAssets from "@/core/clients/coingecko/assets/whitelisted.json";
+import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
 import { Knex } from "knex";
 import { getConfig } from "@/config";
 import PricingRepository from "@/database/repositories/PricingRepository";
@@ -14,21 +14,16 @@ import {
   Block,
   IBlockchainClient,
   Transaction,
-  TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { AppraisalSummary } from "@/core/controllers/appraiser/handlers/BaseHandler";
-
-interface MockLog {
-  address: string;
-  topics: string[];
-  data: string;
-}
+import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 
 describe(TokenTransferHandler.name, () => {
   let knexInstance: Knex;
   let ethersProvider: IBlockchainClient;
   let priceService: PriceService;
+  let monitoredAssets: WhitelistedAsset[];
 
   beforeEach(async () => {
     const logger = new Logger();
@@ -38,6 +33,9 @@ describe(TokenTransferHandler.name, () => {
     knexInstance = await getTestDatabase();
     ethersProvider = new OptimismClient(config, logger);
     priceService = new PriceService(priceRepository, logger, false);
+    monitoredAssets = whitelisted.filter(
+      (a) => a.chainId == config.optimismModule.chainId,
+    );
   });
 
   afterEach(async () => {
@@ -156,10 +154,6 @@ describe(TokenTransferHandler.name, () => {
       mockTxResponse,
       receipts,
       timestamp,
-    );
-    const totalUsdValue = appraisals.reduce(
-      (sum, appraisal) => sum + (appraisal.usdValue || 0),
-      0,
     );
 
     const adjustedAmount =

@@ -7,9 +7,8 @@ import {
 } from "./BaseHandler";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
-import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 import Logger from "@/tools/Logger";
-import monitoredAssets from "@/core/clients/coingecko/assets/whitelisted.json";
 import {
   IBlockchainClient,
   Log,
@@ -19,7 +18,6 @@ import {
 
 export class TokenTransferHandler extends BaseHandler {
   private priceService: PriceService;
-  private monitoredAssets: WhitelistedAsset[];
 
   constructor(
     provider: IBlockchainClient,
@@ -28,7 +26,6 @@ export class TokenTransferHandler extends BaseHandler {
   ) {
     super(provider, logger);
     this.priceService = priceService;
-    this.monitoredAssets = monitoredAssets as WhitelistedAsset[];
   }
 
   async handleTransferEvents(
@@ -131,8 +128,9 @@ export class TokenTransferHandler extends BaseHandler {
   ): Promise<PricedTransferLogEvent[]> {
     const pricedTransferEventPromises: Promise<PricedTransferLogEvent>[] =
       transferEvents.map(async (event) => {
-        const asset = this.monitoredAssets.find(
-          (a) => a.address === event.contractAddress,
+        const asset = whitelistedMap.getAssetByAddress(
+          this.provider.chainId,
+          event.contractAddress,
         );
         let adjustedAmount: number | undefined = undefined;
         let usdValue: number | undefined = undefined;
