@@ -6,14 +6,15 @@ import {
   Block,
   ethersToBlock,
   ethersToTransactionReceipt,
+  getEvmEventHash,
   IBlockchainClient,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 class OptimismClient implements IBlockchainClient {
-  private provider: ethers.JsonRpcProvider;
-  private network: Network;
-  private logger: Logger;
+  private readonly provider: ethers.JsonRpcProvider;
+  private readonly network: Network;
+  private readonly logger: Logger;
 
   public readonly chainId: number;
 
@@ -26,6 +27,10 @@ class OptimismClient implements IBlockchainClient {
       { staticNetwork: this.network },
     );
     this.logger = logger;
+  }
+
+  public getEventHash(name: string, params: string[]): string {
+    return getEvmEventHash(name, params);
   }
 
   public async getCurrentHeight(): Promise<number> {
