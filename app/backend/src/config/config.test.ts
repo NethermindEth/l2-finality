@@ -50,7 +50,7 @@ export function getTestConfig(env: Env): Config {
       "STARKNET_RPC_ENDPOINT",
       "https://rpc.nethermind.io/mainnet-juno",
     ),
-    starknetApiKey: env.string("STARKNET_RPC_API_KEY", "starknetApiKey"),
+    starknetApiKey: env.optionalString("STARKNET_RPC_API_KEY"),
     useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 

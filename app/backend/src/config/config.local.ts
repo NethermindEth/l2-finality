@@ -35,7 +35,7 @@ export function getLocalConfig(env: Env): Config {
     optimismRpcEndpoint: env.string("OPTIMISM_RPC_ENDPOINT"),
     polygonZkEvmRpcEndpoint: env.string("POLYGONZK_RPC_ENDPOINT"),
     starknetRpcEndpoint: env.string("STARKNET_RPC_ENDPOINT"),
-    starknetApiKey: env.string("STARKNET_RPC_API_KEY"),
+    starknetApiKey: env.optionalString("STARKNET_RPC_API_KEY"),
     useFakePricing: env.boolean("USE_FAKE_APPRAISER_PRICES", false),
   };
 

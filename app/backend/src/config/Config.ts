@@ -33,7 +33,7 @@ export interface IndexerConfig {
   readonly optimismRpcEndpoint: string;
   readonly polygonZkEvmRpcEndpoint: string;
   readonly starknetRpcEndpoint: string;
-  readonly starknetApiKey: string;
+  readonly starknetApiKey?: string;
   readonly useFakePricing: boolean;
 }
 
