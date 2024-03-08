@@ -32,17 +32,9 @@ describe(EthereumClient.name, () => {
       const blockNumber = 19106838;
       const mockTransactionResponse: Partial<ethers.TransactionResponse> = {
         hash: "0x123",
-        to: "0x456",
-        from: "0x789",
-        nonce: 1,
-        gasLimit: 100n,
         gasPrice: 100n,
-        data: "0x",
         value: 0n,
         blockNumber: blockNumber,
-        blockHash: "0x1234567890abcdef",
-        index: 1,
-        type: 0,
         maxFeePerGas: 100n,
         maxPriorityFeePerGas: 100n,
       };
