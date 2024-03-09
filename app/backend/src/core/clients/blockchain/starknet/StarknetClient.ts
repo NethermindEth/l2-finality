@@ -1,46 +1,107 @@
-import { ethers, Network } from "ethers";
 import { Config } from "@/config";
 import Logger from "@/tools/Logger";
 import {
   Block,
-  ethersToBlock,
-  ethersToTransactionReceipt,
   IBlockchainClient,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { RpcProvider, constants, hash } from "starknet";
 
 class StarknetClient implements IBlockchainClient {
-  private provider: any;
-  private logger: Logger;
+  private readonly logger: Logger;
+  private readonly provider: RpcProvider;
+
+  public readonly chainId: number;
 
   constructor(config: Config, logger: Logger) {
     this.logger = logger;
+    this.chainId = config.starknetModule.chainId;
+
+    const headers = config.indexers.starknetApiKey
+      ? { "x-apikey": config.indexers.starknetApiKey }
+      : undefined;
+
+    this.provider = new RpcProvider({
+      nodeUrl: config.indexers.starknetRpcEndpoint,
+      headers: headers,
+      chainId: constants.StarknetChainId.SN_MAIN,
+    });
+  }
+
+  getEventHash(name: string, params: string[]): string {
+    return hash.getSelectorFromName(name);
   }
 
   public async getCurrentHeight(): Promise<number> {
-    // TODO: implement
+    const response = await this.provider.getBlockLatestAccepted();
+    return response.block_number;
   }
 
   public async getBlock(
     blockHeight: number | string,
   ): Promise<Block | undefined> {
-      // TODO: implement
+    const block = await this.provider.getBlockWithTxs(blockHeight);
+
+    if (!("block_hash" in block)) {
+      this.logger.error(
+        `Pending block parsing is not supported: ${blockHeight}`,
+      );
+      return undefined;
     }
+
+    return {
+      hash: block.block_hash,
+      number: 1,
+      timestamp: block.timestamp,
+      baseFeePerGas: 0n, // TODO
+      gasUsed: 0n, // TODO
+      transactions: block.transactions.map((t) => ({
+        blockNumber: block.block_number,
+        hash: t.transaction_hash,
+        value: 0n,
+        // fee payment emit ERC20 transfer to the sequencer address
+        // instead of being included into transaction data
+        gasPrice: 0n,
+        maxPriorityFeePerGas: 0n,
+        maxFeePerGas: "max_fee" in t ? BigInt(t.max_fee) : BigInt(-1),
+      })),
+    };
+  }
 
   public async getBlockTransactionReceipts(
     block: Block,
   ): Promise<TransactionReceipt[] | undefined> {
-    // TODO: implement
+    const blockWithReceipts = await this.provider.getBlockWithReceipts(
+      block.hash,
+    );
+    return blockWithReceipts.transactions.map((t) =>
+      this.starknetToTransactionReceipt(t.receipt),
+    );
   }
 
   public async getTransactionReceipt(
     txHash: string,
   ): Promise<TransactionReceipt | undefined> {
-    // TODO: implement
+    const receipt = await this.provider.getTransactionReceipt(txHash);
+    return this.starknetToTransactionReceipt(receipt);
+  }
+
+  private starknetToTransactionReceipt(t: any): TransactionReceipt {
+    return {
+      hash: t.transaction_hash,
+      gasUsed: BigInt(0), // TODO
+      gasPrice: BigInt(0), // TODO
+      logs: t.events.map((e: any) => ({
+        address: e.from_address,
+        data: "0x",
+        topics: e.data,
+        transactionHash: t.transaction_hash,
+      })),
+    };
+  }
 }
 
 export default StarknetClient;
-
 
 // TODO:
 // - Create a class `StarknetClient` that implements the `IBlockchainClient` interface.
