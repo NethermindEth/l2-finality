@@ -1,8 +1,10 @@
 export class ApiClient {
   baseUrl: string
+  apiKey: string
 
   constructor() {
-    this.baseUrl = 'http://localhost:3005'
+    this.baseUrl = process.env.BASE_URL as string
+    this.apiKey = process.env.API_KEY as string
   }
 
   async request<T>(path: string, options: RequestInit): Promise<T> {
@@ -10,9 +12,10 @@ export class ApiClient {
     const response = await fetch(url, {
       ...options,
       headers: {
+        ...options.headers,
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache',
-        ...(options.headers || {}),
+        'x-api-key': this.apiKey,
       },
     })
 
