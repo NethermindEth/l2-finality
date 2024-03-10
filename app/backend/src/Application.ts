@@ -39,7 +39,7 @@ export class Application {
       }
       await database.migrateToLatest();
 
-      const api: Api = new Api(config.api.port, logger, database);
+      const api: Api = new Api(config, logger, database);
       await api.listen();
 
       const modules = [
