@@ -1,7 +1,4 @@
 import { Logger } from "@/tools/Logger";
-import { Database } from "@/database/Database";
-import BlockValueRepository from "@/database/repositories/BlockValueRepository";
-import { Config } from "@/config";
 import { FetchRequest } from "ethers";
 import { HttpsProxyAgent } from "https-proxy-agent";
 

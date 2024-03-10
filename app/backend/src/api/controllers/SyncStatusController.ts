@@ -82,6 +82,7 @@ export class SyncStatusController {
           params.from,
           params.to,
         );
+
       sendSuccessResponse(res, Object.fromEntries(diffs));
     } catch (error) {
       this.logger.error("Error getting average submission interval:", error);
