@@ -5,11 +5,13 @@ import { FETCH_LIVE_DATA_INTERVAL_MS } from '@/pages'
 interface AutoIncrementComponentProps {
   initialValue: number
   newValue: number
+  duration?: number
 }
 
 const AutoIncrementComponent: React.FC<AutoIncrementComponentProps> = ({
   initialValue,
   newValue,
+  duration,
 }) => {
   const [currentCount, setCurrentCount] = useState(initialValue)
   const [isFirstRender, setIsFirstRender] = useState(true)
@@ -23,7 +25,9 @@ const AutoIncrementComponent: React.FC<AutoIncrementComponentProps> = ({
     reset: true,
     from: { number: isFirstRender ? initialValue : prevCountRef.current },
     number: currentCount,
-    config: { duration: FETCH_LIVE_DATA_INTERVAL_MS - 1000 },
+    config: {
+      duration: duration ? duration : FETCH_LIVE_DATA_INTERVAL_MS - 1000,
+    },
     onStart: () => {
       if (isFirstRender) {
         setIsFirstRender(false)
