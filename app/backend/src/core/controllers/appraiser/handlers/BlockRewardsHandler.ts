@@ -54,12 +54,16 @@ export class BlockRewardsHandler {
       const priorityFeePerGas = transaction.maxPriorityFeePerGas
         ? BigInt(transaction.maxPriorityFeePerGas)
         : BigInt(0);
+      const maxFeePerGas = transaction.maxFeePerGas
+        ? BigInt(transaction.maxFeePerGas)
+        : BigInt(0);
 
       const { gasFees, tips } = this.calculateBlockRewardByChainId(
         gasUsed,
         transaction.gasPrice,
         baseFeePerGas,
         priorityFeePerGas,
+        maxFeePerGas,
       );
 
       totalGasFees += gasFees;
@@ -90,6 +94,7 @@ export class BlockRewardsHandler {
     gasPrice: bigint,
     baseFeePerGas: bigint,
     priorityFeePerGas: bigint,
+    maxFeePerGas: bigint,
   ): { gasFees: bigint; tips: bigint } {
     const effectiveGasPrice =
       baseFeePerGas + priorityFeePerGas != BigInt(0)
