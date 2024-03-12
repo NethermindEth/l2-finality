@@ -1002,7 +1002,7 @@
   {
     "name": "Dai Stablecoin",
     "coingeckoId": "dai",
-    "address": "0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3",
+    "address": "0x00dA114221cb83fa859DBdb4C44bEeaa0BB37C7537ad5ae66Fe5e0efD20E6eB3",
     "symbol": "DAI",
     "decimals": 18,
     "deploymentTimestamp": 1573672677,
@@ -1281,7 +1281,7 @@
   {
     "name": "Ether",
     "coingeckoId": "ethereum",
-    "address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+    "address": "0x049D36570D4e46f48e99674bd3fcc84644DdD6b96F7C741B1562B82f9e004dC7",
     "symbol": "ETH",
     "decimals": 18,
     "deploymentTimestamp": 0,
@@ -1426,7 +1426,7 @@
   {
     "name": "Frax",
     "coingeckoId": "frax",
-    "address": "0x009c6b4fb13dfaa025c1383ed6190af8ed8cbb09d9588a3bb020feb152442406",
+    "address": "0x009c6B4FB13dfAa025c1383eD6190Af8Ed8CBb09D9588a3BB020feB152442406",
     "symbol": "FRAX",
     "decimals": 18,
     "deploymentTimestamp": 1608140520,
@@ -1471,7 +1471,7 @@
   {
     "name": "Frax Share",
     "coingeckoId": "frax-share",
-    "address": "0x0058efd0e73c33a848ffaa88738d128ebf0af98ea78cf3c14dc757bb02d39ffb",
+    "address": "0x0058eFD0e73C33A848FFaa88738D128eBF0af98ea78Cf3C14DC757BB02d39ffb",
     "symbol": "FXS",
     "decimals": 18,
     "deploymentTimestamp": 1608140560,
@@ -2066,7 +2066,7 @@
   {
     "name": "LUSD Stablecoin",
     "coingeckoId": "liquity-usd",
-    "address": "0x070a76fd48ca0ef910631754d77dd822147fe98a569b826ec85e3c33fde586ac",
+    "address": "0x070a76fd48ca0Ef910631754d77DD822147Fe98A569b826ec85e3c33fde586aC",
     "symbol": "LUSD",
     "decimals": 18,
     "deploymentTimestamp": 1617611299,
@@ -3031,7 +3031,7 @@
   {
     "name": "Rocket Pool ETH",
     "coingeckoId": "rocket-pool-eth",
-    "address": "0x0319111a5037cbec2b3e638cc34a3474e2d2608299f3e62866e9cc683208c610",
+    "address": "0x0319111a5037CbeC2b3E638cC34a3474e2d2608299F3E62866e9CC683208c610",
     "symbol": "rETH",
     "decimals": 18,
     "deploymentTimestamp": 1632980684,
@@ -3231,7 +3231,7 @@
   {
     "name": "Staked Frax Ether",
     "coingeckoId": "staked-frax-ether",
-    "address": "0x04578fffc279e61b5cb0267a5f8e24b6089d40f93158fbbad2cb23b8622c9233",
+    "address": "0x04578FffC279e61b5cb0267a5F8e24B6089D40F93158FbbaD2CB23b8622C9233",
     "symbol": "sfrxETH",
     "decimals": 18,
     "deploymentTimestamp": 1665022895,
@@ -3286,7 +3286,7 @@
   {
     "name": "StarkNet Token",
     "coingeckoId": "starknet",
-    "address": "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+    "address": "0x04718f5a0Fc34cC1AF16A1cdee98fFB20C31f5cD61D6Ab07201858f4287c938D",
     "symbol": "STRK",
     "decimals": 18,
     "deploymentTimestamp": 1668610211,
@@ -3566,7 +3566,7 @@
   {
     "name": "Tether USD",
     "coingeckoId": "tether",
-    "address": "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
+    "address": "0x068F5c6a61780768455de69077E07e89787839bf8166dEcfBf92B645209c0fB8",
     "symbol": "USDT",
     "decimals": 6,
     "deploymentTimestamp": 1511829681,
@@ -3751,7 +3751,7 @@
   {
     "name": "Uniswap",
     "coingeckoId": "uniswap",
-    "address": "0x049210ffc442172463f3177147c1aeaa36c51d152c1b0630f2364c300d4f48ee",
+    "address": "0x049210Ffc442172463F3177147C1aEAa36C51d152c1b0630F2364C300d4f48ee",
     "symbol": "UNI",
     "decimals": 18,
     "deploymentTimestamp": 1600107086,
@@ -3786,7 +3786,7 @@
   {
     "name": "USD Coin",
     "coingeckoId": "usd-coin",
-    "address": "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
+    "address": "0x053C91253BC9682c04929cA02ED00b3E423f6710D2ee7e0D5EBB06F3eCF368A8",
     "symbol": "USDC",
     "decimals": 6,
     "deploymentTimestamp": 1533324504,
@@ -3986,7 +3986,7 @@
   {
     "name": "Wrapped BTC",
     "coingeckoId": "wrapped-bitcoin",
-    "address": "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac",
+    "address": "0x03Fe2b97C1Fd336E750087D68B9b867997Fd64a2661fF3ca5A7C771641e8e7AC",
     "symbol": "WBTC",
     "decimals": 8,
     "deploymentTimestamp": 1543095952,
@@ -4066,7 +4066,7 @@
   {
     "name": "Wrapped liquid staked Ether 2.0",
     "coingeckoId": "wrapped-steth",
-    "address": "0x42b8f0484674ca266ac5d08e4ac6a3fe65bd3129795def2dca5c34ecc5f96d2",
+    "address": "0x042b8F0484674cA266AC5D08e4aC6A3fE65bd3129795DEF2dCA5c34ecC5F96d2",
     "symbol": "wstETH",
     "decimals": 18,
     "deploymentTimestamp": 1613752640,

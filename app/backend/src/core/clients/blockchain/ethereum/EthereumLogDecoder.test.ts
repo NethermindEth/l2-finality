@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { ethers } from "ethers";
 import assets from "@/core/clients/coingecko/assets/whitelisted.json";
+import { getChecksumAddress } from "starknet";
 
 describe("ABI Files Check", () => {
   it("should have an ABI file for each contract in contracts.json", () => {
@@ -17,15 +18,20 @@ describe("ABI Files Check", () => {
     });
   });
 
-  it("should have checksummed addresses for all assets in EVM chains", () => {
+  it("should have checksummed addresses for all assets", () => {
     assets.forEach((asset) => {
       if (!asset.address) {
         expect(asset.coingeckoId).toEqual("ethereum");
       } else if (asset.address.length > 42) {
-        // Skip checksum validation for non-EVM chain addresses or handle them differently
-        console.log(
-          `Skipping checksum validation for non-EVM address of ${asset.name} (${asset.symbol})`,
-        );
+        // Proceed with checksum validation for Starknet chain addresses
+        try {
+          const checksummedAddress: string = getChecksumAddress(asset.address);
+          expect(checksummedAddress).toEqual(asset.address);
+        } catch (error) {
+          throw new Error(
+            `Address ${asset.address} for ${asset.name} (${asset.symbol}) on chain #${asset.chainId} is not checksummed: ${error}`,
+          );
+        }
       } else {
         // Proceed with checksum validation for EVM chain addresses
         try {
@@ -33,7 +39,7 @@ describe("ABI Files Check", () => {
           expect(checksummedAddress).toEqual(asset.address);
         } catch (error) {
           throw new Error(
-            `Address ${asset.address} for ${asset.name} (${asset.symbol}) is not checksummed: ${error}`,
+            `Address ${asset.address} for ${asset.name} (${asset.symbol}) on chain #${asset.chainId} is not checksummed: ${error}`,
           );
         }
       }
