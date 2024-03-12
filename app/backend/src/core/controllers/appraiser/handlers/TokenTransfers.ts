@@ -58,10 +58,10 @@ export class TokenTransferHandler extends BaseHandler {
     const transferEvents: TransferLogEvent[] = [];
 
     for (const log of logs) {
-      if (log.topics[0] === this.transferEventHash && log.topics.length == 3) {
-        const contractAddress = ethers.getAddress(log.address);
-        const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
-        const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
+      if (log.topics[0] === this.transferEventHash && log.topics.length >= 3) {
+        const contractAddress = this.provider.getAddress(log.address);
+        const fromAddress = this.provider.getAddress(log.topics[1]);
+        const toAddress = this.provider.getAddress(log.topics[2]);
         const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
         transferEvents.push({
           fromAddress,

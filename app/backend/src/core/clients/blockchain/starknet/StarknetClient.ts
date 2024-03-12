@@ -5,7 +5,7 @@ import {
   IBlockchainClient,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
-import { RpcProvider, constants, hash } from "starknet";
+import { RpcProvider, constants, hash, getChecksumAddress } from "starknet";
 
 class StarknetClient implements IBlockchainClient {
   private readonly logger: Logger;
@@ -26,6 +26,11 @@ class StarknetClient implements IBlockchainClient {
       headers: headers,
       chainId: constants.StarknetChainId.SN_MAIN,
     });
+  }
+
+  public getAddress(address: string): string {
+    if (address == "0x0" || address == "0x1") return address;
+    return getChecksumAddress(address);
   }
 
   getEventHash(name: string, params: string[]): string {
@@ -94,7 +99,7 @@ class StarknetClient implements IBlockchainClient {
       logs: t.events.map((e: any) => ({
         address: e.from_address,
         data: "0x",
-        topics: e.data,
+        topics: e.keys.concat(e.data),
         transactionHash: t.transaction_hash,
       })),
     };

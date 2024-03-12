@@ -6,6 +6,7 @@ import {
   Block,
   ethersToBlock,
   ethersToTransactionReceipt,
+  getEvmAddress,
   getEvmEventHash,
   IBlockchainClient,
   TransactionReceipt,
@@ -27,6 +28,10 @@ class PolygonZkEvmClient implements IBlockchainClient {
       { staticNetwork: this.network },
     );
     this.logger = logger;
+  }
+
+  public getAddress(data: string): string {
+    return getEvmAddress(data);
   }
 
   public getEventHash(name: string, params: string[]): string {

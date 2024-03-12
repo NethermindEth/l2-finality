@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 
 export interface IBlockchainClient {
   chainId: number;
+  getAddress(data: string): string;
   getEventHash(name: string, params: string[]): string;
   getBlock(blockNumberOrHash: string | number): Promise<Block | undefined>;
   getTransaction?(txHash: string): Promise<Transaction | undefined>;
@@ -155,4 +156,12 @@ export function ethersToTransactionReceipt(
 
 export function getEvmEventHash(name: string, params: string[]): string {
   return ethers.id(`${name}(${params.join(",")})`);
+}
+
+export function getEvmAddress(data: string) {
+  if (data.startsWith("0x000000000000000000000000"))
+    // Event topic
+    data = `0x${data.slice(26)}`;
+
+  return ethers.getAddress(data);
 }
