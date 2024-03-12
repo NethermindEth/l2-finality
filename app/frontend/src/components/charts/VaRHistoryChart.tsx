@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Line } from 'react-chartjs-2'
 import 'chart.js/auto'
 import 'chartjs-adapter-date-fns'
@@ -16,12 +16,17 @@ import {
   Paper,
   Select,
   Typography,
+  TextField,
 } from '@mui/material'
+import { syncStatusApi } from '@/api/syncStatusApi'
+import { GroupRange } from '../../../../shared/api/types'
+import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
+import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
 
 Chart.register(...registerables)
 
 interface VaRHistoryChartProps {
-  data: VaRHistoryDataViewModel
+  chainId: number
 }
 
 const transformData = (
@@ -82,20 +87,79 @@ const transformData = (
   }
 }
 
-const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ data }) => {
+const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
+  const [historyVarData, setHistoryVarData] = useState<VaRHistoryDataViewModel>(
+    { data: [] }
+  )
+  const [fromDate, setFromDate] = useState<Date | null>(
+    new Date(Date.now() - 24 * 5 * 60 * 60 * 1000)
+  )
+  const [toDate, setToDate] = useState<Date | null>(new Date())
+  const [range, setRange] = useState<GroupRange>('hour')
+
   const [selectedSection, setSelectedSection] =
     useState<keyof VaRHistoryDataViewModel['data']>('data_submission')
   const [splitByContract, setSplitByContract] = useState<boolean>(true)
 
-  if (!data.success) {
+  useEffect(() => {
+    const fetchHistoricalData = async () => {
+      try {
+        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(
+          chainId,
+          range,
+          fromDate,
+          toDate,
+          true
+        )
+        setHistoryVarData(syncStatusHistoryVar)
+      } catch (error) {
+        console.error('Error fetching historical data:', error)
+      }
+    }
+
+    fetchHistoricalData()
+  }, [chainId, fromDate, toDate, range])
+
+  if (!historyVarData.success) {
     return (
-      <Typography variant="body1" align="center" margin={10}>
-        No data available
-      </Typography>
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          Error fetching data.
+        </Typography>
+      </Paper>
+    )
+  } else if (!historyVarData.data[selectedSection]) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          No data available for specified range
+        </Typography>
+      </Paper>
     )
   }
 
-  const chartData = transformData(data.data[selectedSection], splitByContract)
+  const handleRangeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setRange(event.target.value as GroupRange)
+  }
+
+  const chartData = transformData(
+    historyVarData.data[selectedSection],
+    splitByContract
+  )
 
   const options = {
     scales: {
@@ -184,6 +248,41 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ data }) => {
         History, VaR
       </Box>
       <Grid container spacing={2} alignItems="center">
+        <Grid item xs={6} sm={4}>
+          <DatePickerComponent
+            label="From Date"
+            value={fromDate}
+            onChange={setFromDate}
+          />
+        </Grid>
+        <Grid item xs={6} sm={4}>
+          <DatePickerComponent
+            label="To Date"
+            value={toDate}
+            onChange={setToDate}
+          />
+        </Grid>
+
+        <Grid item xs={6} sm={4}>
+          <RangeSelectorComponent value={range} onChange={handleRangeChange} />
+        </Grid>
+
+        <Grid item xs={6} sm={4}>
+          <FormControl fullWidth variant="outlined">
+            <InputLabel>View Mode</InputLabel>
+            <Select
+              value={splitByContract ? 'contract' : 'all'}
+              onChange={(e) =>
+                setSplitByContract(e.target.value === 'contract')
+              }
+              label="View Mode"
+            >
+              <MenuItem value="contract">Contract split</MenuItem>
+              <MenuItem value="all">All</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
             <InputLabel>Data Section</InputLabel>
@@ -200,21 +299,6 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ data }) => {
               <MenuItem value="l2_finalization">L2 Finalization</MenuItem>
               <MenuItem value="proof_submission">Proof Submission</MenuItem>
               <MenuItem value="state_updates">State Updates</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth variant="outlined">
-            <InputLabel>View Mode</InputLabel>
-            <Select
-              value={splitByContract ? 'contract' : 'all'}
-              onChange={(e) =>
-                setSplitByContract(e.target.value === 'contract')
-              }
-              label="View Mode"
-            >
-              <MenuItem value="contract">Contract split</MenuItem>
-              <MenuItem value="all">All</MenuItem>
             </Select>
           </FormControl>
         </Grid>

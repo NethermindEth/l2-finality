@@ -17,6 +17,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  TextField,
   Typography,
 } from '@mui/material'
 import moment from 'moment'
@@ -25,6 +26,10 @@ import {
   FinalityTimeRecord,
 } from '../../../../shared/api/viewModels/SyncStatusEndpoint'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+import { GroupRange } from '../../../../shared/api/types'
+import { syncStatusApi } from '@/api/syncStatusApi'
+import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
+import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
 
 Chart.register(
   ChartDataLabels,
@@ -36,7 +41,7 @@ Chart.register(
 )
 
 interface FinalityTimeseriesProps {
-  data: AverageFinalityTimeViewModel
+  chainId: number
 }
 
 const calculateStatistics = (values: number[]) => {
@@ -117,21 +122,48 @@ const transformData = (
   }
 }
 
-const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ data }) => {
-  const [selectedSection, setSelectedSection] =
-    useState<keyof AverageFinalityTimeViewModel['data']>('data_submission')
-  const [selectedMetric, setSelectedMetric] = useState('blockDiff') // 'timeDiff', 'ratio'
+const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
+  const [fromDate, setFromDate] = useState<Date | null>(
+    new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+  )
+  const [toDate, setToDate] = useState<Date | null>(new Date())
+  const [range, setRange] = useState<GroupRange>('hour')
+  const [response, setResponse] = useState<AverageFinalityTimeViewModel>({
+    data: [],
+  })
   const [chartData, setChartData] = useState({ labels: [], datasets: [] })
 
+  const [selectedSection, setSelectedSection] =
+    useState<keyof AverageFinalityTimeViewModel['data']>('data_submission')
+  const [selectedMetric, setSelectedMetric] = useState('blockDiff')
+
   useEffect(() => {
-    if (data.data[selectedSection]) {
+    const fetchData = async () => {
+      try {
+        const data = await syncStatusApi.getAverageFinalityTime(
+          chainId,
+          range,
+          fromDate,
+          toDate
+        )
+        setResponse(data)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      }
+    }
+
+    fetchData()
+  }, [chainId, fromDate, toDate, range])
+
+  useEffect(() => {
+    if (response.data[selectedSection]) {
       const newChartData = transformData(
-        data.data[selectedSection],
+        response.data[selectedSection],
         selectedMetric
       )
       setChartData(newChartData as any)
     }
-  }, [selectedSection, selectedMetric, data])
+  }, [selectedSection, selectedMetric, response])
 
   const handleSectionChange = (
     event: React.ChangeEvent<{ value: unknown }>
@@ -143,6 +175,42 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ data }) => {
 
   const handleMetricChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setSelectedMetric(event.target.value as string)
+  }
+
+  const handleRangeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
+    setRange(event.target.value as GroupRange)
+  }
+
+  if (!response.success) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          Error fetching data.
+        </Typography>
+      </Paper>
+    )
+  } else if (!response.data[selectedSection]) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          No data available for specified range
+        </Typography>
+      </Paper>
+    )
   }
 
   const options: ChartOptions<'bar'> = {
@@ -168,7 +236,12 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ data }) => {
         beginAtZero: true,
         title: {
           display: true,
-          text: `${selectedMetric} ${selectedMetric === 'ratio' ? '(Blocks/Time)' : ''}`,
+          text:
+            selectedMetric === 'blockDiff'
+              ? 'Average number of blocks'
+              : selectedMetric === 'ratio'
+                ? 'Blocks/Time'
+                : 'Average time to finality (s)',
         },
         ticks: {
           callback: function (value: number) {
@@ -220,6 +293,24 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ data }) => {
         History, time to finality
       </Box>
       <Grid container spacing={3}>
+        <Grid item xs={6} sm={4}>
+          <DatePickerComponent
+            label="From Date"
+            value={fromDate}
+            onChange={setFromDate}
+          />
+        </Grid>
+        <Grid item xs={6} sm={4}>
+          <DatePickerComponent
+            label="To Date"
+            value={toDate}
+            onChange={setToDate}
+          />
+        </Grid>
+
+        <Grid item xs={6} sm={4}>
+          <RangeSelectorComponent value={range} onChange={handleRangeChange} />
+        </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
             <InputLabel>Data Section</InputLabel>

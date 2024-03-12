@@ -9,9 +9,7 @@ import { metadataApi } from '@/api/metadataApi'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import { MetadataRecordViewModel } from '../../../shared/api/viewModels/MetadataEndpoint'
 import {
-  AverageFinalityTimeViewModel,
   SyncStatusViewModel,
-  VaRHistoryDataViewModel,
   VaRLiveDataViewModel,
 } from '../../../shared/api/viewModels/SyncStatusEndpoint'
 import VaRLiveSection from './VaRLiveSection'
@@ -71,54 +69,6 @@ const Index = () => {
     return () => clearInterval(intervalId)
   }, [chainId])
 
-  const [historyVarData, setHistoryVarData] =
-    React.useState<VaRHistoryDataViewModel>({ data: [] })
-  const handleDataRefresh = async (
-    startDate: Date | null,
-    endDate: Date | null,
-    submissionType: keyof AverageFinalityTimeViewModel['data']
-  ) => {
-    try {
-      const updatedData = await syncStatusApi.getAverageFinalityTime(
-        chainId,
-        'hour',
-        startDate,
-        endDate
-      )
-      setHistoryFinalityData(updatedData)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    }
-  }
-
-  const [historyFinalityData, setHistoryFinalityData] =
-    React.useState<AverageFinalityTimeViewModel>({ data: [] })
-
-  React.useEffect(() => {
-    const fetchHistoricalData = async () => {
-      try {
-        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(
-          chainId,
-          'hour'
-        )
-        setHistoryVarData(syncStatusHistoryVar)
-        const syncStatusFinality = await syncStatusApi.getAverageFinalityTime(
-          chainId,
-          'hour',
-          new Date(Date.now() - 5 * 60 * 60 * 1000)
-        )
-        setHistoryFinalityData(syncStatusFinality)
-
-        const syncStatusTable = await syncStatusApi.getPaginatedEvents(chainId)
-        setSyncStatusRecords(syncStatusTable)
-      } catch (error) {
-        console.error('Error fetching historical data:', error)
-      }
-    }
-
-    fetchHistoricalData()
-  }, [chainId])
-
   const [syncStatusRecords, setSyncStatusRecords] =
     React.useState<SyncStatusViewModel>({ data: [] })
   const [page, setPage] = React.useState(0)
@@ -175,12 +125,12 @@ const Index = () => {
 
           {/* History VaR Section */}
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <VaRHistoryChart data={historyVarData} />
+            <VaRHistoryChart chainId={chainId} />
           </Grid>
 
           {/* Finality Section */}
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <FinalityTimeseries data={historyFinalityData} />
+            <FinalityTimeseries chainId={chainId} />
           </Grid>
 
           {/* Table Section */}

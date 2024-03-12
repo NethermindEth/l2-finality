@@ -20,7 +20,7 @@ export interface FinalityTimeRecord {
 }
 
 export interface AverageFinalityTimeViewModel {
-  status: boolean;
+  success: boolean;
   data: {
     data_submission: FinalityTimeRecord[];
     l2_finalization: FinalityTimeRecord[];

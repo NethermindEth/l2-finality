@@ -1,0 +1,1 @@
+export type GroupRange = "hour" | "day" | "week" | "month" | "quarter"
