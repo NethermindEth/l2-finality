@@ -5,6 +5,7 @@ import chains from "@/core/types/chains.json";
 export const chainTableMapping: Record<number, string> = {
   [chains.Optimism.chainId]: "optimism_blocks",
   [chains.zkEVM.chainId]: "polygon_zk_evm_blocks",
+  [chains.Starknet.chainId]: "starknet_blocks",
 };
 
 export interface BlockValueRecord {
