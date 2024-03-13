@@ -1,14 +1,14 @@
 import { ethers } from "ethers";
+import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 export interface IBlockchainClient {
   chainId: number;
-  getAddress(data: string): string;
-  getEventHash(name: string, params: string[]): string;
   getBlock(blockNumberOrHash: string | number): Promise<Block | undefined>;
   getTransaction?(txHash: string): Promise<Transaction | undefined>;
   getBlockTransactionReceipts(
     block: Block,
   ): Promise<TransactionReceipt[] | undefined>;
+  getTransferEvent(log: Log): TransferLogEvent | undefined;
 }
 
 export interface Block {
@@ -154,14 +154,19 @@ export function ethersToTransactionReceipt(
   };
 }
 
-export function getEvmEventHash(name: string, params: string[]): string {
-  return ethers.id(`${name}(${params.join(",")})`);
-}
+const EvmTransferEventHash = ethers.id("Transfer(address,address,uint256)");
 
-export function getEvmAddress(data: string) {
-  if (data.startsWith("0x000000000000000000000000"))
-    // Event topic
-    data = `0x${data.slice(26)}`;
-
-  return ethers.getAddress(data);
+export function getEvmTransferEvent(log: Log): TransferLogEvent | undefined {
+  if (log.topics[0] === EvmTransferEventHash && log.topics.length == 3) {
+    const contractAddress = ethers.getAddress(log.address);
+    const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
+    const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
+    const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
+    return {
+      fromAddress,
+      toAddress,
+      contractAddress,
+      rawAmount,
+    };
+  }
 }

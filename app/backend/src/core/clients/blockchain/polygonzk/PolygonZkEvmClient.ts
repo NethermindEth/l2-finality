@@ -6,11 +6,12 @@ import {
   Block,
   ethersToBlock,
   ethersToTransactionReceipt,
-  getEvmAddress,
-  getEvmEventHash,
+  getEvmTransferEvent,
   IBlockchainClient,
+  Log,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 class PolygonZkEvmClient implements IBlockchainClient {
   private readonly provider: ethers.JsonRpcProvider;
@@ -28,14 +29,6 @@ class PolygonZkEvmClient implements IBlockchainClient {
       { staticNetwork: this.network },
     );
     this.logger = logger;
-  }
-
-  public getAddress(data: string): string {
-    return getEvmAddress(data);
-  }
-
-  public getEventHash(name: string, params: string[]): string {
-    return getEvmEventHash(name, params);
   }
 
   public async getCurrentHeight(): Promise<number> {
@@ -83,6 +76,10 @@ class PolygonZkEvmClient implements IBlockchainClient {
       batchNumber,
     ])) as PolygonZkEvmBatch;
     return result;
+  }
+
+  public getTransferEvent(log: Log): TransferLogEvent | undefined {
+    return getEvmTransferEvent(log);
   }
 }
 

@@ -19,8 +19,6 @@ import {
 export class TokenTransferHandler extends BaseHandler {
   private readonly priceService: PriceService;
 
-  private readonly transferEventHash;
-
   constructor(
     provider: IBlockchainClient,
     logger: Logger,
@@ -28,11 +26,6 @@ export class TokenTransferHandler extends BaseHandler {
   ) {
     super(provider, logger);
     this.priceService = priceService;
-    this.transferEventHash = provider.getEventHash("Transfer", [
-      "address",
-      "address",
-      "uint256",
-    ]);
   }
 
   async handleTransferEvents(
@@ -58,18 +51,8 @@ export class TokenTransferHandler extends BaseHandler {
     const transferEvents: TransferLogEvent[] = [];
 
     for (const log of logs) {
-      if (log.topics[0] === this.transferEventHash && log.topics.length >= 3) {
-        const contractAddress = this.provider.getAddress(log.address);
-        const fromAddress = this.provider.getAddress(log.topics[1]);
-        const toAddress = this.provider.getAddress(log.topics[2]);
-        const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
-        transferEvents.push({
-          fromAddress,
-          toAddress,
-          contractAddress,
-          rawAmount,
-        });
-      }
+      const transferEvent = this.provider.getTransferEvent(log);
+      if (transferEvent) transferEvents.push(transferEvent);
     }
     return transferEvents;
   }

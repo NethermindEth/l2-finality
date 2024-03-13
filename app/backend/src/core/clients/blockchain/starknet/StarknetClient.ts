@@ -3,15 +3,19 @@ import Logger from "@/tools/Logger";
 import {
   Block,
   IBlockchainClient,
+  Log,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import { RpcProvider, constants, hash, getChecksumAddress } from "starknet";
+import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 class StarknetClient implements IBlockchainClient {
   private readonly logger: Logger;
   private readonly provider: RpcProvider;
 
   public readonly chainId: number;
+
+  private readonly TransferEventHash = hash.getSelectorFromName("Transfer");
 
   constructor(config: Config, logger: Logger) {
     this.logger = logger;
@@ -26,15 +30,6 @@ class StarknetClient implements IBlockchainClient {
       headers: headers,
       chainId: constants.StarknetChainId.SN_MAIN,
     });
-  }
-
-  public getAddress(address: string): string {
-    if (address == "0x0" || address == "0x1") return address;
-    return getChecksumAddress(address);
-  }
-
-  getEventHash(name: string, params: string[]): string {
-    return hash.getSelectorFromName(name);
   }
 
   public async getCurrentHeight(): Promise<number> {
@@ -89,6 +84,27 @@ class StarknetClient implements IBlockchainClient {
   ): Promise<TransactionReceipt | undefined> {
     const receipt = await this.provider.getTransactionReceipt(txHash);
     return this.starknetToTransactionReceipt(receipt);
+  }
+
+  public getTransferEvent(log: Log): TransferLogEvent | undefined {
+    if (log.topics[0] === this.TransferEventHash && log.topics.length == 5) {
+      const contractAddress = this.getAddress(log.address);
+      const fromAddress = this.getAddress(log.topics[1]);
+      const toAddress = this.getAddress(log.topics[2]);
+      const rawAmount = (BigInt(log.topics[4]) << 128n) | BigInt(log.topics[3]);
+
+      return {
+        fromAddress,
+        toAddress,
+        contractAddress,
+        rawAmount,
+      };
+    }
+  }
+
+  private getAddress(address: string): string {
+    if (address == "0x0" || address == "0x1") return address;
+    return getChecksumAddress(address);
   }
 
   private starknetToTransactionReceipt(t: any): TransactionReceipt {
