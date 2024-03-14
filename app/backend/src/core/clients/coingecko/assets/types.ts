@@ -1,5 +1,6 @@
 import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
-import { ethers, ZeroAddress } from "ethers";
+import { ZeroAddress } from "ethers";
+import { getAddress } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface WhitelistedAsset {
   name: string;
@@ -41,7 +42,7 @@ export class WhitelistedMap {
     const chainMap = this[chainId];
     if (!chainMap) return undefined;
 
-    return chainMap[ethers.getAddress(address)];
+    return chainMap[getAddress(address)];
   }
 
   getSymbolByAddress(chainId: number, address: string): string | undefined {

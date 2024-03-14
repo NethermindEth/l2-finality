@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
+import { getChecksumAddress } from "starknet";
 
 export interface IBlockchainClient {
   chainId: number;
@@ -168,5 +169,14 @@ export function getEvmTransferEvent(log: Log): TransferLogEvent | undefined {
       contractAddress,
       rawAmount,
     };
+  }
+}
+
+// Converts Starknet or EVM address to checksummed format
+export function getAddress(address: string): string {
+  if (address.length > 42) {
+    return getChecksumAddress(address);
+  } else {
+    return ethers.getAddress(address);
   }
 }
