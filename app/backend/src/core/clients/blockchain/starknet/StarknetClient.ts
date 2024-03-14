@@ -6,7 +6,7 @@ import {
   Log,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
-import { RpcProvider, constants, hash, getChecksumAddress } from "starknet";
+import { constants, getChecksumAddress, hash, RpcProvider } from "starknet";
 import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 class StarknetClient implements IBlockchainClient {
@@ -33,8 +33,7 @@ class StarknetClient implements IBlockchainClient {
   }
 
   public async getCurrentHeight(): Promise<number> {
-    const response = await this.provider.getBlockLatestAccepted();
-    return response.block_number;
+    return await this.provider.getBlockNumber();
   }
 
   public async getBlock(
