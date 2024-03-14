@@ -20,7 +20,7 @@ export interface Block {
   nonce?: string;
   difficulty?: bigint;
   gasLimit?: bigint;
-  gasUsed: bigint;
+  gasUsed?: bigint;
   miner?: string;
   extraData?: string;
   baseFeePerGas: bigint;
@@ -85,7 +85,6 @@ export function ethersToBlock(ethersBlock: ethers.Block): Block {
     nonce: ethersBlock.nonce,
     difficulty: ethersBlock.difficulty,
     gasLimit: ethersBlock.gasLimit,
-    gasUsed: ethersBlock.gasUsed,
     miner: ethersBlock.miner,
     extraData: ethersBlock.extraData,
     baseFeePerGas: ethersBlock.baseFeePerGas

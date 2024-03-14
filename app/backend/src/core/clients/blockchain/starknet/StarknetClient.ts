@@ -52,14 +52,13 @@ class StarknetClient implements IBlockchainClient {
       hash: block.block_hash,
       number: 1,
       timestamp: block.timestamp,
-      baseFeePerGas: 0n, // TODO
-      gasUsed: 0n, // TODO
+      // block has 2 gas prices: for ETH and for STRK
+      // both are handled as Transfer events to the sequencer address in the logs
+      baseFeePerGas: 0n,
       transactions: block.transactions.map((t) => ({
         blockNumber: block.block_number,
         hash: t.transaction_hash,
         value: 0n,
-        // fee payment emit ERC20 transfer to the sequencer address
-        // instead of being included into transaction data
         gasPrice: 0n,
         maxPriorityFeePerGas: 0n,
         maxFeePerGas: "max_fee" in t ? BigInt(t.max_fee) : BigInt(-1),
@@ -122,11 +121,3 @@ class StarknetClient implements IBlockchainClient {
 }
 
 export default StarknetClient;
-
-// TODO:
-// - Create a class `StarknetClient` that implements the `IBlockchainClient` interface.
-//   Make sure to implement the `getCurrentHeight`, `getBlock`, `getBlockTransactionReceipts`, and `getTransactionReceipt` methods.
-// - Instead of using ethersToBlock() you can create your custom Block object.
-//   Make sure it has gas and block reward metrics so it works with Appraiser.
-// - You will need to update Appraiser to also filter for Starknet's "Transfer" topic hash, which is different than ethers one.
-// - Run locally on blocks and add tests to BlockAppraiser to ensure it works as expected.
