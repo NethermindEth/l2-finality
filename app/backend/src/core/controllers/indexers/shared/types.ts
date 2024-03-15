@@ -5,6 +5,12 @@ export interface OptimismOutputProposed {
   l1Timestamp: bigint;
 }
 
+export interface StarknetLogStateUpdate {
+  globalRoot: bigint;
+  blockNumber: bigint;
+  blockHash: bigint;
+}
+
 export interface PolygonVerifyBatchStale {
   numBatch: bigint;
   stateRoot: string;
