@@ -3,7 +3,7 @@ import path from "path";
 import axios from "axios";
 import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import { Logger } from "@/tools/Logger";
-import chains from "@/core/types/chains.json";
+import chains from "../../../../../../shared/chains.json";
 import { ethers } from "ethers";
 
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");

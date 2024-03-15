@@ -10,7 +10,7 @@ import {
 } from "./Config";
 import { Env } from "@/tools/Env";
 import { LogLevel } from "@/tools/Logger";
-import chains from "@/core/types/chains.json";
+import chains from "../../../shared/chains.json";
 
 export function getLocalConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {
@@ -27,6 +27,7 @@ export function getLocalConfig(env: Env): Config {
     port: env.integer("API_PORT", 3005),
     logLevel: env.string("LOG_LEVEL", "info") as LogLevel,
     httpsProxy: env.optionalString("HTTPS_PROXY"),
+    apiKey: env.string("API_KEY", "test"),
   };
 
   const indexerConfig: IndexerConfig = {

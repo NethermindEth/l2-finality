@@ -136,6 +136,7 @@ export class SyncStatusRepository {
     if (to) subquery = subquery.where("timestamp", "<", to);
 
     const groupExpression = `DATE_TRUNC('${rangeMapping[groupRange]}', timestamp)`;
+
     const rows = await this.knex
       .select<SubmissionIntervalRow[]>(
         "submission_type",

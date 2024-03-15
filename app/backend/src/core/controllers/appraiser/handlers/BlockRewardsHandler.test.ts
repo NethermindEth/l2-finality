@@ -15,7 +15,7 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
-import chains from "@/core/types/chains.json";
+import chains from "../../../../../../shared/chains.json";
 
 interface MockTransactionData {
   hash: string;

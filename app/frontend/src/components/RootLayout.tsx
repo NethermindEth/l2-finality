@@ -20,7 +20,6 @@ const RootLayout = ({ children, title, description }: LayoutProps) => {
       <Meta title={title} description={description} />
       <Header />
       <main className={inter.className}>{children}</main>
-      <Footer />
     </>
   )
 }
