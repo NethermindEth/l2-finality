@@ -6,7 +6,7 @@ const menuItemStyles = {
   display: 'flex',
   alignItems: 'center',
 }
-import chains from '../../../../shared/chains.json'
+import chains from '@/shared/chains.json'
 import { Box, Typography } from '@mui/material'
 
 const DropdownMenu: React.FC<{ onChainChange: (chainId: number) => void }> = ({

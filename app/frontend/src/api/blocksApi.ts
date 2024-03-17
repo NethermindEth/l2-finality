@@ -1,5 +1,5 @@
 import { ApiClient } from './ApiClient'
-import { LatestBlockViewModel } from '../../../shared/api/viewModels/BlocksEndpoint'
+import { LatestBlockViewModel } from '@/shared/api/viewModels/BlocksEndpoint'
 
 const apiClient = new ApiClient()
 

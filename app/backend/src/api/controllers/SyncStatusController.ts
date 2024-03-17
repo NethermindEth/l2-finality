@@ -1,6 +1,5 @@
 import {
   GroupRange,
-  SubmissionType,
   SyncStatusRecord,
   SyncStatusRepository,
 } from "@/database/repositories/SyncStatusRepository";
@@ -12,6 +11,7 @@ import {
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
 import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;

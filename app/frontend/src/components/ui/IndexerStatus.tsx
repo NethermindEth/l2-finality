@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
-import { HealthStatusViewModel } from '../../../../shared/api/viewModels/HealthEndpoint'
+import { HealthStatusViewModel } from '@/shared/api/viewModels/HealthEndpoint'
 
 interface Props {
   healthData?: HealthStatusViewModel | null
