@@ -5,7 +5,7 @@ import {
   Block,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
-import chains from "@/core/types/chains.json";
+import chains from "../../../../../../shared/chains.json";
 
 export interface BlockRewardSummary {
   gasFees: bigint;
