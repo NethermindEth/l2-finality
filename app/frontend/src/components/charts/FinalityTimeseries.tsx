@@ -24,9 +24,9 @@ import moment from 'moment'
 import {
   AverageFinalityTimeViewModel,
   FinalityTimeRecord,
-} from '../../../../shared/api/viewModels/SyncStatusEndpoint'
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-import { GroupRange } from '../../../../shared/api/types'
+import { GroupRange } from '@/shared/api/types'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
 import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'

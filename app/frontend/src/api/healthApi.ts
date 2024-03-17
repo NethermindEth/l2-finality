@@ -1,4 +1,4 @@
-import { HealthStatusViewModel } from '../../../shared/api/viewModels/HealthEndpoint'
+import { HealthStatusViewModel } from '@/shared/api/viewModels/HealthEndpoint'
 import { ApiClient } from './ApiClient'
 
 const apiClient = new ApiClient()

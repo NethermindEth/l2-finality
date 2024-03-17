@@ -1,6 +1,6 @@
 import React from 'react'
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
-import { GroupRange } from '../../../../../shared/api/types'
+import { GroupRange } from '@/shared/api/types'
 
 interface RangeSelectorProps {
   value: GroupRange

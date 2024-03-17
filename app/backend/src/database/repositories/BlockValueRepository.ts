@@ -1,6 +1,6 @@
 import { Knex } from "knex";
 import { AggregatedTransferResults } from "@/core/controllers/appraiser/types";
-import chains from "../../../../shared/chains.json";
+import chains from "@/shared/chains.json";
 
 export const chainTableMapping: Record<number, string> = {
   [chains.Optimism.chainId]: "optimism_blocks",

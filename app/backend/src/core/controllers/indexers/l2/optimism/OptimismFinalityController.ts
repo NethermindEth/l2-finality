@@ -3,10 +3,10 @@ import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import { Database } from "@/database/Database";
 import { OptimismSyncStatus } from "@/core/clients/blockchain/optimism/types";
 import SyncStatusRepository, {
-  SubmissionType,
   SyncStatusRecord,
 } from "@/database/repositories/SyncStatusRepository";
 import { Config } from "@/config";
+import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 class OptimismFinalityController {
   private readonly optimismClient: OptimismClient;

@@ -6,7 +6,7 @@ import { Chart, ChartOptions, registerables } from 'chart.js'
 import {
   AvgVarHistoryMap,
   VaRHistoryDataViewModel,
-} from '../../../../shared/api/viewModels/SyncStatusEndpoint'
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 import {
   Box,
   FormControl,
@@ -19,7 +19,7 @@ import {
   TextField,
 } from '@mui/material'
 import { syncStatusApi } from '@/api/syncStatusApi'
-import { GroupRange } from '../../../../shared/api/types'
+import { GroupRange } from '@/shared/api/types'
 import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
 import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
 

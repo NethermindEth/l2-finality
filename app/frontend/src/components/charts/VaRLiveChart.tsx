@@ -1,7 +1,7 @@
 import React from 'react'
 import { Bar } from 'react-chartjs-2'
 import 'chart.js/auto'
-import { LiveVaREntry } from '../../../../shared/api/viewModels/SyncStatusEndpoint'
+import { LiveVaREntry } from '@/shared/api/viewModels/SyncStatusEndpoint'
 import { Box, Typography } from '@mui/material'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Chart, ChartOptions } from 'chart.js'
