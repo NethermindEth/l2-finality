@@ -6,6 +6,7 @@ import { SyncStatusRecord } from "@/database/repositories/SyncStatusRepository";
 import {
   OptimismOutputProposed,
   PolygonSequenceBatchPOL,
+  StarknetLogStateUpdate,
 } from "@/core/controllers/indexers/shared/types";
 import { beforeEach } from "mocha";
 import Logger from "@/tools/Logger";
@@ -79,6 +80,44 @@ describe(LogProcessors.name, () => {
         l1_block_number: Number(log.blockNumber.toString()),
         l1_block_hash: log.blockHash,
         timestamp: new Date(Number(decodedLog.l1Timestamp) * 1000),
+        submission_type: SubmissionType.StateUpdates,
+      };
+
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe(LogProcessors.prototype.starknetStateUpdate.name, () => {
+    it("should correctly process Starknet logs", async () => {
+      // @ts-ignore
+      const log: ethers.Log = {
+        blockNumber: 19392675,
+        blockHash:
+          "0x01f46b057d34a592397f6dbdb37d7c4777a9087141c084a8e54deb6102e86e75",
+      };
+      const decodedLog: StarknetLogStateUpdate = {
+        globalRoot:
+          1161950094235657671798763803305140866634774667595967718018849957095288801354n,
+        blockNumber: 603098n,
+        blockHash:
+          2527926132478101765225842376250916283071572555780456036645948310313860774330n,
+      };
+
+      const result: SyncStatusRecord =
+        (await loggerProcessor.starknetStateUpdate(
+          log,
+          decodedLog,
+        )) as SyncStatusRecord;
+
+      const expected: SyncStatusRecord = {
+        chain_id: -1,
+        l2_block_number: 603098n,
+        l2_block_hash:
+          "2527926132478101765225842376250916283071572555780456036645948310313860774330",
+        l1_block_number: 19392675,
+        l1_block_hash:
+          "0x01f46b057d34a592397f6dbdb37d7c4777a9087141c084a8e54deb6102e86e75",
+        timestamp: new Date(Number("1111111111") * 1000),
         submission_type: SubmissionType.StateUpdates,
       };
 
