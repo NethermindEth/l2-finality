@@ -9,6 +9,7 @@ import {
   PolygonDecodedLog,
   PolygonVerifyBatchPOL,
   PolygonVerifyBatchStale,
+  StarknetLogStateUpdate,
 } from "@/core/controllers/indexers/shared/types";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
@@ -36,7 +37,7 @@ export class LogProcessors {
         OutputProposed: LogProcessors.optimismStateUpdate,
       },
       StarknetCoreContract: {
-        LogStateUpdate: LogProcessors.pass,
+        LogStateUpdate: this.starknetStateUpdate.bind(this),
       },
       PolygonZkEVMProxyStale: {
         VerifyBatchesTrustedAggregator:
@@ -51,10 +52,6 @@ export class LogProcessors {
     };
   }
 
-  static pass() {
-    return;
-  }
-
   static optimismStateUpdate(
     log: ethers.Log,
     decodedLog: OptimismOutputProposed,
@@ -66,6 +63,29 @@ export class LogProcessors {
       l1_block_number: Number(log.blockNumber),
       l1_block_hash: log.blockHash,
       timestamp: new Date(Number(decodedLog.l1Timestamp) * 1000),
+      submission_type: SubmissionType.StateUpdates,
+    };
+  }
+
+  async starknetStateUpdate(
+    log: ethers.Log,
+    decodedLog: StarknetLogStateUpdate,
+  ): Promise<SyncStatusRecord | null> {
+    const ethBlock = await this.ethereumClient.getBlock(log.blockNumber);
+
+    if (!ethBlock) {
+      throw new Error(
+        `StarknetStateUpdate: Could not get block for log ${log.blockNumber}, ${log.blockHash}`,
+      );
+    }
+
+    return {
+      chain_id: chains.Starknet.chainId,
+      l2_block_number: BigInt(decodedLog.blockNumber),
+      l2_block_hash: String(decodedLog.blockHash),
+      l1_block_number: Number(log.blockNumber),
+      l1_block_hash: log.blockHash,
+      timestamp: new Date(Number(ethBlock.timestamp) * 1000),
       submission_type: SubmissionType.StateUpdates,
     };
   }
