@@ -9,11 +9,11 @@ services:
     ports:
       - '8080:8080'
     restart: always
-#  frontend:
-#    build:
-#      context: app
-#      dockerfile: frontend.dockerfile
-#    container_name: frontend
-#    ports:
-#      - '80:8080'
-#    restart: always
+  frontend:
+    build:
+      context: app
+      dockerfile: frontend.dockerfile
+    container_name: frontend
+    ports:
+      - '80:8080'
+    restart: always

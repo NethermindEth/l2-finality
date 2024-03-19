@@ -42,6 +42,6 @@ jobs:
           echo API_KEY=${{ secrets.INPUT_API_KEY }} >> .env.local
 
       - name: Deploy & run docker
-        run: docker compose -p "l2-finality" up -d --build --remove-orphans
+        run: docker compose -p "l2-finality" --verbose up -d --build --remove-orphans
         env:
           DOCKER_HOST: ${{ format('ssh://{0}@{1}', secrets.SSH_USERNAME, secrets.SSH_HOST) }}
