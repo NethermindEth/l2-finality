@@ -8,6 +8,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   env: {
+    // for now these should also be added to /.github/workflows/deploy.yaml
+    // TODO find a workaround
     BASE_URL: process.env.BASE_URL,
     API_KEY: process.env.API_KEY,
   },

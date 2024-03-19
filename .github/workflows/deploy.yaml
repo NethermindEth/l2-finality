@@ -1,14 +1,21 @@
-name: Backend deploy
+name: Deploy
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/ui-deployment  # used for testing, TODO: remove before merge
 
 jobs:
   backend-check:
     uses: ./.github/workflows/backend-check.yaml
+  frontend-check:
+    uses: ./.github/workflows/frontend-check.yaml
 
   deploy:
-    needs: backend-check
+    needs:
+      - backend-check
+      - frontend-check
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -26,6 +33,13 @@ jobs:
           secrets: ${{ toJSON(secrets) }}
           include: INPUT_*
           convert_prefix: false
+
+      - name: Prepare environment file for Next.js build
+        working-directory: app/frontend
+        run: |
+          touch .env.local
+          echo BASE_URL=${{ secrets.INPUT_API_URL }} >> .env.local
+          echo API_KEY=${{ secrets.INPUT_API_KEY }} >> .env.local
 
       - name: Deploy & run docker
         run: docker compose -p "l2-finality" up -d --build --remove-orphans
