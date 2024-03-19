@@ -4,8 +4,7 @@ import VaRLiveGraph from '@/components/charts/VaRLiveChart'
 import {
   VaRLiveDataViewModel,
   LiveVaREntry,
-} from '../../../shared/api/viewModels/SyncStatusEndpoint'
-import { italic } from 'next/dist/lib/picocolors'
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 interface FinalitySectionProps {
   liveVarData: VaRLiveDataViewModel

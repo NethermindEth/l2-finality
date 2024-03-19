@@ -2,10 +2,7 @@ import { LogProcessors } from "./LogProcessor";
 import { expect } from "earl";
 import contracts from "@/core/clients/blockchain/ethereum/contracts/contracts.json";
 import { ethers } from "ethers";
-import {
-  SubmissionType,
-  SyncStatusRecord,
-} from "@/database/repositories/SyncStatusRepository";
+import { SyncStatusRecord } from "@/database/repositories/SyncStatusRepository";
 import {
   OptimismOutputProposed,
   PolygonSequenceBatchPOL,
@@ -18,7 +15,7 @@ import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import { PolygonZkEvmBatch } from "@/core/clients/blockchain/polygonzk/types";
 import { Block } from "@/core/clients/blockchain/IBlockchainClient";
-
+import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 describe(LogProcessors.name, () => {
   let ethClient: EthereumClient;
   let polygonZkEvmClient: PolygonZkEvmClient;

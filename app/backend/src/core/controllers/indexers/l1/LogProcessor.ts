@@ -1,7 +1,4 @@
-import {
-  SubmissionType,
-  SyncStatusRecord,
-} from "@/database/repositories/SyncStatusRepository";
+import { SyncStatusRecord } from "@/database/repositories/SyncStatusRepository";
 import { ethers } from "ethers";
 import { ContractName } from "@/core/clients/blockchain/ethereum/contracts/types";
 import {
@@ -13,7 +10,8 @@ import {
 } from "@/core/controllers/indexers/shared/types";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
-import chains from "../../../../../../shared/chains.json";
+import chains from "@/shared/chains.json";
+import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 type CallbackFunction = (...args: any[]) => any;
 

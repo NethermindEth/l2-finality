@@ -10,7 +10,7 @@ import {
 } from "./Config";
 import { Env } from "@/tools/Env";
 import { LogLevel } from "@/tools/Logger";
-import chains from "../../../shared/chains.json";
+import chains from "@/shared/chains.json";
 
 export function getTestConfig(env: Env): Config {
   const databaseConfig: DatabaseConfig = {

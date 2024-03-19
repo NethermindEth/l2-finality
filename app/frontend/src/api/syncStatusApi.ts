@@ -1,11 +1,10 @@
-import { MetadataRecordsViewModel } from '../../../shared/api/viewModels/MetadataEndpoint'
 import { ApiClient } from './ApiClient'
 import {
   AverageFinalityTimeViewModel,
   SyncStatusViewModel,
   VaRHistoryDataViewModel,
   VaRLiveDataViewModel,
-} from '../../../shared/api/viewModels/SyncStatusEndpoint'
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 const apiClient = new ApiClient()
 

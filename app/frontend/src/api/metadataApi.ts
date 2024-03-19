@@ -1,4 +1,4 @@
-import { MetadataRecordsViewModel } from '../../../shared/api/viewModels/MetadataEndpoint'
+import { MetadataRecordsViewModel } from '@/shared/api/viewModels/MetadataEndpoint'
 import { ApiClient } from './ApiClient'
 
 const apiClient = new ApiClient()

@@ -1,4 +1,10 @@
-import { SubmissionType } from '../../../backend/src/database/repositories/SyncStatusRepository'
+
+export enum SubmissionType {
+  DataSubmission = "data_submission",
+  L2Finalization = "l2_finalization",
+  ProofSubmission = "proof_submission",
+  StateUpdates = "state_updates",
+}
 
 export interface SyncStatusViewModel {
   success: boolean
