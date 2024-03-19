@@ -6,11 +6,11 @@ ENV PORT 8080
 ENV NODE_ENV production
 
 COPY --chown=node:node frontend/package.json ./
-RUN yarn install --verbose
+RUN yarn install
 
 COPY --chown=node:node frontend ./
 COPY --chown=node:node shared ./src/shared
-RUN npm run build --verbose && rm .env.local
+RUN npm run build && rm .env.local
 
 EXPOSE 8080
 CMD ["node", ".next/standalone/server.js"]
