@@ -2,6 +2,7 @@
 
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone',
   typescript: {
     // not recommended, TODO approve or fix all TypeScript errors
     ignoreBuildErrors: true,
