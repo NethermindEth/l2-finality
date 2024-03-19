@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import {
   AppraisalSummary,
   BaseHandler,
@@ -17,7 +16,7 @@ import {
 } from "@/core/clients/blockchain/IBlockchainClient";
 
 export class TokenTransferHandler extends BaseHandler {
-  private priceService: PriceService;
+  private readonly priceService: PriceService;
 
   constructor(
     provider: IBlockchainClient,
@@ -50,23 +49,9 @@ export class TokenTransferHandler extends BaseHandler {
   private extractTransferEvents(logs: Log[]): TransferLogEvent[] {
     const transferEvents: TransferLogEvent[] = [];
 
-    const transferEventSigHash = ethers.id("Transfer(address,address,uint256)");
-
     for (const log of logs) {
-      if (log.topics[0] === transferEventSigHash) {
-        if (log.topics.length == 3) {
-          const contractAddress = ethers.getAddress(log.address);
-          const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
-          const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
-          const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
-          transferEvents.push({
-            fromAddress,
-            toAddress,
-            contractAddress,
-            rawAmount,
-          });
-        }
-      }
+      const transferEvent = this.provider.getTransferEvent(log);
+      if (transferEvent) transferEvents.push(transferEvent);
     }
     return transferEvents;
   }

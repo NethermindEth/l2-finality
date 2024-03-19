@@ -12,6 +12,8 @@ import { createPolygonZkEvmBlockModule } from "@/core/modules/indexers/l2/polygo
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import { createPriceUpdaterModule } from "@/core/modules/pricing/PriceUpdaterModule";
 import { createProxyModule } from "@/core/modules/proxy/ProxyModule";
+import { createStarknetBlockModule } from "@/core/modules/indexers/l2/starknet/StarknetBlockModule";
+import StarknetClient from "@/core/clients/blockchain/starknet/StarknetClient";
 
 export class Application {
   constructor(config: Config) {
@@ -26,6 +28,10 @@ export class Application {
     const polygonZkEvmClient = new PolygonZkEvmClient(
       config,
       logger.for("PolygonZkEvm Client"),
+    );
+    const starknetClient = new StarknetClient(
+      config,
+      logger.for("Starknet Client"),
     );
     const pricingClient = new CoinGeckoClient(
       config,
@@ -60,6 +66,7 @@ export class Application {
           database,
           polygonZkEvmClient,
         ),
+        createStarknetBlockModule(config, logger, database, starknetClient),
       ];
 
       for (const module of modules) {

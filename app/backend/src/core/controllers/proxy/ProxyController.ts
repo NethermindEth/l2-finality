@@ -26,6 +26,7 @@ class BlockIndexerController {
           agent: new HttpsProxyAgent(this.proxy),
         }),
       );
+      // TODO make proxy work with starknet library
       this.logger.warn(`Using proxy: ${this.proxy}`);
     } catch (e) {
       this.logger.error("Failed to instantiate proxy");

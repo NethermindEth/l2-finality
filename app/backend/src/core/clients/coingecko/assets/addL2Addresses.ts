@@ -5,6 +5,7 @@ import { WhitelistedAsset } from "@/core/clients/coingecko/assets/types";
 import { Logger } from "@/tools/Logger";
 import chains from "@/shared/chains.json";
 import { ethers } from "ethers";
+import { getChecksumAddress } from "starknet";
 
 const logger = new Logger({ logLevel: "info" }).for("Add L2 Addresses");
 
@@ -41,7 +42,7 @@ async function getOptimismAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
         t.symbol,
         {
           chainId: chains.Optimism.chainId,
-          addressL2: t.address,
+          addressL2: ethers.getAddress(t.address),
           decimals: t.decimals,
         },
       ]),
@@ -65,9 +66,11 @@ async function getStarknetAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
         t.symbol,
         {
           chainId: chains.Starknet.chainId,
-          addressL2: t.l2_token_address,
+          addressL2: getChecksumAddress(t.l2_token_address),
           decimals: t.decimals,
-          addressL1: t.l1_token_address,
+          addressL1: t.l1_token_address
+            ? ethers.getAddress(t.l1_token_address)
+            : undefined,
         },
       ]),
   );
@@ -87,7 +90,7 @@ async function getZkEvmAddressMapAsync(): Promise<Map<string, AssetL2Data>> {
       t.symbol,
       {
         chainId: chains.zkEVM.chainId,
-        addressL2: t.address.toLowerCase(),
+        addressL2: ethers.getAddress(t.address),
         decimals: t.decimals,
       },
     ]),
@@ -136,7 +139,7 @@ async function main() {
     [chains.Starknet.chainId]: await getStarknetAddressMapAsync(),
   };
 
-  // Skip existing L2 entries
+  // Skip (with address update if needed) existing L2 entries
   for (const asset of whitelisted) {
     if (asset.chainId == chains.Ethereum.chainId) continue;
 
@@ -144,10 +147,18 @@ async function main() {
     if (!assetL2Data) continue;
 
     if (match(asset, assetL2Data)) {
+      if (asset.address == assetL2Data.addressL2) {
+        logger.debug(
+          `Skipping ${asset.symbol} on chain #${asset.chainId} as present`,
+        );
+      } else {
+        asset.address = assetL2Data.addressL2;
+        logger.info(
+          `Updating ${asset.symbol} address to ${assetL2Data.addressL2} on chain #${asset.chainId}`,
+        );
+      }
+
       l2Data[asset.chainId].delete(asset.symbol);
-      logger.debug(
-        `Skipping ${asset.symbol} on chain #${asset.chainId} as present`,
-      );
     } else {
       logger.warn(
         `L2 data mismatch for ${asset.symbol} on chain #${asset.chainId}`,
@@ -168,10 +179,7 @@ async function main() {
       whitelistedNew.push({
         name: asset.name,
         coingeckoId: asset.coingeckoId,
-        address:
-          assetL2Data.addressL2.length > 42
-            ? assetL2Data.addressL2
-            : ethers.getAddress(assetL2Data.addressL2.toLowerCase()), // Ensure checksum for EVM
+        address: assetL2Data.addressL2,
         symbol: asset.symbol,
         decimals: asset.decimals,
         deploymentTimestamp: asset.deploymentTimestamp,

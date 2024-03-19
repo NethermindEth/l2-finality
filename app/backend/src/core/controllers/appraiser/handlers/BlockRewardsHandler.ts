@@ -117,6 +117,12 @@ export class BlockRewardsHandler {
         tips = gasUsed * gasPrice;
         break;
 
+      case chains.Starknet.chainId:
+        // All fees are included as part of the Transfer events in Starknet
+        gasFees = BigInt(0);
+        tips = BigInt(0);
+        break;
+
       default:
         throw Error(
           `Chain ID ${this.chainId} not supported in calculateBlockRewardByChainId`,

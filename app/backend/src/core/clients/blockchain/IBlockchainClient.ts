@@ -1,4 +1,6 @@
 import { ethers } from "ethers";
+import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
+import { getChecksumAddress } from "starknet";
 
 export interface IBlockchainClient {
   chainId: number;
@@ -7,65 +9,66 @@ export interface IBlockchainClient {
   getBlockTransactionReceipts(
     block: Block,
   ): Promise<TransactionReceipt[] | undefined>;
+  getTransferEvent(log: Log): TransferLogEvent | undefined;
 }
 
 export interface Block {
   number: number;
   hash: string;
   timestamp: number;
-  parentHash: string;
-  nonce: string;
-  difficulty: bigint;
-  gasLimit: bigint;
-  gasUsed: bigint;
-  miner: string;
-  extraData: string;
+  parentHash?: string;
+  nonce?: string;
+  difficulty?: bigint;
+  gasLimit?: bigint;
+  gasUsed?: bigint;
+  miner?: string;
+  extraData?: string;
   baseFeePerGas: bigint;
   transactions: Transaction[];
 }
 
 export interface Transaction {
   blockNumber: number;
-  blockHash: string;
-  index: number;
+  blockHash?: string;
+  index?: number;
   hash: string;
-  type: number;
-  from: string;
-  to: string | null;
-  nonce: number;
-  gasLimit: bigint;
+  type?: number;
+  from?: string;
+  to?: string | null;
+  nonce?: number;
+  gasLimit?: bigint;
   gasPrice: bigint;
   maxPriorityFeePerGas: bigint;
   maxFeePerGas: bigint;
-  data: string;
+  data?: string;
   value: bigint;
 }
 
 export interface Log {
-  transactionIndex: number;
+  transactionIndex?: number;
   address: string;
   data: string;
   topics: string[];
-  blockNumber: number;
-  blockHash: string;
+  blockNumber?: number;
+  blockHash?: string;
   transactionHash: string;
-  removed: boolean;
+  removed?: boolean;
 }
 
 export interface TransactionReceipt {
-  to: string | null;
-  from: string;
-  contractAddress: string | null;
+  to?: string | null;
+  from?: string;
+  contractAddress?: string | null;
   hash: string;
-  index: number;
-  blockHash: string;
-  blockNumber: number;
-  logsBloom: string;
+  index?: number;
+  blockHash?: string;
+  blockNumber?: number;
+  logsBloom?: string;
   gasUsed: bigint;
   gasPrice: bigint;
-  type: number;
-  status: number | null;
-  root: null | string;
+  type?: number;
+  status?: number | null;
+  root?: null | string;
   logs: Log[];
 }
 
@@ -82,7 +85,6 @@ export function ethersToBlock(ethersBlock: ethers.Block): Block {
     nonce: ethersBlock.nonce,
     difficulty: ethersBlock.difficulty,
     gasLimit: ethersBlock.gasLimit,
-    gasUsed: ethersBlock.gasUsed,
     miner: ethersBlock.miner,
     extraData: ethersBlock.extraData,
     baseFeePerGas: ethersBlock.baseFeePerGas
@@ -150,4 +152,30 @@ export function ethersToTransactionReceipt(
         },
     ),
   };
+}
+
+const EvmTransferEventHash = ethers.id("Transfer(address,address,uint256)");
+
+export function getEvmTransferEvent(log: Log): TransferLogEvent | undefined {
+  if (log.topics[0] === EvmTransferEventHash && log.topics.length == 3) {
+    const contractAddress = ethers.getAddress(log.address);
+    const fromAddress = ethers.getAddress(`0x${log.topics[1].slice(26)}`);
+    const toAddress = ethers.getAddress(`0x${log.topics[2].slice(26)}`);
+    const rawAmount = log.data === "0x" ? BigInt(0) : BigInt(log.data);
+    return {
+      fromAddress,
+      toAddress,
+      contractAddress,
+      rawAmount,
+    };
+  }
+}
+
+// Converts Starknet or EVM address to checksummed format
+export function getAddress(address: string): string {
+  if (address.length > 42) {
+    return getChecksumAddress(address);
+  } else {
+    return ethers.getAddress(address);
+  }
 }

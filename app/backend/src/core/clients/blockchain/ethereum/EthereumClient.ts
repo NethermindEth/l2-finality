@@ -7,14 +7,17 @@ import {
   Block,
   ethersToBlock,
   ethersToTransactionReceipt,
+  getEvmTransferEvent,
   IBlockchainClient,
+  Log,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 class EthereumClient implements IBlockchainClient {
-  private provider: ethers.JsonRpcProvider;
-  private network: Network;
-  private logger: Logger;
+  private readonly provider: ethers.JsonRpcProvider;
+  private readonly network: Network;
+  private readonly logger: Logger;
 
   public readonly chainId: number;
 
@@ -92,6 +95,10 @@ class EthereumClient implements IBlockchainClient {
       address: contractInfo.address,
       topics: [topics],
     });
+  }
+
+  public getTransferEvent(log: Log): TransferLogEvent | undefined {
+    return getEvmTransferEvent(log);
   }
 }
 
