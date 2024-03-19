@@ -3,7 +3,6 @@ RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 USER node
 ENV PORT 8080
-ENV NODE_ENV production
 
 COPY --chown=node:node frontend/package.json ./
 RUN yarn install
