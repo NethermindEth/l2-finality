@@ -6,7 +6,7 @@ ENV PORT 8080
 ENV NODE_ENV production
 
 COPY --chown=node:node frontend/package.json ./
-RUN npm install --verbose
+RUN npm install --no-audit --verbose
 
 COPY --chown=node:node frontend ./
 COPY --chown=node:node shared ./src/shared
