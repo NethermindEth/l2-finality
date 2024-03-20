@@ -2,21 +2,17 @@ name: Deploy
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/ui-deployment  # used for testing, TODO: remove before merge
 
 jobs:
-#  backend-check:
-#    uses: ./.github/workflows/backend-check.yaml
-#  frontend-check:
-#    uses: ./.github/workflows/frontend-check.yaml
+  backend-check:
+    uses: ./.github/workflows/backend-check.yaml
+  frontend-check:
+    uses: ./.github/workflows/frontend-check.yaml
 
   deploy:
-    # TODO: enable before merge
-#    needs:
-#      - backend-check
-#      - frontend-check
+    needs:
+      - backend-check
+      - frontend-check
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
