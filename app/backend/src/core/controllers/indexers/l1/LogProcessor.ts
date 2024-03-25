@@ -12,12 +12,15 @@ import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvm
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 import chains from "@/shared/chains.json";
 import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import Logger from "@/tools/Logger";
 
 type CallbackFunction = (...args: any[]) => any;
 
 export class LogProcessors {
   private readonly ethereumClient: EthereumClient;
   private readonly polygonZkEvmClient: PolygonZkEvmClient;
+  private readonly logger: Logger;
+
   public readonly callbackMapping: Record<
     ContractName,
     Record<string, CallbackFunction>
@@ -26,9 +29,11 @@ export class LogProcessors {
   constructor(
     ethereumClient: EthereumClient,
     polygonZkEvmClient: PolygonZkEvmClient,
+    logger: Logger,
   ) {
     this.ethereumClient = ethereumClient;
     this.polygonZkEvmClient = polygonZkEvmClient;
+    this.logger = logger;
 
     this.callbackMapping = {
       L2OutputOracle: {
@@ -117,6 +122,14 @@ export class LogProcessors {
     const batchDetails = await this.polygonZkEvmClient.getBatchByNumber(
       Number(batchNumber),
     );
+
+    if (!batchDetails || batchDetails.blocks.length === 0) {
+      this.logger.error(
+        `Could not get batch details for batch ${batchNumber}: ${batchDetails} `,
+      );
+      return null;
+    }
+
     const ethBlock = await this.ethereumClient.getBlock(log.blockNumber);
     const l2Block = await this.polygonZkEvmClient.getBlock(
       batchDetails.blocks[batchDetails.blocks.length - 1],
