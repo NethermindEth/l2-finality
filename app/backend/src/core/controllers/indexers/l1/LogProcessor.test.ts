@@ -33,7 +33,11 @@ describe(LogProcessors.name, () => {
 
     mockBlockchainClients(ethClient, polygonZkEvmClient);
 
-    loggerProcessor = new LogProcessors(ethClient, polygonZkEvmClient);
+    loggerProcessor = new LogProcessors(
+      ethClient,
+      polygonZkEvmClient,
+      logger.for("Log Processor"),
+    );
   });
 
   it("should have a callback for every topic in contracts.json", () => {

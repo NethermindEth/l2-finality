@@ -11,7 +11,7 @@ export interface PolygonZkEvmBatch {
   sendSequencesTxHash: string;
   verifyBatchTxHash: string;
   closed: boolean;
-  blocks: string[];
+  blocks: string[] | null;
   transactions: string[];
   batchL2Data: string;
 }
