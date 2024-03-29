@@ -16,12 +16,13 @@ import {
   Paper,
   Select,
   Typography,
-  TextField,
+  CircularProgress,
 } from '@mui/material'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import { GroupRange } from '@/shared/api/types'
 import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
 import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
+import chains from '@/shared/chains.json'
 
 Chart.register(...registerables)
 
@@ -88,21 +89,28 @@ const transformData = (
 }
 
 const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
+  const chainName = Object.keys(chains).find(
+    (name) => chains[name].chainId === chainId
+  )
+
   const [historyVarData, setHistoryVarData] = useState<VaRHistoryDataViewModel>(
     { data: [] }
   )
   const [fromDate, setFromDate] = useState<Date | null>(
-    new Date(Date.now() - 24 * 5 * 60 * 60 * 1000)
+    new Date(Date.now() - 24 * 2 * 60 * 60 * 1000) // 2 days old
   )
   const [toDate, setToDate] = useState<Date | null>(new Date())
   const [range, setRange] = useState<GroupRange>('hour')
 
-  const [selectedSection, setSelectedSection] =
-    useState<keyof VaRHistoryDataViewModel['data']>('data_submission')
-  const [splitByContract, setSplitByContract] = useState<boolean>(true)
+  const [selectedSection, setSelectedSection] = useState<
+    keyof VaRHistoryDataViewModel['data']
+  >(chains[chainName]?.defaultSyncStatus || 'data_submission')
+  const [splitByContract, setSplitByContract] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchHistoricalData = async () => {
+      setLoading(true)
       try {
         const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(
           chainId,
@@ -114,11 +122,38 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
         setHistoryVarData(syncStatusHistoryVar)
       } catch (error) {
         console.error('Error fetching historical data:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchHistoricalData()
   }, [chainId, fromDate, toDate, range])
+
+  useEffect(() => {
+    const defaultSyncStatus = chains[chainName]?.defaultSyncStatus
+    if (defaultSyncStatus) {
+      setSelectedSection(defaultSyncStatus)
+    }
+  }, [chainId])
+
+  if (loading) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          Loading...
+        </Typography>
+        <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
+      </Paper>
+    )
+  }
 
   if (!historyVarData.success) {
     return (
@@ -235,6 +270,13 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
     },
   }
 
+  const enabledSyncStatuses = chains[chainName]?.enabledSyncStatuses || [
+    'data_submission',
+    'l2_finalization',
+    'proof_submission',
+    'state_updates',
+  ]
+
   return (
     <Paper
       sx={{
@@ -295,10 +337,14 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
               }
               label="Data Section"
             >
-              <MenuItem value="data_submission">Data Submission</MenuItem>
-              <MenuItem value="l2_finalization">L2 Finalization</MenuItem>
-              <MenuItem value="proof_submission">Proof Submission</MenuItem>
-              <MenuItem value="state_updates">State Updates</MenuItem>
+              {enabledSyncStatuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status
+                    .split('_')
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Grid>
