@@ -15,7 +15,11 @@ export function createL1MonitorModule(
   polygonZkEvmClient: PolygonZkEvmClient,
 ): { start: () => Promise<void> } {
   const loggerContext = "L1 Log Monitor Module";
-  const l1Processor = new LogProcessors(ethClient, polygonZkEvmClient);
+  const l1Processor = new LogProcessors(
+    ethClient,
+    polygonZkEvmClient,
+    logger.for("Log Processor"),
+  );
 
   const l1LogMonitor = new L1LogMonitorController(
     l1Processor,
