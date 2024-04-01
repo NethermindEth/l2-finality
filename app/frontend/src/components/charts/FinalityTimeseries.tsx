@@ -278,9 +278,9 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
           display: true,
           text:
             selectedMetric === 'blockDiff'
-              ? 'Average number of blocks'
+              ? 'Average number of L2 blocks'
               : selectedMetric === 'ratio'
-                ? 'Blocks/Time'
+                ? 'L2 blocks per second'
                 : 'Average time to finality (s)',
         },
         ticks: {
