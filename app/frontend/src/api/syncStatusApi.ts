@@ -4,7 +4,7 @@ import {
   SyncStatusViewModel,
   VaRHistoryDataViewModel,
   VaRLiveDataViewModel,
-} from '@/shared/api/viewModels/SyncStatusEndpoint'
+} from '../../../shared/api/viewModels/SyncStatusEndpoint'
 
 const apiClient = new ApiClient()
 
@@ -40,7 +40,7 @@ export const syncStatusApi = {
     useName: boolean = true
   ): Promise<VaRLiveDataViewModel> {
     return apiClient.get<VaRLiveDataViewModel>(
-      `/api/state/var/active?chainId=${chainId}&useNames=${useName}`
+      `/api/state/var/live?chainId=${chainId}&useNames=${useName}`
     )
   },
 

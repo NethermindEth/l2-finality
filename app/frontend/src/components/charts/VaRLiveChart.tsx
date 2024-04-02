@@ -1,41 +1,60 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Bar } from 'react-chartjs-2'
 import 'chart.js/auto'
-import { LiveVaREntry } from '@/shared/api/viewModels/SyncStatusEndpoint'
 import { Box, Typography } from '@mui/material'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { Chart, ChartOptions } from 'chart.js'
+import {
+  ValueType,
+  VarByContractViewModel,
+  VarByTypeViewModel,
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 Chart.register(ChartDataLabels)
 
 interface VaRLiveGraphProps {
-  dataSection: LiveVaREntry
+  data: VarByContractViewModel[] | VarByTypeViewModel[]
 }
 
-const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ dataSection }) => {
-  const totalValue = Object.values(dataSection).reduce(
-    (acc, value) => acc + value,
-    0
-  )
-  const threshold = totalValue / Object.keys(dataSection).length
+const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
+  if (!data || data.length === 0) {
+    return <Typography>No data available</Typography>
+  }
 
-  const topThreeAssets = React.useMemo(() => {
-    return Object.entries(dataSection)
-      .sort((a, b) => b[1] - a[1])
+  const isContractData = (
+    item: VarByContractViewModel | VarByTypeViewModel
+  ): item is VarByContractViewModel => {
+    return (item as VarByContractViewModel).address !== undefined
+  }
+
+  const totalValue = data.reduce((acc, item) => acc + item.var_usd, 0)
+  const threshold = totalValue / data.length
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const topThreeItems = useMemo(() => {
+    return data
+      .sort((a, b) => b.var_usd - a.var_usd)
       .slice(0, 3)
-      .map(
-        (item, index) =>
-          `${index + 1}. ${item[0]}, $${item[1].toLocaleString()}`
-      )
-  }, [dataSection])
+      .map((item, index) => {
+        const label = isContractData(item)
+          ? item.symbol || item.address
+          : ValueType[item.type as keyof typeof ValueType]
+        return `${index + 1}. ${label}, $${item.var_usd.toLocaleString()}`
+      })
+  }, [data])
 
   const chartData = {
     labels: ['Total VaR'],
-    datasets: Object.entries(dataSection).map(([key, value]) => ({
-      label: key,
-      data: [value],
-      backgroundColor: getColorForAsset(key),
-    })),
+    datasets: data.map((item) => {
+      const label = isContractData(item)
+        ? item.symbol || item.address
+        : ValueType[item.type as keyof typeof ValueType]
+      return {
+        label,
+        data: [item.var_usd],
+        backgroundColor: getColorForItem(label),
+      }
+    }),
   }
 
   const options: ChartOptions<'bar'> = {
@@ -105,9 +124,9 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ dataSection }) => {
       >
         <Bar data={chartData} options={options as ChartOptions<'bar'>} />
         <Box sx={{ textAlign: 'center', marginTop: 2, width: '100%' }}>
-          {topThreeAssets.map((asset, index) => (
+          {topThreeItems.map((item, index) => (
             <Typography key={index} sx={{ mt: 1 }}>
-              {asset}
+              {item}
             </Typography>
           ))}
         </Box>
@@ -116,10 +135,10 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ dataSection }) => {
   )
 }
 
-const getColorForAsset = (assetName: string) => {
+const getColorForItem = (itemName: string) => {
   let hash = 0
-  for (let i = 0; i < assetName.length; i++) {
-    hash = assetName.charCodeAt(i) + ((hash << 5) - hash)
+  for (let i = 0; i < itemName.length; i++) {
+    hash = itemName.charCodeAt(i) + ((hash << 5) - hash)
   }
 
   const hue = Math.abs(hash) % 360

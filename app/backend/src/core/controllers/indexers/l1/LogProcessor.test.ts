@@ -15,7 +15,7 @@ import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import { PolygonZkEvmBatch } from "@/core/clients/blockchain/polygonzk/types";
 import { Block } from "@/core/clients/blockchain/IBlockchainClient";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import { SubmissionType } from '@/shared/api/viewModels/SyncStatusEndpoint'
 describe(LogProcessors.name, () => {
   let ethClient: EthereumClient;
   let polygonZkEvmClient: PolygonZkEvmClient;

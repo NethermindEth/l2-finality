@@ -4,9 +4,9 @@ import { Database } from "@/database/Database";
 import { OptimismSyncStatus } from "@/core/clients/blockchain/optimism/types";
 import SyncStatusRepository, {
   SyncStatusRecord,
-} from "@/database/repositories/SyncStatusRepository";
+} from '@/database/repositories/SyncStatusRepository'
 import { Config } from "@/config";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import { SubmissionType } from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 class OptimismFinalityController {
   private readonly optimismClient: OptimismClient;

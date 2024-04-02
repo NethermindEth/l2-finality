@@ -25,7 +25,7 @@ import moment from 'moment'
 import {
   AverageFinalityTimeViewModel,
   FinalityTimeRecord,
-} from '@/shared/api/viewModels/SyncStatusEndpoint'
+} from '../../../../shared/api/viewModels/SyncStatusEndpoint'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { GroupRange } from '@/shared/api/types'
 import { syncStatusApi } from '@/api/syncStatusApi'

@@ -8,10 +8,7 @@ import { healthApi } from '@/api/healthApi'
 import { metadataApi } from '@/api/metadataApi'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import { MetadataRecordViewModel } from '@/shared/api/viewModels/MetadataEndpoint'
-import {
-  SyncStatusViewModel,
-  VaRLiveDataViewModel,
-} from '@/shared/api/viewModels/SyncStatusEndpoint'
+import { SyncStatusViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
 import VaRLiveSection from './VaRLiveSection'
 import VaRHistoryChart from '@/components/charts/VaRHistoryChart'
 import SyncStatusTable from '@/components/charts/SyncStatusTable'
@@ -38,9 +35,6 @@ const Index = () => {
   >(undefined)
   const [ethereumMetadata, setEthereumMetadata] =
     React.useState<MetadataRecordViewModel>({ data: {} })
-  const [liveVarData, setLiveVarData] = React.useState<VaRLiveDataViewModel>({
-    data: [],
-  })
 
   React.useEffect(() => {
     const fetchLiveData = async () => {
@@ -50,9 +44,6 @@ const Index = () => {
         const healthData = await healthApi.getHealthData()
         setHealthData(healthData)
         const metadata = await metadataApi.getAll()
-        const syncStatusLiveVar = await syncStatusApi.getLiveVaR(chainId)
-        setLiveVarData(syncStatusLiveVar)
-
         const metadataRecord = metadata.data.metadataRecords[0]
         setEthereumMetadata(metadataRecord)
       } catch (error) {
@@ -120,7 +111,7 @@ const Index = () => {
 
           {/* LiveVaR Section */}
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <VaRLiveSection liveVarData={liveVarData} />
+            <VaRLiveSection chainId={chainId} />
           </Grid>
 
           {/* History VaR Section */}
