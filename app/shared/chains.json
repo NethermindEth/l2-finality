@@ -9,6 +9,7 @@
     "chainId": 10,
     "frontEndName": "Optimism",
     "isFrontendEnabled": true,
+    "submission_type": "data_submission",
     "explorerUri": "https://optimistic.etherscan.io",
     "defaultSyncStatus": "data_submission",
     "enabledSyncStatuses": [
@@ -20,6 +21,7 @@
     "chainId": 1101,
     "frontEndName": "Polygon zkEVM",
     "isFrontendEnabled": true,
+    "submission_type": "data_submission",
     "explorerUri": "https://zkevm.polygonscan.com",
     "defaultSyncStatus": "data_submission",
     "enabledSyncStatuses": [
@@ -30,6 +32,7 @@
     "chainId": -1,
     "frontEndName": "Starknet",
     "isFrontendEnabled": true,
+    "submission_type": "state_updates",
     "explorerUri": "https://voyager.online",
     "defaultSyncStatus": "state_updates",
     "enabledSyncStatuses": [
