@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -9,12 +9,19 @@ import {
   Paper,
   TablePagination,
   Box,
+  Button,
+  Collapse,
+  Link,
+  IconButton,
+  Tooltip,
+  Typography,
 } from '@mui/material'
 import moment from 'moment'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
+import chains from '@/shared/chains.json'
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
 
 interface SyncStatusRecord {
-  chainId: number
   l2_block_number: string
   l2_block_hash: string
   l1_block_number: string
@@ -37,8 +44,8 @@ const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         head: {
-          backgroundColor: '#464849',
-          color: '#fff',
+          backgroundColor: '#f5f5f5',
+          color: '#000',
           fontWeight: 'bold',
         },
         body: {
@@ -50,10 +57,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '&:nth-of-type(odd)': {
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#fafafa',
           },
           '&:hover': {
-            backgroundColor: '#f5f5f5',
+            backgroundColor: '#f0f0f0',
           },
         },
       },
@@ -70,12 +77,15 @@ const theme = createTheme({
 
 const SyncStatusTable: React.FC<TableProps> = ({
   data,
+  chainId,
   page,
   pageSize,
   totalRows,
   onPageChange,
   onRowsPerPageChange,
 }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
   const handleChangePage = (event: unknown, newPage: number) => {
     onPageChange(newPage)
   }
@@ -100,6 +110,33 @@ const SyncStatusTable: React.FC<TableProps> = ({
     return category ? category.name : submissionType
   }
 
+  const getExplorerLink = (blockNumber: string, isL2: boolean) => {
+    const chain = Object.values(chains).find(
+      (chain) => chain.chainId === chainId
+    )
+    const explorerUri = isL2
+      ? chain?.explorerUri
+      : chains['Ethereum'].explorerUri
+    return `${explorerUri}/block/${blockNumber}`
+  }
+
+  const trimHash = (hash: string | null) => {
+    if (!hash) {
+      return ''
+    }
+
+    if (hash.length <= 20) {
+      return hash
+    }
+    const start = hash.slice(0, 4)
+    const end = hash.slice(-3)
+    return `${start}...${end}`
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Paper
@@ -110,58 +147,105 @@ const SyncStatusTable: React.FC<TableProps> = ({
           width: '80%',
         }}
       >
-        <Box sx={{ mb: 2 }}>
-          <Box sx={{ color: 'text.secondary', mb: 2, fontWeight: 'bold' }}>
+        <Box sx={{ mb: isOpen ? 2 : 0 }}>
+          <Button
+            onClick={() => setIsOpen(!isOpen)}
+            endIcon={isOpen ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 'bold',
+              textTransform: 'none',
+              fontSize: '1.03rem',
+            }}
+          >
             Latest finality events
-          </Box>
+          </Button>
         </Box>
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Timestamp</TableCell>
-                <TableCell>Submission Type</TableCell>
-                <TableCell>L2 Block Number</TableCell>
-                <TableCell>L2 Block Hash</TableCell>
-                <TableCell>L1 Block Number</TableCell>
-                <TableCell>L1 Block Hash</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row, index) => (
-                <TableRow key={index}>
-                  <TableCell>{moment(row.timestamp).fromNow()}</TableCell>
-                  <TableCell>
-                    {getSubmissionTypeName(row.submission_type)}
-                  </TableCell>
-                  <TableCell>{row.l2_block_number}</TableCell>
-                  <TableCell>{row.l2_block_hash}</TableCell>
-                  <TableCell>{row.l1_block_number}</TableCell>
-                  <TableCell>{row.l1_block_hash}</TableCell>
+        <Collapse in={isOpen}>
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Timestamp</TableCell>
+                  <TableCell>Submission Type</TableCell>
+                  <TableCell>L2 Block Number</TableCell>
+                  <TableCell>L2 Block Hash</TableCell>
+                  <TableCell>L1 Block Number</TableCell>
+                  <TableCell>L1 Block Hash</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={totalRows}
-          rowsPerPage={pageSize}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          sx={{
-            '.MuiTablePagination-toolbar': {
-              borderRadius: '0 0 4px 4px',
-              backgroundColor: 'background.paper',
-            },
-            '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows, .MuiInputBase-input':
-              {
-                color: 'text.primary',
+              </TableHead>
+              <TableBody>
+                {data.map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{moment(row.timestamp).fromNow()}</TableCell>
+                    <TableCell>
+                      {getSubmissionTypeName(row.submission_type)}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={getExplorerLink(row.l2_block_number, true)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {row.l2_block_number}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Click to copy">
+                        <IconButton
+                          onClick={() => copyToClipboard(row.l2_block_hash)}
+                        >
+                          <Typography variant="body2">
+                            {trimHash(row.l2_block_hash)}
+                          </Typography>
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={getExplorerLink(row.l1_block_number, false)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {row.l1_block_number}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title="Click to copy">
+                        <IconButton
+                          onClick={() => copyToClipboard(row.l1_block_hash)}
+                        >
+                          <Typography variant="body2">
+                            {trimHash(row.l1_block_hash)}
+                          </Typography>
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={totalRows}
+            rowsPerPage={pageSize}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            sx={{
+              '.MuiTablePagination-toolbar': {
+                borderRadius: '0 0 4px 4px',
+                backgroundColor: 'background.paper',
               },
-          }}
-        />
+              '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows, .MuiInputBase-input':
+                {
+                  color: 'text.primary',
+                },
+            }}
+          />
+        </Collapse>
       </Paper>
     </ThemeProvider>
   )

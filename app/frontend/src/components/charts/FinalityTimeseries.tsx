@@ -11,6 +11,7 @@ import {
 import { Bar } from 'react-chartjs-2'
 import {
   Box,
+  CircularProgress,
   FormControl,
   Grid,
   InputLabel,
@@ -30,6 +31,7 @@ import { GroupRange } from '@/shared/api/types'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
 import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
+import chains from '@/shared/chains.json'
 
 Chart.register(
   ChartDataLabels,
@@ -58,16 +60,24 @@ function formatTime(seconds: number, full?: boolean) {
 
   if (hours > 0) {
     if (full) {
-      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${minutes > 1 ? 's' : ''} ${remainingSeconds.toFixed(0)} second${remainingSeconds !== 1 ? 's' : ''}`
+      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} minute${
+        minutes > 1 ? 's' : ''
+      } ${remainingSeconds.toFixed(0)} second${
+        remainingSeconds !== 1 ? 's' : ''
+      }`
     }
     return `${hours} hour${hours > 1 ? 's' : ''}`
   } else if (minutes > 0) {
     if (full) {
-      return `${minutes} minute${minutes > 1 ? 's' : ''} ${remainingSeconds.toFixed(0)} second${remainingSeconds !== 1 ? 's' : ''}`
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ${remainingSeconds.toFixed(
+        0
+      )} second${remainingSeconds !== 1 ? 's' : ''}`
     }
     return `${minutes} minute${minutes > 1 ? 's' : ''}`
   } else {
-    return `${Math.round(remainingSeconds)} second${remainingSeconds !== 1 ? 's' : ''}`
+    return `${Math.round(remainingSeconds)} second${
+      remainingSeconds !== 1 ? 's' : ''
+    }`
   }
 }
 
@@ -75,7 +85,6 @@ const transformData = (
   records: FinalityTimeRecord[],
   selectedMetric: string
 ) => {
-  // Filter out records without a valid Time Diff and sort by timestamp
   const validRecords = records
     .filter((record) => record.timeDiff != null)
     .sort(
@@ -94,13 +103,13 @@ const transformData = (
   let dataset
   if (selectedMetric === 'blockDiff') {
     dataset = {
-      label: 'Block Diff',
+      label: 'L2 Block difference',
       data: blockDiffs,
       backgroundColor: 'rgba(24,126,239,0.6)',
     }
   } else if (selectedMetric === 'timeDiff') {
     dataset = {
-      label: 'Time Diff',
+      label: 'Time difference (s)',
       data: timeDiffs,
       backgroundColor: 'rgba(32,217,61,0.6)',
     }
@@ -123,6 +132,9 @@ const transformData = (
 }
 
 const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
+  const chainName = Object.keys(chains).find(
+    (name) => chains[name].chainId === chainId
+  )
   const [fromDate, setFromDate] = useState<Date | null>(
     new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
   )
@@ -132,13 +144,15 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
     data: [],
   })
   const [chartData, setChartData] = useState({ labels: [], datasets: [] })
-
-  const [selectedSection, setSelectedSection] =
-    useState<keyof AverageFinalityTimeViewModel['data']>('data_submission')
+  const [selectedSection, setSelectedSection] = useState<
+    keyof AverageFinalityTimeViewModel['data']
+  >(chains[chainName]?.defaultSyncStatus || 'data_submission')
   const [selectedMetric, setSelectedMetric] = useState('blockDiff')
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true)
       try {
         const data = await syncStatusApi.getAverageFinalityTime(
           chainId,
@@ -149,11 +163,19 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
         setResponse(data)
       } catch (error) {
         console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
       }
     }
-
     fetchData()
   }, [chainId, fromDate, toDate, range])
+
+  useEffect(() => {
+    const defaultSyncStatus = chains[chainName]?.defaultSyncStatus
+    if (defaultSyncStatus) {
+      setSelectedSection(defaultSyncStatus)
+    }
+  }, [chainId, chainName])
 
   useEffect(() => {
     if (response.data[selectedSection]) {
@@ -179,6 +201,24 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
 
   const handleRangeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     setRange(event.target.value as GroupRange)
+  }
+
+  if (loading) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          Loading...
+        </Typography>
+        <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
+      </Paper>
+    )
   }
 
   if (!response.success) {
@@ -238,9 +278,9 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
           display: true,
           text:
             selectedMetric === 'blockDiff'
-              ? 'Average number of blocks'
+              ? 'Average number of L2 blocks'
               : selectedMetric === 'ratio'
-                ? 'Blocks/Time'
+                ? 'L2 blocks per second'
                 : 'Average time to finality (s)',
         },
         ticks: {
@@ -279,6 +319,13 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
       },
     },
   }
+
+  const enabledSyncStatuses = chains[chainName]?.enabledSyncStatuses || [
+    'data_submission',
+    'l2_finalization',
+    'proof_submission',
+    'state_updates',
+  ]
 
   return (
     <Paper
@@ -319,10 +366,14 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
               onChange={handleSectionChange}
               label="Data Section"
             >
-              <MenuItem value="data_submission">Data Submission</MenuItem>
-              <MenuItem value="l2_finalization">L2 Finalization</MenuItem>
-              <MenuItem value="proof_submission">Proof Submission</MenuItem>
-              <MenuItem value="state_updates">State Updates</MenuItem>
+              {enabledSyncStatuses.map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status
+                    .split('_')
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </Grid>
@@ -334,8 +385,8 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
               onChange={handleMetricChange}
               label="Metric"
             >
-              <MenuItem value="blockDiff">Block Diff</MenuItem>
-              <MenuItem value="timeDiff">Time Diff</MenuItem>
+              <MenuItem value="blockDiff">L2 Block difference</MenuItem>
+              <MenuItem value="timeDiff">Time difference (s)</MenuItem>
               <MenuItem value="ratio">Ratio (Blocks/Time)</MenuItem>
             </Select>
           </FormControl>
