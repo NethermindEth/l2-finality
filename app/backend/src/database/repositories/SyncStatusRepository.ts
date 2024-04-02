@@ -1,7 +1,20 @@
 import { Knex } from "knex";
 import { UnixTime } from "@/core/types/UnixTime";
-import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
+import {
+  BlockValueRecord,
+  chainTableMapping,
+  ValueType,
+} from "@/database/repositories/BlockValueRepository";
 import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import {
+  mergeValues,
+  getValue,
+  ValueByContract,
+  ValueByType,
+  ValueMapping,
+} from "@/core/controllers/appraiser/types";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import chains from "@/shared/chains.json";
 
 export const TABLE_NAME = "sync_status";
 
@@ -28,34 +41,24 @@ interface SubmissionIntervalRow {
   block_diff: number;
 }
 
-export interface AvgVarHistoryEntry {
-  timestamp: Date;
-  avg_var: number;
+interface VarByContractViewModel {
+  symbol?: string;
+  address: string;
+  var: number;
+  var_usd: number;
 }
 
-export type AvgVarHistoryMap = {
-  [submission in SubmissionType]: {
-    [contract: string]: AvgVarHistoryEntry[];
-  };
-};
-
-interface AvgVarHistoryRow {
-  submission_type: SubmissionType;
-  contract_address: string;
-  timestamp: Date;
-  avg: number;
+interface VarByTypeViewModel {
+  type: ValueType;
+  var: number;
+  var_usd: number;
 }
 
-export type ActiveVarMap = {
-  [submission in SubmissionType]: {
-    [contract: string]: number;
-  };
-};
-
-interface ActiveVarRow {
-  submission_type: SubmissionType;
-  contract_address: string;
-  total: number;
+interface BlockVarViewModel {
+  block_number: number;
+  timestamp: Date;
+  by_contract: VarByContractViewModel[];
+  by_type: VarByTypeViewModel[];
 }
 
 export type GroupRange = "hour" | "day" | "week" | "month" | "quarter" | "year";
@@ -163,131 +166,204 @@ export class SyncStatusRepository {
     return result;
   }
 
-  async getAverageValueAtRiskHistory(
+  async getVarHistory(
     chainId: number,
-    groupRange: GroupRange,
+    submission_type?: SubmissionType,
     from?: Date,
     to?: Date,
-  ): Promise<AvgVarHistoryMap> {
-    const rangeGroupExpression = `DATE_TRUNC('${rangeMapping[groupRange]}', timestamp)`;
+  ): Promise<BlockVarViewModel[]> {
+    let preBlocks: BlockValueRecord[] | null = null;
+    let blocksQuery = this.knex(chainTableMapping[chainId]);
 
-    let submissions = this.knex
-      .table(TABLE_NAME)
-      .where("chain_id", chainId)
-      .groupBy("submission_type")
-      .groupByRaw(rangeGroupExpression)
-      .select(
-        "submission_type",
-        this.knex.raw(`${rangeGroupExpression} as timestamp`),
-        this.knex.raw("count(*) as submissions_count"),
+    submission_type ??= this.getDefaultSubmissionType(chainId);
+
+    if (from) {
+      blocksQuery = blocksQuery.where("l2_block_timestamp", ">=", from);
+    } else {
+      // Take from last state submission
+      const lastSubmission = await this.knex(TABLE_NAME)
+        .where("chain_id", chainId)
+        .where("submission_type", submission_type)
+        .orderBy("l2_block_number", "desc")
+        .select<{ l2_block_number: string }[]>("l2_block_number")
+        .first();
+
+      if (!lastSubmission) return [];
+
+      preBlocks = [];
+      blocksQuery = blocksQuery.where(
+        "l2_block_number",
+        ">=",
+        Number(lastSubmission.l2_block_number),
       );
-
-    if (from) submissions = submissions.where("timestamp", ">=", from);
-    if (to) submissions = submissions.where("timestamp", "<", to);
-
-    let contracts = this.knex
-      .table(chainTableMapping[chainId])
-      .select(
-        this.knex.raw("jsonb_array_elements(value->'mapped') as cval"),
-        "l2_block_timestamp as timestamp",
-      );
-
-    if (from) contracts = contracts.where("l2_block_timestamp", ">=", from);
-    if (to) contracts = contracts.where("l2_block_timestamp", "<", to);
-
-    const contract_value = this.knex
-      .select(
-        this.knex.raw(`${rangeGroupExpression} as timestamp`),
-        this.knex.raw("cval->>'contractAddress' as contract_address"),
-        this.knex.raw("sum((cval->>'usdTotalValue')::float) as total"),
-      )
-      .from(contracts.as("c"))
-      .groupByRaw("cval->>'contractAddress'")
-      .groupByRaw(rangeGroupExpression);
-
-    const rows = await this.knex
-      .with("range_submissions", submissions)
-      .with("range_contract_value", contract_value)
-      .select<
-        AvgVarHistoryRow[]
-      >("submission_type", "contract_address", "range_submissions.timestamp", this.knex.raw("total / (submissions_count + 1) as avg"))
-      .from("range_submissions")
-      .join(
-        "range_contract_value",
-        "range_submissions.timestamp",
-        "range_contract_value.timestamp",
-      )
-      .orderBy("submission_type")
-      .orderBy("contract_address")
-      .orderBy("timestamp", "desc");
-
-    const result = Object.fromEntries(
-      Object.values(SubmissionType).map((st) => [
-        st as SubmissionType,
-        {} as { [contract: string]: AvgVarHistoryEntry[] },
-      ]),
-    );
-
-    for (const row of rows) {
-      const contractVars = result[row.submission_type];
-      if (contractVars) {
-        contractVars[row.contract_address] ??= [] as AvgVarHistoryEntry[];
-        contractVars[row.contract_address].push({
-          timestamp: row.timestamp,
-          avg_var: row.avg,
-        });
-      }
     }
 
-    return result as AvgVarHistoryMap;
+    if (to) {
+      blocksQuery = blocksQuery.where("l2_block_timestamp", "<=", to);
+    }
+
+    const blocks = await blocksQuery
+      .orderBy("l2_block_number")
+      .select<BlockValueRecord[]>();
+
+    if (!blocks.length) return [];
+
+    const blockNumbers = {
+      min: Number(blocks[0].l2_block_number),
+      max: Number(blocks[blocks.length - 1].l2_block_number),
+    };
+
+    const submissions = await this.knex
+      .union(
+        [
+          this.knex(TABLE_NAME)
+            .where("chain_id", chainId)
+            .where("submission_type", submission_type)
+            .where("l2_block_number", ">=", blockNumbers.min)
+            .where("l2_block_number", "<=", blockNumbers.max)
+            .select("l2_block_number"),
+          this.knex(TABLE_NAME)
+            .where("chain_id", chainId)
+            .where("submission_type", submission_type)
+            .where("l2_block_number", "<=", blockNumbers.min)
+            .orderBy("l2_block_number", "desc")
+            .select("l2_block_number")
+            .limit(1),
+        ],
+        true,
+      )
+      .orderBy("l2_block_number", "asc")
+      .select<{ l2_block_number: string }[]>("l2_block_number");
+
+    if (!submissions.length) return [];
+
+    if (!preBlocks) {
+      const preBlockNumbers = {
+        min: Number(submissions[0].l2_block_number),
+        max: blockNumbers.min - 1,
+      };
+
+      preBlocks = await this.knex(chainTableMapping[chainId])
+        .where("l2_block_number", ">=", preBlockNumbers.min)
+        .where("l2_block_number", "<=", preBlockNumbers.max)
+        .orderBy("l2_block_number")
+        .select<BlockValueRecord[]>();
+    }
+
+    const submissionNumbers = new Set(
+      submissions.map((s) => Number(s.l2_block_number)),
+    );
+
+    let currentVar: ValueMapping = { byType: {}, byContract: {} };
+    for (const block of preBlocks) {
+      if (submissionNumbers.has(Number(block.l2_block_number)))
+        currentVar = { byType: {}, byContract: {} };
+      currentVar = mergeValues([currentVar, getValue(block)], true);
+    }
+
+    const result: BlockVarViewModel[] = [];
+    for (const block of blocks) {
+      if (submissionNumbers.has(Number(block.l2_block_number)))
+        currentVar = { byType: {}, byContract: {} };
+      currentVar = mergeValues([currentVar, getValue(block)], true);
+
+      result.push({
+        block_number: Number(block.l2_block_number),
+        timestamp: block.l2_block_timestamp,
+        by_contract: this.getVarByContractViewModels(
+          chainId,
+          currentVar.byContract,
+        ),
+        by_type: this.getVarByTypeViewModels(currentVar.byType),
+      });
+    }
+
+    return result;
   }
 
-  async getActiveValueAtRisk(chainId: number): Promise<ActiveVarMap> {
-    const last_submission = this.knex
-      .table(TABLE_NAME)
-      .where("chain_id", chainId)
-      .groupBy("submission_type")
-      .select(
-        "submission_type",
-        this.knex.raw(`max(l2_block_number) as block`),
-      );
-
-    const contract_value = this.knex
-      .select(
-        "submission_type",
-        this.knex.raw("jsonb_array_elements(value->'mapped') as cval"),
-      )
-      .from(chainTableMapping[chainId])
-      .crossJoin("last_submission" as any)
-      .whereRaw("l2_block_number > last_submission.block");
-
-    const rows = await this.knex
-      .with("last_submission", last_submission)
-      .with("contract_value", contract_value)
-      .select<
-        ActiveVarRow[]
-      >("submission_type", this.knex.raw("cval->>'contractAddress' as contract_address"), this.knex.raw("sum((cval->>'usdTotalValue')::float) as total"))
-      .from("contract_value")
-      .groupBy("submission_type")
-      .groupByRaw("cval->>'contractAddress'")
-      .orderBy("submission_type")
-      .orderBy("contract_address");
-
-    const result = Object.fromEntries(
-      Object.values(SubmissionType).map((st) => [
-        st as SubmissionType,
-        {} as { [contract: string]: number },
-      ]),
-    );
-
-    for (const row of rows) {
-      const contractVars = result[row.submission_type];
-      if (contractVars) {
-        contractVars[row.contract_address] = row.total;
-      }
+  async getVarLive(
+    chainId: number,
+    submission_type?: SubmissionType,
+  ): Promise<BlockVarViewModel | undefined> {
+    if (!submission_type) {
+      submission_type = (
+        Object.values(chains).filter(
+          (c) => c.chainId == chainId && "submission_type" in c,
+        )[0] as any
+      ).submission_type as SubmissionType;
     }
 
-    return result as ActiveVarMap;
+    const lastSubmission = await this.knex(TABLE_NAME)
+      .where("chain_id", chainId)
+      .where("submission_type", submission_type)
+      .orderBy("l2_block_number", "desc")
+      .select<{ l2_block_number: string }[]>("l2_block_number")
+      .first();
+
+    let blocksQuery = this.knex(chainTableMapping[chainId]);
+
+    if (lastSubmission) {
+      blocksQuery = blocksQuery.where(
+        "l2_block_number",
+        ">=",
+        Number(lastSubmission.l2_block_number),
+      );
+    }
+
+    const blocks = await blocksQuery
+      .orderBy("l2_block_number")
+      .select<BlockValueRecord[]>();
+
+    if (!blocks.length) return undefined;
+
+    let currentVar: ValueMapping = { byType: {}, byContract: {} };
+    for (const block of blocks) {
+      currentVar = mergeValues([currentVar, getValue(block)], true);
+    }
+
+    const block = blocks.splice(-1)[0];
+
+    return {
+      block_number: Number(block.l2_block_number),
+      timestamp: block.l2_block_timestamp,
+      by_contract: this.getVarByContractViewModels(
+        chainId,
+        currentVar.byContract,
+      ),
+      by_type: this.getVarByTypeViewModels(currentVar.byType),
+    };
+  }
+
+  getVarByContractViewModels(
+    chainId: number,
+    value: ValueByContract | undefined,
+  ): VarByContractViewModel[] {
+    if (!value) return [];
+
+    return Object.entries(value).map((x) => ({
+      symbol: whitelistedMap.getSymbolByAddress(chainId, x[0]),
+      address: x[0],
+      var: x[1]?.value_asset ?? 0,
+      var_usd: x[1]?.value_usd ?? 0,
+    }));
+  }
+
+  getVarByTypeViewModels(value: ValueByType | undefined): VarByTypeViewModel[] {
+    if (!value) return [];
+
+    return Object.entries(value).map((x) => ({
+      type: x[0] as ValueType,
+      var: x[1]?.value_asset,
+      var_usd: x[1]?.value_usd,
+    }));
+  }
+
+  private getDefaultSubmissionType(chainId: number): SubmissionType {
+    return (
+      Object.values(chains).filter(
+        (c) => c.chainId == chainId && "submission_type" in c,
+      )[0] as any
+    ).submission_type as SubmissionType;
   }
 }
 

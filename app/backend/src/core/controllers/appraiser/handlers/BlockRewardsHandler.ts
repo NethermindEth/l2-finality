@@ -6,17 +6,12 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import chains from "@/shared/chains.json";
-
-export interface BlockRewardSummary {
-  gasFees: bigint;
-  gasFeesUsd: number;
-  blockReward: bigint;
-  blockRewardUsd: number;
-}
+import { ValueMapping } from "@/core/controllers/appraiser/types";
+import { ValueType } from "@/database/repositories/BlockValueRepository";
 
 export class BlockRewardsHandler {
-  private chainId: number;
-  private priceService: PriceService;
+  private readonly chainId: number;
+  private readonly priceService: PriceService;
 
   constructor(chainId: number, priceService: PriceService) {
     this.chainId = chainId;
@@ -26,17 +21,12 @@ export class BlockRewardsHandler {
   async handleBlockRewards(
     block: Block,
     blockTransactionReceipts: TransactionReceipt[] | undefined,
-  ): Promise<BlockRewardSummary> {
+  ): Promise<ValueMapping> {
     let totalGasFees = BigInt(0);
     let totalTips = BigInt(0);
 
     if (!blockTransactionReceipts) {
-      return {
-        gasFees: totalGasFees,
-        gasFeesUsd: 0,
-        blockReward: totalTips,
-        blockRewardUsd: 0,
-      };
+      return {};
     }
 
     for (const receipt of blockTransactionReceipts) {
@@ -76,16 +66,24 @@ export class BlockRewardsHandler {
     );
     const priceUsd = priceRecord ? priceRecord.priceUsd : 0;
 
-    const gasFeesUsd =
-      parseFloat(ethers.formatEther(totalGasFees.toString())) * priceUsd;
-    const tipsUsd =
-      parseFloat(ethers.formatEther(totalTips.toString())) * priceUsd;
+    const gasFeesAdjusted = parseFloat(
+      ethers.formatEther(totalGasFees.toString()),
+    );
+    const gasFeesUsd = gasFeesAdjusted * priceUsd;
+    const tipsAdjusted = parseFloat(ethers.formatEther(totalTips.toString()));
+    const tipsUsd = tipsAdjusted * priceUsd;
 
     return {
-      gasFees: totalGasFees,
-      gasFeesUsd: gasFeesUsd,
-      blockReward: totalTips,
-      blockRewardUsd: tipsUsd,
+      byType: {
+        [ValueType.gas_fees]: {
+          value_asset: gasFeesAdjusted,
+          value_usd: gasFeesUsd,
+        },
+        [ValueType.block_reward]: {
+          value_asset: tipsAdjusted,
+          value_usd: tipsUsd,
+        },
+      },
     };
   }
 

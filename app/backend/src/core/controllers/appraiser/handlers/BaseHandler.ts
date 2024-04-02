@@ -5,6 +5,10 @@ import {
   Transaction,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import {
+  ValueByContract,
+  ValueMapping,
+} from "@/core/controllers/appraiser/types";
 
 export interface AppraisalSummary {
   contractAddress: string;
@@ -29,7 +33,7 @@ export abstract class BaseHandler {
   protected provider: IBlockchainClient;
   protected logger: Logger;
 
-  constructor(provider: IBlockchainClient, logger: Logger) {
+  protected constructor(provider: IBlockchainClient, logger: Logger) {
     this.provider = provider;
     this.logger = logger;
   }
@@ -38,5 +42,5 @@ export abstract class BaseHandler {
     tx: Transaction,
     blockTransactionReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]>;
+  ): Promise<ValueMapping>;
 }

@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { AppraisalSummary, BaseHandler } from "./BaseHandler";
+import { BaseHandler } from "./BaseHandler";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
 import Logger from "@/tools/Logger";
@@ -8,10 +8,15 @@ import {
   Transaction,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { ValueMapping } from "@/core/controllers/appraiser/types";
+import {
+  ValueRecord,
+  ValueType,
+} from "@/database/repositories/BlockValueRepository";
 
 export class NativeTransferHandler extends BaseHandler {
-  private priceService: PriceService;
-  private ethContract: string;
+  private readonly priceService: PriceService;
+  private readonly ethContract: string;
 
   constructor(
     provider: IBlockchainClient,
@@ -28,22 +33,21 @@ export class NativeTransferHandler extends BaseHandler {
     tx: Transaction,
     blockTransactionReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]> {
+  ): Promise<ValueMapping> {
     const adjustedAmount = Number(tx.value) / 1e18;
     const priceRecord = await this.priceService.getPriceForContract(
       this.ethContract,
       timestamp,
     );
 
-    return [
-      {
-        contractAddress: this.ethContract,
-        rawAmount: tx.value,
-        adjustedAmount,
-        usdValue: priceRecord
-          ? adjustedAmount * priceRecord.priceUsd
-          : undefined,
-      },
-    ];
+    const value: ValueRecord = {
+      value_asset: adjustedAmount,
+      value_usd: priceRecord ? adjustedAmount * priceRecord.priceUsd : 0,
+    };
+
+    return {
+      byContract: { [this.ethContract]: value },
+      byType: { [ValueType.native_transfer]: value },
+    };
   }
 }

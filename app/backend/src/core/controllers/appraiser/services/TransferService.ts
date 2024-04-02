@@ -1,11 +1,11 @@
 import { UnixTime } from "@/core/types/UnixTime";
 import { TokenTransferHandler } from "../handlers/TokenTransfers";
 import { NativeTransferHandler } from "../handlers/NativeTransfers";
-import { AppraisalSummary } from "../handlers/BaseHandler";
 import {
   Transaction,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { mergeValues, ValueMapping } from "@/core/controllers/appraiser/types";
 
 export class TransferService {
   constructor(
@@ -17,20 +17,21 @@ export class TransferService {
     txs: Transaction[],
     blockTransactionReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]> {
-    const allEvents: AppraisalSummary[] = [];
+  ): Promise<ValueMapping> {
+    const values: ValueMapping[] = [];
 
     for (const tx of txs) {
       const isTokenTransfer = Number(tx.value) === 0;
       const handler = isTokenTransfer ? this.tokenHandler : this.nativeHandler;
-      const events = await handler.handleTransferEvents(
+      const value = await handler.handleTransferEvents(
         tx,
         blockTransactionReceipts,
         timestamp,
       );
-      allEvents.push(...events);
+
+      values.push(value);
     }
 
-    return allEvents;
+    return mergeValues(values);
   }
 }

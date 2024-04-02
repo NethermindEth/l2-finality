@@ -73,39 +73,36 @@ export class SyncStatusController {
     }
   }
 
-  async getAverageVarHistory(req: Request, res: Response): Promise<void> {
+  async getVarHistory(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
 
-      const vars = await this.syncStatusRepository.getAverageValueAtRiskHistory(
+      const result = await this.syncStatusRepository.getVarHistory(
         params.chainId,
-        params.groupRange,
+        undefined,
         params.from,
         params.to,
       );
 
-      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
-
-      sendSuccessResponse(res, vars);
+      sendSuccessResponse(res, result);
     } catch (error) {
-      this.logger.error("Error getting average VaR history:", error);
-      sendErrorResponse(res, 500, "Internal error getting average VaR history");
+      this.logger.error("Error getting VaR history:", error);
+      sendErrorResponse(res, 500, "Internal error getting VaR history");
     }
   }
 
-  async getActiveVar(req: Request, res: Response): Promise<void> {
+  async getVarLive(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
 
-      const vars = await this.syncStatusRepository.getActiveValueAtRisk(
+      const result = await this.syncStatusRepository.getVarLive(
         params.chainId,
+        undefined,
       );
 
-      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
-
-      sendSuccessResponse(res, vars);
+      sendSuccessResponse(res, result);
     } catch (error) {
       this.logger.error("Error getting active VaR:", error);
       sendErrorResponse(res, 500, "Internal error getting active VaR");

@@ -9,18 +9,21 @@
     "chainId": 10,
     "frontEndName": "Optimism",
     "isFrontendEnabled": true,
-    "explorerUri": "https://optimistic.etherscan.io"
+    "explorerUri": "https://optimistic.etherscan.io",
+    "submission_type": "data_submission"
   },
   "zkEVM": {
     "chainId": 1101,
     "frontEndName": "Polygon zkEVM",
     "isFrontendEnabled": true,
-    "explorerUri": "https://zkevm.polygonscan.com"
+    "explorerUri": "https://zkevm.polygonscan.com",
+    "submission_type": "data_submission"
   },
   "Starknet": {
     "chainId": -1,
     "frontEndName": "Starknet",
     "isFrontendEnabled": true,
-    "explorerUri": "https://voyager.online"
+    "explorerUri": "https://voyager.online",
+    "submission_type": "state_updates"
   }
 }
