@@ -14,6 +14,9 @@ export interface WhitelistedAsset {
 }
 
 export class WhitelistedMap {
+  // Cache address -> checksummed address mapping for whitelisted assets as SHA is slow
+  private readonly cache: { [address: string]: string | undefined } = {};
+
   [chainId: number]: { [symbol: string]: WhitelistedAsset };
 
   constructor(assets: WhitelistedAsset[]) {
@@ -39,10 +42,19 @@ export class WhitelistedMap {
     chainId: number,
     address: string,
   ): WhitelistedAsset | undefined {
+    const cachedAddress = this.cache[address];
+
     const chainMap = this[chainId];
     if (!chainMap) return undefined;
 
-    return chainMap[getAddress(address)];
+    const checksumAddress = cachedAddress ?? getAddress(address);
+    const result = chainMap[checksumAddress];
+
+    if (result && !cachedAddress) {
+      this.cache[address] = checksumAddress;
+    }
+
+    return result;
   }
 
   getSymbolByAddress(chainId: number, address: string): string | undefined {
