@@ -286,11 +286,7 @@ export class SyncStatusRepository {
     submission_type?: SubmissionType,
   ): Promise<BlockVarViewModel | undefined> {
     if (!submission_type) {
-      submission_type = (
-        Object.values(chains).filter(
-          (c) => c.chainId == chainId && "submission_type" in c,
-        )[0] as any
-      ).submission_type as SubmissionType;
+      submission_type = this.getDefaultSubmissionType(chainId);
     }
 
     const lastSubmission = await this.knex(TABLE_NAME)
@@ -361,9 +357,9 @@ export class SyncStatusRepository {
   private getDefaultSubmissionType(chainId: number): SubmissionType {
     return (
       Object.values(chains).filter(
-        (c) => c.chainId == chainId && "submission_type" in c,
+        (c) => c.chainId == chainId && "defaultSyncStatus" in c,
       )[0] as any
-    ).submission_type as SubmissionType;
+    ).defaultSyncStatus as SubmissionType;
   }
 }
 

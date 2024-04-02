@@ -141,6 +141,7 @@ const Index = () => {
           >
             <SyncStatusTable
               data={syncStatusRecords.data}
+              chainId={chainId}
               page={page}
               pageSize={pageSize}
               totalRows={50}

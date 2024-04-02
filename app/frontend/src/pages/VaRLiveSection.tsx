@@ -1,13 +1,23 @@
 import React from 'react'
-import { Box, Container, Grid, Paper, Typography } from '@mui/material'
+import {
+  Box,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  CircularProgress,
+} from '@mui/material'
 import VaRLiveGraph from '@/components/charts/VaRLiveChart'
 import {
   VaRLiveDataViewModel,
   LiveVaREntry,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
+import chains from '@/shared/chains.json'
 
 interface FinalitySectionProps {
   liveVarData: VaRLiveDataViewModel
+  loading: boolean
+  chainId: number
 }
 
 interface DataCategory {
@@ -15,7 +25,11 @@ interface DataCategory {
   dataKey: keyof VaRLiveDataViewModel['data']
 }
 
-const VaRLiveSection: React.FC<FinalitySectionProps> = ({ liveVarData }) => {
+const VaRLiveSection: React.FC<FinalitySectionProps> = ({
+  liveVarData,
+  loading,
+  chainId,
+}) => {
   const dataCategories: DataCategory[] = [
     { name: 'Data Submission', dataKey: 'data_submission' },
     { name: 'L2 Finalization', dataKey: 'l2_finalization' },
@@ -23,9 +37,16 @@ const VaRLiveSection: React.FC<FinalitySectionProps> = ({ liveVarData }) => {
     { name: 'State Updates', dataKey: 'state_updates' },
   ]
 
+  const chainName = Object.keys(chains).find(
+    (name) => chains[name].chainId === chainId
+  )
+
+  const enabledSyncStatuses = chains[chainName]?.enabledSyncStatuses || []
+
   const validDataSections = liveVarData
     ? dataCategories.filter(
         (category) =>
+          enabledSyncStatuses.includes(category.dataKey) &&
           liveVarData.data[category.dataKey] &&
           Object.keys(liveVarData.data[category.dataKey]).length > 0
       )
@@ -45,7 +66,21 @@ const VaRLiveSection: React.FC<FinalitySectionProps> = ({ liveVarData }) => {
       </Box>
 
       <Container>
-        {validDataSections.length > 0 ? (
+        {loading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              minHeight: '200px',
+            }}
+          >
+            <Typography variant="body1" align="center" margin={10}>
+              Loading...
+            </Typography>
+            <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
+          </Box>
+        ) : validDataSections.length > 0 ? (
           <Grid container spacing={2}>
             {validDataSections.map((section) => (
               <Grid
