@@ -7,6 +7,7 @@ const nextConfig = {
     // not recommended, TODO approve or fix all TypeScript errors
     ignoreBuildErrors: true,
   },
+  transpilePackages: ['@/shared'],
   env: {
     // for now these should also be added to /.github/workflows/deploy.yaml
     // TODO find a workaround
