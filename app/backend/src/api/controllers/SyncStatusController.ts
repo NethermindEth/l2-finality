@@ -81,6 +81,7 @@ export class SyncStatusController {
         undefined,
         params.from,
         params.to,
+        params.precision,
       );
 
       sendSuccessResponse(res, result);
@@ -99,6 +100,7 @@ export class SyncStatusController {
         groupRange: GroupRange;
         from?: Date;
         to?: Date;
+        precision?: number;
       }
     | undefined {
     const chainId: number = parseInt(req.query.chainId as string);
@@ -109,12 +111,15 @@ export class SyncStatusController {
     const to: Date | undefined = req.query.to
       ? new Date(req.query.to as string)
       : undefined;
+    const precision: number | undefined = req.query.precision
+      ? parseInt(req.query.precision as string)
+      : undefined;
 
     if (!Object.keys(chainTableMapping).includes(chainId.toString())) {
       sendErrorResponse(res, 400, "Invalid chain ID");
       return;
     }
 
-    return { chainId, groupRange, from, to };
+    return { chainId, groupRange, from, to, precision };
   }
 }

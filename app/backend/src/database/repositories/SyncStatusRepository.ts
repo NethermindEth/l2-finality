@@ -171,6 +171,7 @@ export class SyncStatusRepository {
     submission_type?: SubmissionType,
     from?: Date,
     to?: Date,
+    precision?: number,
   ): Promise<BlockVarViewModel[]> {
     let preBlocks: BlockValueRecord[] | null = null;
     let blocksQuery = this.knex(chainTableMapping[chainId]);
@@ -262,10 +263,17 @@ export class SyncStatusRepository {
     }
 
     const result: BlockVarViewModel[] = [];
+    let lastTime = 0;
     for (const block of blocks) {
       if (submissionNumbers.has(Number(block.l2_block_number)))
         currentVar = { byType: {}, byContract: {} };
       currentVar = mergeValues([currentVar, getValue(block)], true);
+
+      if (precision) {
+        const blockTime = block.l2_block_timestamp.getTime();
+        if ((blockTime - lastTime) / 1000 < precision) continue;
+        lastTime = blockTime;
+      }
 
       result.push({
         block_number: Number(block.l2_block_number),
