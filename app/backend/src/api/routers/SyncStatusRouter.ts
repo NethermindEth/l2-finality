@@ -23,10 +23,5 @@ export function createSyncStatusRouter(
     syncStatusController.getVarHistory.bind(syncStatusController),
   );
 
-  router.get(
-    "/var/live",
-    syncStatusController.getVarLive.bind(syncStatusController),
-  );
-
   return router;
 }

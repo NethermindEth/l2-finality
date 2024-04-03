@@ -10,8 +10,6 @@ import {
   sendSuccessResponse,
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
-import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;
@@ -92,23 +90,6 @@ export class SyncStatusController {
     }
   }
 
-  async getVarLive(req: Request, res: Response): Promise<void> {
-    try {
-      const params = this.extractParams(req, res);
-      if (!params) return;
-
-      const result = await this.syncStatusRepository.getVarLive(
-        params.chainId,
-        undefined,
-      );
-
-      sendSuccessResponse(res, result);
-    } catch (error) {
-      this.logger.error("Error getting active VaR:", error);
-      sendErrorResponse(res, 500, "Internal error getting active VaR");
-    }
-  }
-
   extractParams(
     req: Request,
     res: Response,
@@ -116,14 +97,12 @@ export class SyncStatusController {
     | {
         chainId: number;
         groupRange: GroupRange;
-        useNames: boolean;
         from?: Date;
         to?: Date;
       }
     | undefined {
     const chainId: number = parseInt(req.query.chainId as string);
     const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
-    const useNames: boolean = req.query.useNames === "true";
     const from: Date | undefined = req.query.from
       ? new Date(req.query.from as string)
       : undefined;
@@ -136,22 +115,6 @@ export class SyncStatusController {
       return;
     }
 
-    return { chainId, groupRange, useNames, from, to };
-  }
-
-  replaceAddressesWithNames<T>(
-    map: { [sub in SubmissionType]: { [address: string]: T } },
-    chainId: number,
-  ) {
-    for (const entries of Object.values(map)) {
-      for (const address of Object.keys(entries)) {
-        const symbol = whitelistedMap.getSymbolByAddress(chainId, address);
-
-        if (symbol) {
-          entries[symbol] = entries[address];
-          delete entries[address];
-        }
-      }
-    }
+    return { chainId, groupRange, from, to };
   }
 }

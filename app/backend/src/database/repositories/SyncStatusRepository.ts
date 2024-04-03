@@ -281,55 +281,6 @@ export class SyncStatusRepository {
     return result;
   }
 
-  async getVarLive(
-    chainId: number,
-    submission_type?: SubmissionType,
-  ): Promise<BlockVarViewModel | undefined> {
-    if (!submission_type) {
-      submission_type = this.getDefaultSubmissionType(chainId);
-    }
-
-    const lastSubmission = await this.knex(TABLE_NAME)
-      .where("chain_id", chainId)
-      .where("submission_type", submission_type)
-      .orderBy("l2_block_number", "desc")
-      .select<{ l2_block_number: string }[]>("l2_block_number")
-      .first();
-
-    let blocksQuery = this.knex(chainTableMapping[chainId]);
-
-    if (lastSubmission) {
-      blocksQuery = blocksQuery.where(
-        "l2_block_number",
-        ">=",
-        Number(lastSubmission.l2_block_number),
-      );
-    }
-
-    const blocks = await blocksQuery
-      .orderBy("l2_block_number")
-      .select<BlockValueRecord[]>();
-
-    if (!blocks.length) return undefined;
-
-    let currentVar: ValueMapping = { byType: {}, byContract: {} };
-    for (const block of blocks) {
-      currentVar = mergeValues([currentVar, getValue(block)], true);
-    }
-
-    const block = blocks.splice(-1)[0];
-
-    return {
-      block_number: Number(block.l2_block_number),
-      timestamp: block.l2_block_timestamp,
-      by_contract: this.getVarByContractViewModels(
-        chainId,
-        currentVar.byContract,
-      ),
-      by_type: this.getVarByTypeViewModels(currentVar.byType),
-    };
-  }
-
   getVarByContractViewModels(
     chainId: number,
     value: ValueByContract | undefined,
@@ -359,7 +310,7 @@ export class SyncStatusRepository {
       Object.values(chains).filter(
         (c) => c.chainId == chainId && "defaultSyncStatus" in c,
       )[0] as any
-    ).defaultSyncStatus as SubmissionType;
+    )["defaultSyncStatus"] as SubmissionType;
   }
 }
 
