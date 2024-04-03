@@ -38,7 +38,7 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
       .map((item, index) => {
         const label = isContractData(item)
           ? item.symbol || item.address
-          : ValueType[item.type as keyof typeof ValueType]
+          : item.type.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
         return `${index + 1}. ${label}, $${item.var_usd.toLocaleString()}`
       })
   }, [data])
@@ -49,6 +49,8 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
       const label = isContractData(item)
         ? item.symbol || item.address
         : ValueType[item.type as keyof typeof ValueType]
+            .replace(/_/g, ' ')
+            .replace(/^\w/, (c) => c.toUpperCase())
       return {
         label,
         data: [item.var_usd],
@@ -90,7 +92,12 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
         align: 'center',
         anchor: 'center',
         formatter: (value: number, context: any) => {
-          return value > threshold ? `$${context.dataset.label}` : ''
+          const isContractLabel = isContractData(data[context.datasetIndex])
+          return value > threshold
+            ? isContractLabel
+              ? `$${context.dataset.label}`
+              : context.dataset.label
+            : ''
         },
       },
     },
@@ -107,11 +114,23 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
           my: 2,
         }}
       >
-        VaR $
-        {totalValue.toLocaleString(undefined, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        })}
+        {isContractData(data[0]) ? (
+          <>
+            VaR $
+            {totalValue.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+          </>
+        ) : (
+          <>
+            VaR{' '}
+            {totalValue.toLocaleString(undefined, {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
+          </>
+        )}
       </Typography>
       <Box
         sx={{
@@ -138,11 +157,12 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
 const getColorForItem = (itemName: string) => {
   let hash = 0
   for (let i = 0; i < itemName.length; i++) {
-    hash = itemName.charCodeAt(i) + ((hash << 5) - hash)
+    hash = (hash << 5) - hash + itemName.charCodeAt(i)
+    hash = hash & hash // Convert to 32bit integer
+    hash = Math.abs(hash)
   }
 
-  const hue = Math.abs(hash) % 360
-
+  const hue = hash % 360
   return `hsl(${hue}, 80%, 60%)`
 }
 

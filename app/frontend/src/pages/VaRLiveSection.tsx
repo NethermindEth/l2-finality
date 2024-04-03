@@ -7,13 +7,16 @@ import {
   Paper,
   Typography,
 } from '@mui/material'
-import VaRLiveGraph from '@/components/charts/VaRLiveChart'
+import VaRLiveGraph from '@/components/charts/VaRLiveBarChart'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import {
   BlockVarViewModel,
-  VarByContractViewModel, VarByTypeViewModel,
+  VarByContractViewModel,
+  VarByTypeViewModel,
   VaRLiveDataViewModel,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
+import { FETCH_LIVE_DATA_INTERVAL_MS } from '@/pages/index'
+import VaRLiveLineChart from '@/components/charts/VaRLiveLineChart'
 
 interface VaRLiveSectionProps {
   chainId: number
@@ -43,15 +46,20 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
     }
 
     fetchData()
+
+    const intervalId = setInterval(fetchData, FETCH_LIVE_DATA_INTERVAL_MS)
+    return () => {
+      clearInterval(intervalId)
+    }
   }, [chainId])
 
   const dataCategories: DataCategory[] = [
-    { name: 'By Contract', dataKey: 'by_contract' },
-    { name: 'By Type', dataKey: 'by_type' },
+    { name: 'By asset', dataKey: 'by_contract' },
+    { name: 'By action ', dataKey: 'by_type' },
   ]
 
   const validDataSections =
-    liveVarData && liveVarData.success
+    liveVarData && liveVarData.success && liveVarData.data
       ? dataCategories.filter((category) => {
           const data = liveVarData.data[category.dataKey]
           return Array.isArray(data) && data.length > 0
@@ -113,7 +121,7 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
       }}
     >
       <Box sx={{ color: 'text.secondary', mb: 2, fontWeight: 'bold' }}>
-        Live VaR
+        Current L2 value at risk
       </Box>
 
       <Container>
@@ -147,10 +155,14 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
           </Grid>
         ) : (
           <Typography variant="body1" align="center" margin={10}>
-            No data found.
+            No data found. L2 block head may be behind.
           </Typography>
         )}
       </Container>
+
+      <Box sx={{ padding: 2 }}>
+        <VaRLiveLineChart chainId={chainId} />
+      </Box>
     </Paper>
   )
 }
