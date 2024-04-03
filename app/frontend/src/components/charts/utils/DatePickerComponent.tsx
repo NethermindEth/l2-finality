@@ -12,14 +12,30 @@ const DatePickerComponent: React.FC<DatePickerComponentProps> = ({
   value,
   onChange,
 }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateString = e.target.value
+    if (dateString) {
+      const date = new Date(dateString)
+      onChange(date)
+    } else {
+      onChange(null)
+    }
+  }
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return ''
+    const localDate = new Date(
+      date.getTime() - date.getTimezoneOffset() * 60 * 1000
+    )
+    return localDate.toISOString().slice(0, 16)
+  }
+
   return (
     <TextField
       label={label}
-      type="date"
-      value={value ? value.toISOString().substring(0, 10) : ''}
-      onChange={(e) =>
-        onChange(e.target.value ? new Date(e.target.value) : null)
-      }
+      type="datetime-local"
+      value={formatDate(value)}
+      onChange={handleChange}
       fullWidth
       InputLabelProps={{ shrink: true }}
     />

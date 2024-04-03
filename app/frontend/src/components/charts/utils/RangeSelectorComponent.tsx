@@ -18,8 +18,6 @@ const RangeSelectorComponent: React.FC<RangeSelectorProps> = ({
         <MenuItem value="hour">Hour</MenuItem>
         <MenuItem value="day">Day</MenuItem>
         <MenuItem value="week">Week</MenuItem>
-        <MenuItem value="month">Month</MenuItem>
-        <MenuItem value="quarter">Quarter</MenuItem>
       </Select>
     </FormControl>
   )

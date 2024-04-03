@@ -26,6 +26,7 @@ const DropdownMenu: React.FC<{ onChainChange: (chainId: number) => void }> = ({
   return (
     <Select
       value={selectedValue}
+      // @ts-ignore
       onChange={handleChange}
       sx={{
         display: 'flex',

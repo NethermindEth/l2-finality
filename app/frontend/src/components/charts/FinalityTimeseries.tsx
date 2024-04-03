@@ -18,7 +18,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  TextField,
   Typography,
 } from '@mui/material'
 import moment from 'moment'
@@ -94,8 +93,8 @@ const transformData = (
 
   const blockDiffs = validRecords.map((record) => record.blockDiff)
   const timeDiffs = validRecords.map((record) => record.timeDiff)
-  const ratios = blockDiffs.map((blockDiff, index) =>
-    timeDiffs[index] ? blockDiff / timeDiffs[index] : 0
+  const ratios = timeDiffs.map((timeDiff, index) =>
+    blockDiffs[index] ? timeDiff / blockDiffs[index] : 0
   )
   const blockStats = calculateStatistics(blockDiffs)
   const timeStats = calculateStatistics(timeDiffs)
@@ -103,19 +102,19 @@ const transformData = (
   let dataset
   if (selectedMetric === 'blockDiff') {
     dataset = {
-      label: 'L2 Block difference',
+      label: 'Average L2 Block difference',
       data: blockDiffs,
       backgroundColor: 'rgba(24,126,239,0.6)',
     }
   } else if (selectedMetric === 'timeDiff') {
     dataset = {
-      label: 'Time difference (s)',
+      label: 'Average Time difference (s)',
       data: timeDiffs,
       backgroundColor: 'rgba(32,217,61,0.6)',
     }
   } else {
     dataset = {
-      label: 'Ratio (Blocks/Time)',
+      label: 'Ratio (Time/Blocks)',
       data: ratios,
       backgroundColor: 'rgba(239,144,57,0.6)',
     }
@@ -136,10 +135,10 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
     (name) => chains[name].chainId === chainId
   )
   const [fromDate, setFromDate] = useState<Date | null>(
-    new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    new Date(Date.now() - 4 * 24 * 60 * 60 * 1000) // 2 days ago
   )
   const [toDate, setToDate] = useState<Date | null>(new Date())
-  const [range, setRange] = useState<GroupRange>('hour')
+  const [range, setRange] = useState<GroupRange>('day')
   const [response, setResponse] = useState<AverageFinalityTimeViewModel>({
     data: [],
   })
@@ -157,8 +156,8 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
         const data = await syncStatusApi.getAverageFinalityTime(
           chainId,
           range,
-          fromDate,
-          toDate
+          fromDate || undefined,
+          toDate || undefined
         )
         setResponse(data)
       } catch (error) {
@@ -247,7 +246,7 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
         }}
       >
         <Typography variant="body1" align="center" margin={10}>
-          No data available for specified range
+          No data available.
         </Typography>
       </Paper>
     )
@@ -366,11 +365,14 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
               onChange={handleSectionChange}
               label="Data Section"
             >
-              {enabledSyncStatuses.map((status) => (
+              {enabledSyncStatuses.map((status: any) => (
                 <MenuItem key={status} value={status}>
                   {status
                     .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .map(
+                      (word: any) =>
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    )
                     .join(' ')}
                 </MenuItem>
               ))}
@@ -385,9 +387,9 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
               onChange={handleMetricChange}
               label="Metric"
             >
-              <MenuItem value="blockDiff">L2 Block difference</MenuItem>
-              <MenuItem value="timeDiff">Time difference (s)</MenuItem>
-              <MenuItem value="ratio">Ratio (Blocks/Time)</MenuItem>
+              <MenuItem value="blockDiff">Average L2 Block difference</MenuItem>
+              <MenuItem value="timeDiff">Average Time difference (s)</MenuItem>
+              <MenuItem value="ratio">Ratio (Time/Blocks)</MenuItem>
             </Select>
           </FormControl>
         </Grid>

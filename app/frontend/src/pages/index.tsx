@@ -18,6 +18,7 @@ import FinalityTimeseries from '@/components/charts/FinalityTimeseries'
 import { blocksApi } from '@/api/blocksApi'
 import { LatestBlockViewModel } from '@/shared/api/viewModels/BlocksEndpoint'
 import IndexerStatus from '@/components/ui/IndexerStatus'
+import VaRLiveLineChart from '@/components/charts/VaRLiveLineChart'
 
 const pageTitle: string = 'L2 Finality Dashboard'
 const pageDescription: string =
@@ -28,6 +29,7 @@ export const FETCH_LIVE_DATA_INTERVAL_MS = 10000
 const Index = () => {
   const [chainId, setChainId] = React.useState<number>(10)
   const [latestBlock, setLatestBlock] = React.useState<LatestBlockViewModel>({
+    success: false,
     data: {},
   })
   const [healthData, setHealthData] = React.useState<
@@ -109,7 +111,7 @@ const Index = () => {
             </Paper>
           </Grid>
 
-          {/* LiveVaR Section */}
+          {/* LiveVaR Bar Section */}
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <VaRLiveSection chainId={chainId} />
           </Grid>
