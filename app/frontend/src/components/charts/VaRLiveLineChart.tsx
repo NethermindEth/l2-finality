@@ -1,44 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Line } from 'react-chartjs-2'
 import 'chart.js/auto'
 import 'chartjs-adapter-date-fns'
 import { Chart, ChartOptions, registerables } from 'chart.js'
 import { BlockVarViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
 import { Box, Paper, Typography, CircularProgress } from '@mui/material'
-import { syncStatusApi } from '@/api/syncStatusApi'
 import { transformData, ViewMode } from '@/components/charts/dataFormatters/var'
 import VaRTypeSelectorComponent from '@/components/charts/utils/VaRTypeSelectorComponent'
 
 Chart.register(...registerables)
 
-interface VaRHistoryChartProps {
-  chainId: number
+interface VaRLiveLineChartProps {
+  liveVarData: BlockVarViewModel[]
 }
 
-const VaRLiveLineChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
-  const [liveVarData, setLiveVarData] = useState<BlockVarViewModel[]>([])
-  const [viewMode, setViewMode] = useState<ViewMode>('by_contract')
+const VaRLiveLineChart: React.FC<VaRLiveLineChartProps> = ({ liveVarData }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>('by_type')
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
-    const fetchLiveData = async () => {
-      setLoading(true)
-      try {
-        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(chainId)
-        setLiveVarData(syncStatusHistoryVar.data)
-      } catch (error) {
-        console.error('Error fetching VaRLiveLineChart data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLiveData()
-
-    const interval = setInterval(fetchLiveData, 15000) // Fetch data every 15 seconds
-
-    return () => clearInterval(interval) // Clean up the interval on component unmount
-  }, [chainId])
+    setLoading(false)
+  }, [liveVarData])
 
   if (loading) {
     return (
@@ -82,9 +64,6 @@ const VaRLiveLineChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
   const chartData = transformData(liveVarData, viewMode)
 
   const options = {
-    animation: {
-      duration: 0,
-    },
     scales: {
       x: {
         type: 'time',

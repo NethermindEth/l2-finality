@@ -16,10 +16,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import moment from 'moment'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import chains from '@/shared/chains.json'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
+import moment from 'moment'
 
 interface SyncStatusRecord {
   l2_block_number: string
@@ -178,7 +178,13 @@ const SyncStatusTable: React.FC<TableProps> = ({
               <TableBody>
                 {data.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{moment(row.timestamp).fromNow()}</TableCell>
+                    <TableCell>
+                      <Tooltip title={new Date(row.timestamp).toLocaleString()}>
+                        <Typography variant="body2">
+                          {moment(row.timestamp).fromNow()}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell>
                       {getSubmissionTypeName(row.submission_type)}
                     </TableCell>

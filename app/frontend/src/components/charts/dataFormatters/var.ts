@@ -17,100 +17,77 @@ export const transformData = (
   dataSection: BlockVarViewModel[],
   viewMode: ViewMode
 ): { datasets: ChartDataset[]; labels: string[] } => {
-  let labels = new Set<string>()
+  const labels = Array.from(
+    new Set(dataSection.map((entry) => entry.timestamp.toString()))
+  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+
+  const uniqueItems = new Set<string>()
   dataSection.forEach((entry) => {
-    labels.add(entry.timestamp.toString())
+    if (viewMode === 'by_contract') {
+      entry.by_contract.forEach((contract) =>
+        uniqueItems.add(getContractLabel(contract))
+      )
+    } else if (viewMode === 'by_type') {
+      entry.by_type.forEach((type) => uniqueItems.add(type.type))
+    }
   })
 
-  let sortedLabels = Array.from(labels).sort(
-    (a, b) => new Date(a).getTime() - new Date(b).getTime()
-  )
+  const datasets: ChartDataset[] = Array.from(uniqueItems).map((item) => {
+    const data = labels.map((timestamp) => {
+      const entry = dataSection.find(
+        (entry) => entry.timestamp.toString() === timestamp
+      )
+      if (entry) {
+        if (viewMode === 'by_contract') {
+          const contract = entry.by_contract.find(
+            (contract) => getContractLabel(contract) === item
+          )
+          return { x: timestamp, y: contract ? contract.var_usd : 0 }
+        } else if (viewMode === 'by_type') {
+          const type = entry.by_type.find((type) => type.type === item)
+          return { x: timestamp, y: type ? type.var_usd : 0 }
+        }
+      }
+      return { x: timestamp, y: 0 }
+    })
 
-  if (viewMode === 'by_contract') {
-    const datasets: ChartDataset[] = []
-    dataSection.forEach((entry) => {
-      entry.by_contract.forEach((contract) => {
-        const label = getContractLabel(contract)
-        const existingDataset = datasets.find(
-          (dataset) => dataset.label === label
-        )
-        if (existingDataset) {
-          existingDataset.data.push({
-            x: entry.timestamp.toString(),
-            y: contract.var_usd,
-          })
-        } else {
-          const color = getColorForAsset(label, 0.5)
-          const newDataset: ChartDataset = {
-            label,
-            data: [{ x: entry.timestamp.toString(), y: contract.var_usd }],
-            backgroundColor: color,
-            borderColor: color.replace('0.5', '1'),
-            borderWidth: 1,
-            tension: 0.1,
-            fill: true,
-            pointRadius: 0,
-          }
-          datasets.push(newDataset)
-        }
-      })
-    })
+    const color = getColorForAsset(item, 0.5)
     return {
-      datasets,
-      labels: datasets.flatMap((dataset) => dataset.data.map((d) => d.x)),
+      label: item,
+      data,
+      backgroundColor: color,
+      borderColor: color.replace('0.5', '1'),
+      borderWidth: 1,
+      tension: 0.1,
+      fill: true,
+      pointRadius: 0,
     }
-  } else if (viewMode === 'by_type') {
-    const datasets: any[] = dataSection.reduce((acc, entry) => {
-      entry.by_type.forEach((type) => {
-        const existingDataset = acc.find(
-          (dataset: any) => dataset.label === type.type
-        )
-        if (existingDataset) {
-          // @ts-ignore
-          existingDataset.data.push({
-            x: entry.timestamp.toString(),
-            y: type.var_usd,
-          })
-        } else {
-          const color = getColorForAsset(type.type, 0.5)
-          const newDataset: ChartDataset = {
-            label: type.type,
-            data: [{ x: entry.timestamp.toString(), y: type.var_usd }],
-            backgroundColor: color,
-            borderColor: color.replace('0.5', '1'),
-            borderWidth: 1,
-            tension: 0.1,
-            fill: true,
-            pointRadius: 0,
-          }
-          // @ts-ignore
-          acc.push(newDataset)
-        }
-      })
-      return acc
-    }, [])
-    return { datasets, labels: sortedLabels }
-  } else {
-    const data = dataSection.map((entry) => {
-      const sum = entry.by_type.reduce((acc, type) => acc + type.var_usd, 0)
-      return { x: entry.timestamp.toString(), y: sum }
+  })
+
+  if (viewMode === 'all') {
+    const data = labels.map((timestamp) => {
+      const entry = dataSection.find(
+        (entry) => entry.timestamp.toString() === timestamp
+      )
+      const sum = entry
+        ? entry.by_type.reduce((acc, type) => acc + type.var_usd, 0)
+        : 0
+      return { x: timestamp, y: sum }
     })
-    return {
-      datasets: [
-        {
-          label: 'All',
-          data,
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-          borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1,
-          tension: 0.1,
-          fill: true,
-          pointRadius: 0,
-        },
-      ],
-      labels: sortedLabels,
-    }
+
+    datasets.push({
+      label: 'All',
+      data,
+      backgroundColor: 'rgba(75, 192, 192, 0.5)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 1,
+      tension: 0.1,
+      fill: true,
+      pointRadius: 0,
+    })
   }
+
+  return { datasets, labels }
 }
 
 const getContractLabel = (contract: any): string => {

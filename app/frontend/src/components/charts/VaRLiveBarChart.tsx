@@ -12,11 +12,11 @@ import {
 
 Chart.register(ChartDataLabels)
 
-interface VaRLiveGraphProps {
+interface VaRLiveBarChartGraphProps {
   data: VarByContractViewModel[] | VarByTypeViewModel[]
 }
 
-const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
+const VaRLiveBarChart: React.FC<VaRLiveBarChartGraphProps> = ({ data }) => {
   if (!data || data.length === 0) {
     return <Typography>No data available</Typography>
   }
@@ -28,7 +28,7 @@ const VaRLiveGraph: React.FC<VaRLiveGraphProps> = ({ data }) => {
   }
 
   const totalValue = data.reduce((acc, item) => acc + item.var_usd, 0)
-  const threshold = totalValue / data.length
+  const threshold = totalValue * 0.05
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const topThreeItems = useMemo(() => {
@@ -162,8 +162,19 @@ const getColorForItem = (itemName: string) => {
     hash = Math.abs(hash)
   }
 
+  if (itemName === 'Token transfer') {
+    return '#f48c36'
+  } else if (itemName === 'Token swap') {
+    return '#4caf50'
+  } else if (itemName === 'Native transfer') {
+    return '#2196f3'
+  } else if (itemName === 'Block reward') {
+    return '#8c00ff'
+  } else if (itemName === 'Gas fees') {
+    return '#9e9e9e'
+  }
   const hue = hash % 360
   return `hsl(${hue}, 80%, 60%)`
 }
 
-export default VaRLiveGraph
+export default VaRLiveBarChart

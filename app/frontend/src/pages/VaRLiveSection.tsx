@@ -7,13 +7,13 @@ import {
   Paper,
   Typography,
 } from '@mui/material'
-import VaRLiveGraph from '@/components/charts/VaRLiveBarChart'
+import VaRLiveBarChart from '@/components/charts/VaRLiveBarChart'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import {
   BlockVarViewModel,
   VarByContractViewModel,
   VarByTypeViewModel,
-  VaRLiveDataViewModel,
+  VaRHistoryDataViewModel,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
 import { FETCH_LIVE_DATA_INTERVAL_MS } from '@/pages/index'
 import VaRLiveLineChart from '@/components/charts/VaRLiveLineChart'
@@ -28,16 +28,15 @@ interface DataCategory {
 }
 
 const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
-  const [liveVarData, setLiveVarData] = useState<VaRLiveDataViewModel | null>(
-    null
-  )
+  const [historyVarData, setHistoryVarData] =
+    useState<VaRHistoryDataViewModel | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const syncStatusLiveVar = await syncStatusApi.getLiveVaR(chainId)
-        setLiveVarData(syncStatusLiveVar)
+        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(chainId)
+        setHistoryVarData(syncStatusHistoryVar)
       } catch (error) {
         console.error('Error fetching live VaR data:', error)
       } finally {
@@ -54,14 +53,17 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
   }, [chainId])
 
   const dataCategories: DataCategory[] = [
-    { name: 'By asset', dataKey: 'by_contract' },
-    { name: 'By action ', dataKey: 'by_type' },
+    { name: 'By contract', dataKey: 'by_contract' },
+    { name: 'By type ', dataKey: 'by_type' },
   ]
 
   const validDataSections =
-    liveVarData && liveVarData.success && liveVarData.data
+    historyVarData && historyVarData.success && historyVarData.data
       ? dataCategories.filter((category) => {
-          const data = liveVarData.data[category.dataKey]
+          const data =
+            historyVarData.data[historyVarData.data.length - 1][
+              category.dataKey as keyof BlockVarViewModel
+            ]
           return Array.isArray(data) && data.length > 0
         })
       : []
@@ -89,7 +91,7 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
     )
   }
 
-  if (!liveVarData || !liveVarData.success) {
+  if (!historyVarData || !historyVarData.success) {
     return (
       <Paper
         sx={{
@@ -105,7 +107,7 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
         }}
       >
         <Typography variant="body1" align="center" sx={{ mt: 2 }}>
-          No data found
+          No data found. L2 block head may be behind.
         </Typography>
       </Paper>
     )
@@ -123,7 +125,9 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
       <Box sx={{ color: 'text.secondary', mb: 2, fontWeight: 'bold' }}>
         Current L2 value at risk
       </Box>
-
+      <Box sx={{ padding: 2 }}>
+        <VaRLiveLineChart liveVarData={historyVarData.data} />
+      </Box>
       <Container>
         {validDataSections.length > 0 ? (
           <Grid container spacing={2}>
@@ -139,14 +143,23 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
                   elevation={0}
                   sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 2 }}
                 >
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 1,
+                      ml: 1,
+                      mt: 1,
+                      fontWeight: 'bold',
+                      color: 'darkgrey',
+                    }}
+                  >
                     {section.name}
                   </Typography>
-                  <VaRLiveGraph
+                  <VaRLiveBarChart
                     data={
-                      liveVarData.data[section.dataKey] as
-                        | VarByContractViewModel[]
-                        | VarByTypeViewModel[]
+                      historyVarData.data[historyVarData.data.length - 1][
+                        section.dataKey
+                      ] as VarByContractViewModel[] | VarByTypeViewModel[]
                     }
                   />
                 </Paper>
@@ -159,10 +172,6 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
           </Typography>
         )}
       </Container>
-
-      <Box sx={{ padding: 2 }}>
-        <VaRLiveLineChart chainId={chainId} />
-      </Box>
     </Paper>
   )
 }

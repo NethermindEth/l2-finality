@@ -31,17 +31,19 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
     new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
   )
   const [toDate, setToDate] = useState<Date | null>(new Date())
-  const [viewMode, setViewMode] = useState<ViewMode>('by_type')
+  const [viewMode, setViewMode] = useState<ViewMode>('by_contract')
   const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const fetchHistoricalData = async () => {
       setLoading(true)
       try {
+        const precision = calculatePrecision(fromDate, toDate)
         const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(
           chainId,
           fromDate || undefined,
-          toDate || undefined
+          toDate || undefined,
+          precision || undefined
         )
         setHistoryVarData(syncStatusHistoryVar.data)
       } catch (error) {
@@ -53,6 +55,29 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
 
     fetchHistoricalData()
   }, [chainId, fromDate, toDate])
+
+  const calculatePrecision = (
+    fromDate: Date | null,
+    toDate: Date | null
+  ): number | null => {
+    if (fromDate && toDate) {
+      const durationInSeconds = Math.floor(
+        (toDate.getTime() - fromDate.getTime()) / 1000
+      )
+      const oneDayInSeconds = 24 * 60 * 60
+      const oneWeekInSeconds = 7 * oneDayInSeconds
+
+      if (durationInSeconds <= oneDayInSeconds) {
+        return 60 // 1 minute precision for duration <= 1 day
+      } else if (durationInSeconds <= oneWeekInSeconds) {
+        return 900 // 15 minutes precision for duration <= 1 week
+      } else {
+        return 3600 // 1 hour precision for duration > 1 week
+      }
+    }
+
+    return null // FUll precision
+  }
 
   if (loading) {
     return (
@@ -132,7 +157,7 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
     responsive: true,
     plugins: {
       legend: {
-        display: viewMode !== 'all',
+        display: viewMode == 'by_type',
       },
       title: {
         display: true,
@@ -148,15 +173,16 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
             if (label) {
               label += ': '
             }
-            if (context.parsed.y !== null) {
+            if (context.parsed.y !== null && context.parsed.y !== 0) {
               label +=
                 '$' +
                 context.parsed.y.toLocaleString(undefined, {
                   minimumFractionDigits: 0,
                   maximumFractionDigits: 0,
                 })
+              return label
             }
-            return label
+            return null
           },
         },
         mode: viewMode !== 'all' ? 'index' : 'nearest',

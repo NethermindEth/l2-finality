@@ -3,7 +3,6 @@ import {
   AverageFinalityTimeViewModel,
   SyncStatusViewModel,
   VaRHistoryDataViewModel,
-  VaRLiveDataViewModel,
 } from '../../../shared/api/viewModels/SyncStatusEndpoint'
 
 const apiClient = new ApiClient()
@@ -35,19 +34,11 @@ export const syncStatusApi = {
     return apiClient.get<AverageFinalityTimeViewModel>(url)
   },
 
-  getLiveVaR(
-    chainId: number,
-    useName: boolean = true
-  ): Promise<VaRLiveDataViewModel> {
-    return apiClient.get<VaRLiveDataViewModel>(
-      `/api/state/var/live?chainId=${chainId}&useNames=${useName}`
-    )
-  },
-
   getHistoryVaR(
     chainId: number,
     from?: Date,
-    to?: Date
+    to?: Date,
+    precision?: number
   ): Promise<VaRHistoryDataViewModel> {
     let url = `/api/state/var/history?chainId=${chainId}`
     if (from) {
@@ -55,6 +46,9 @@ export const syncStatusApi = {
     }
     if (to) {
       url += `&to=${to.toISOString()}`
+    }
+    if (precision) {
+      url += `&precision=${precision}`
     }
     return apiClient.get<VaRHistoryDataViewModel>(url)
   },
