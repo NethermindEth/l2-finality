@@ -46,12 +46,10 @@ export const syncStatusApi = {
 
   getHistoryVaR(
     chainId: number,
-    range: string,
     from?: Date,
-    to?: Date,
-    useName: boolean = true
+    to?: Date
   ): Promise<VaRHistoryDataViewModel> {
-    let url = `/api/state/var/history?chainId=${chainId}&range=${range}&useNames=${useName}`
+    let url = `/api/state/var/history?chainId=${chainId}`
     if (from) {
       url += `&from=${from.toISOString()}`
     }

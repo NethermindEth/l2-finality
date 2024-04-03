@@ -32,6 +32,7 @@ interface SyncStatusRecord {
 
 interface TableProps {
   data: SyncStatusRecord[]
+  chainId: number
   page: number
   pageSize: number
   totalRows: number
