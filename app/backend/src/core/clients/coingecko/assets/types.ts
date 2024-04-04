@@ -1,6 +1,7 @@
 import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
 import { ZeroAddress } from "ethers";
 import { getAddress } from "@/core/clients/blockchain/IBlockchainClient";
+import { getAnyAddress } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface WhitelistedAsset {
   name: string;
@@ -47,7 +48,7 @@ export class WhitelistedMap {
     const chainMap = this[chainId];
     if (!chainMap) return undefined;
 
-    const checksumAddress = cachedAddress ?? getAddress(address);
+    const checksumAddress = cachedAddress ?? getAnyAddress(address);
     const result = chainMap[checksumAddress];
 
     if (result && !cachedAddress) {

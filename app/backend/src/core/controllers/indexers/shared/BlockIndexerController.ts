@@ -18,7 +18,7 @@ abstract class BlockIndexerController {
   protected indexerConfig: BlockIndexerConfig;
   protected database: Database;
 
-  protected client: any;
+  protected client: IBlockchainClient;
   private blockAppraiser: BlockAppraiser;
   protected chainId: number;
   protected blockValueRepository: BlockValueRepository;
