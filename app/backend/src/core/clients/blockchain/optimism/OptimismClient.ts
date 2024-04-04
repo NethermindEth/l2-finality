@@ -12,6 +12,7 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 
 class OptimismClient implements IBlockchainClient {
   private readonly provider: ethers.JsonRpcProvider;
@@ -54,7 +55,8 @@ class OptimismClient implements IBlockchainClient {
         ethersToTransactionReceipt(
           receipt,
           receipt.transactionHash,
-          receipt.l1GasPrice,
+          undefined,
+          whitelistedMap.getAssetBySymbol(this.chainId, "ETH")?.address,
         ),
       );
     }
