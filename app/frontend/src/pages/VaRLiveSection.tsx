@@ -58,12 +58,16 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
   ]
 
   const validDataSections =
-    historyVarData && historyVarData.success && historyVarData.data
+    historyVarData &&
+    historyVarData.success &&
+    historyVarData.data &&
+    historyVarData.data.length > 0
       ? dataCategories.filter((category) => {
+          const lastDataEntry =
+            historyVarData.data[historyVarData.data.length - 1]
           const data =
-            historyVarData.data[historyVarData.data.length - 1][
-              category.dataKey as keyof BlockVarViewModel
-            ]
+            lastDataEntry &&
+            lastDataEntry[category.dataKey as keyof BlockVarViewModel]
           return Array.isArray(data) && data.length > 0
         })
       : []

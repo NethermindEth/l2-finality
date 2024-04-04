@@ -246,7 +246,7 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
         }}
       >
         <Typography variant="body1" align="center" margin={10}>
-          No data available.
+          Error fetching data.
         </Typography>
       </Paper>
     )

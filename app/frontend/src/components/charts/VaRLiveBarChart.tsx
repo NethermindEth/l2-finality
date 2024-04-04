@@ -18,7 +18,7 @@ interface VaRLiveBarChartGraphProps {
 
 const VaRLiveBarChart: React.FC<VaRLiveBarChartGraphProps> = ({ data }) => {
   if (!data || data.length === 0) {
-    return <Typography>No data available</Typography>
+    return <Typography>Error fetching data.</Typography>
   }
 
   const isContractData = (
