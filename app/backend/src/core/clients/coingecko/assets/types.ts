@@ -1,6 +1,5 @@
 import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
-import { ZeroAddress } from "ethers";
-import { getAddress } from "@/core/clients/blockchain/IBlockchainClient";
+import { ethers, ZeroAddress } from "ethers";
 import { getAnyAddress } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface WhitelistedAsset {
@@ -62,6 +61,17 @@ export class WhitelistedMap {
     if (address == ZeroAddress) return "ETH";
 
     return this.getAssetByAddress(chainId, address)?.symbol;
+  }
+
+  adjustValue(
+    chainId: number,
+    address: string,
+    value: bigint,
+  ): number | undefined {
+    const asset = this.getAssetByAddress(chainId, address);
+    if (!asset) return undefined;
+
+    return parseFloat(ethers.formatUnits(value.toString(), asset.decimals));
   }
 }
 

@@ -2,11 +2,12 @@ import { Config } from "@/config";
 import Logger from "@/tools/Logger";
 import {
   Block,
+  getStarknetAddress,
   IBlockchainClient,
   Log,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
-import { constants, getChecksumAddress, hash, RpcProvider } from "starknet";
+import { constants, hash, RpcProvider } from "starknet";
 import { TransferLogEvent } from "@/core/controllers/appraiser/handlers/BaseHandler";
 
 class StarknetClient implements IBlockchainClient {
@@ -52,9 +53,8 @@ class StarknetClient implements IBlockchainClient {
       hash: block.block_hash,
       number: 1,
       timestamp: block.timestamp,
-      // block has 2 gas prices: for ETH and for STRK
-      // both are handled as Transfer events to the sequencer address in the logs
       baseFeePerGas: 0n,
+      sequencerAddress: getStarknetAddress(block.sequencer_address),
       transactions: block.transactions.map((t) => ({
         blockNumber: block.block_number,
         hash: t.transaction_hash,
@@ -73,22 +73,15 @@ class StarknetClient implements IBlockchainClient {
       block.hash,
     );
     return blockWithReceipts.transactions.map((t) =>
-      this.starknetToTransactionReceipt(t.receipt),
+      this.starknetToTransactionReceipt(t.receipt, block),
     );
-  }
-
-  public async getTransactionReceipt(
-    txHash: string,
-  ): Promise<TransactionReceipt | undefined> {
-    const receipt = await this.provider.getTransactionReceipt(txHash);
-    return this.starknetToTransactionReceipt(receipt);
   }
 
   public getTransferEvent(log: Log): TransferLogEvent | undefined {
     if (log.topics[0] === this.TransferEventHash && log.topics.length == 5) {
-      const contractAddress = this.getAddress(log.address);
-      const fromAddress = this.getAddress(log.topics[1]);
-      const toAddress = this.getAddress(log.topics[2]);
+      const contractAddress = getStarknetAddress(log.address);
+      const fromAddress = getStarknetAddress(log.topics[1]);
+      const toAddress = getStarknetAddress(log.topics[2]);
       const rawAmount = (BigInt(log.topics[4]) << 128n) | BigInt(log.topics[3]);
 
       return {
@@ -100,23 +93,57 @@ class StarknetClient implements IBlockchainClient {
     }
   }
 
-  private getAddress(address: string): string {
-    if (address == "0x0" || address == "0x1") return address;
-    return getChecksumAddress(address);
-  }
+  private starknetToTransactionReceipt(
+    t: any,
+    block: Block,
+  ): TransactionReceipt {
+    const logs = t.events.map((e: any) => ({
+      address: e.from_address,
+      data: "0x",
+      topics: e.keys.concat(e.data),
+      transactionHash: t.transaction_hash,
+    }));
 
-  private starknetToTransactionReceipt(t: any): TransactionReceipt {
+    const gas = this.extractGasValue(logs, block, t);
+
     return {
       hash: t.transaction_hash,
-      gasUsed: BigInt(0), // TODO
-      gasPrice: BigInt(0), // TODO
-      logs: t.events.map((e: any) => ({
-        address: e.from_address,
-        data: "0x",
-        topics: e.keys.concat(e.data),
-        transactionHash: t.transaction_hash,
-      })),
+      gasUsed: 1n,
+      gasPrice: gas?.amount ?? 0n,
+      gasAsset: gas?.asset,
+      logs: logs,
     };
+  }
+
+  private extractGasValue(
+    logs: Log[],
+    block: Block,
+    t: any,
+  ): { amount: bigint; asset: string } | undefined {
+    let gas: { amount: bigint; asset: string } | undefined = undefined;
+
+    const actualFeeAmount = t.actual_fee?.amount;
+    if (!actualFeeAmount || actualFeeAmount == "0x0") return gas;
+
+    for (let i = logs.length - 1; i >= 0; i--) {
+      const transfer = this.getTransferEvent(logs[i]);
+      if (
+        transfer?.toAddress == block.sequencerAddress &&
+        transfer?.rawAmount == BigInt(t.actual_fee.amount)
+      ) {
+        gas = { amount: transfer!.rawAmount, asset: transfer!.contractAddress };
+        logs.splice(i, 1);
+        break;
+      }
+    }
+
+    if (!gas) {
+      this.logger.error(
+        `No fee transfer found in Starknet tx ${t.transaction_hash}`,
+      );
+    }
+
+    return gas;
   }
 }
 
