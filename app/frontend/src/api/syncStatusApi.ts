@@ -3,7 +3,7 @@ import {
   AverageFinalityTimeViewModel,
   SyncStatusViewModel,
   VaRHistoryDataViewModel,
-} from '../../../shared/api/viewModels/SyncStatusEndpoint'
+} from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 const apiClient = new ApiClient()
 
