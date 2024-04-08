@@ -97,23 +97,6 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
     )
   }
 
-  if (historyVarData.length === 0) {
-    return (
-      <Paper
-        sx={{
-          p: 2,
-          borderRadius: 4,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          width: '80%',
-        }}
-      >
-        <Typography variant="body1" align="center" margin={10}>
-          Error fetching data.
-        </Typography>
-      </Paper>
-    )
-  }
-
   const chartData = transformData(historyVarData, viewMode)
 
   const options = {
@@ -237,10 +220,18 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
           </FormControl>
         </Grid>
       </Grid>
-      <Line
-        data={{ labels: chartData.labels, datasets: chartData.datasets }}
-        options={options as ChartOptions<'line'>}
-      />
+      {historyVarData.length === 0 ? (
+        <>
+          <Typography variant="body1" align="center" margin={10}>
+            No data available for this range.
+          </Typography>
+        </>
+      ) : (
+        <Line
+          data={{ labels: chartData.labels, datasets: chartData.datasets }}
+          options={options as ChartOptions<'line'>}
+        />
+      )}
     </Paper>
   )
 }
