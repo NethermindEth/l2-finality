@@ -94,7 +94,7 @@ const SyncStatusTable: React.FC<TableProps> = ({
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    onRowsPerPageChange(parseInt(event.target.value, 5))
+    onRowsPerPageChange(parseInt(event.target.value))
   }
 
   const getSubmissionTypeName = (submissionType: string) => {
