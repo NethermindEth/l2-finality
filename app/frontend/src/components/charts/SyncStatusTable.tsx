@@ -169,7 +169,7 @@ const SyncStatusTable: React.FC<TableProps> = ({
                 <TableRow>
                   <TableCell>
                     <Box display="flex" alignItems="center">
-                      <Typography variant="body2">
+                      <Typography variant="body2 bold">
                         Submission timestamp
                       </Typography>
                       <Tooltip

@@ -74,7 +74,10 @@ const VaRLiveLineChart: React.FC<VaRLiveLineChartProps> = ({ liveVarData }) => {
             week: 'yyyy-MM-dd',
             month: 'yyyy-MM',
             hour: 'MM/dd HH:mm',
+            minute: 'HH:mm',
+            second: 'HH:mm:ss',
           },
+          unit: 'second',
         },
         ticks: {
           source: 'data',
