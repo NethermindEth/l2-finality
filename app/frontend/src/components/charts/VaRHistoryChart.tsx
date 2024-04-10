@@ -121,7 +121,7 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
         },
         title: {
           display: true,
-          text: 'Timestamp',
+          text: 'L2 block timestamp',
         },
       },
       y: {

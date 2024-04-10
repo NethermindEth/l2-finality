@@ -85,7 +85,7 @@ const VaRLiveLineChart: React.FC<VaRLiveLineChartProps> = ({ liveVarData }) => {
         },
         title: {
           display: true,
-          text: 'Timestamp',
+          text: 'L2 block timestamp',
         },
       },
       y: {
