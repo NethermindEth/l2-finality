@@ -14,7 +14,6 @@ This project is dedicated to measuring Layer 2 finality, quantifying assets at r
 - Starknet
 - Polygon zkEVM
 
-## Sc
 
 ## Project Structure
 The L2 Finality project consists of a backend and a frontend component. For more details about each component, please refer to their respective README files:
