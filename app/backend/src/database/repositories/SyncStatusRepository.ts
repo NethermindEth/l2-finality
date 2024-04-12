@@ -28,6 +28,10 @@ export interface SyncStatusRecord {
   submission_type: SubmissionType;
 }
 
+export interface SyncStatusExRecord extends SyncStatusRecord {
+  l2_block_timestamp: Date;
+}
+
 export interface SubmissionInterval {
   timestamp: Date;
   timeDiff: UnixTime;
@@ -105,18 +109,25 @@ export class SyncStatusRepository {
     chainId: number,
     page: number = 1,
     pageSize: number = 10,
-  ): Promise<SyncStatusRecord[]> {
+  ): Promise<SyncStatusExRecord[]> {
     const offset = (page - 1) * pageSize;
-    return this.knex(TABLE_NAME)
+    return this.knex({ s: TABLE_NAME })
       .select(
-        "l2_block_number",
-        "l2_block_hash",
-        "l1_block_number",
-        "l1_block_hash",
-        "timestamp",
-        "submission_type",
+        "s.l2_block_number",
+        "s.l2_block_hash",
+        "s.l1_block_number",
+        "s.l1_block_hash",
+        "s.timestamp",
+        "s.submission_type",
+        "l2.l2_block_timestamp",
       )
       .where("chain_id", chainId)
+      .join(
+        { l2: chainTableMapping[chainId] },
+        "s.l2_block_number",
+        "=",
+        "l2.l2_block_number",
+      )
       .orderBy("timestamp", "desc")
       .limit(pageSize)
       .offset(offset);
