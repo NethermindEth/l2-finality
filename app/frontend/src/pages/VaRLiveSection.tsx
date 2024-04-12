@@ -87,9 +87,8 @@ const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
           minHeight: '200px',
         }}
       >
-        <CircularProgress />
-        <Typography variant="body1" align="center" sx={{ mt: 2 }}>
-          Loading ...
+        <Typography variant="body1" align="center" margin={10}>
+          <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
         </Typography>
       </Paper>
     )

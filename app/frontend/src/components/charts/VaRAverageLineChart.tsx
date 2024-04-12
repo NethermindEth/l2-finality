@@ -19,10 +19,15 @@ import {
 } from '@mui/material'
 import { ViewMode } from '@/components/charts/dataFormatters/var'
 import React, { useEffect, useState } from 'react'
-import { BlockVarViewModel } from '../../../../shared/api/viewModels/SyncStatusEndpoint'
+import {
+  AverageVarViewModel,
+  AverageDetailsViewModel,
+} from '../../../../shared/api/viewModels/SyncStatusEndpoint'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
+import { Line } from 'react-chartjs-2'
+import { VaRAverageDataViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 interface VaRAverageLineChartProps {
   chainId: number
@@ -31,8 +36,9 @@ interface VaRAverageLineChartProps {
 const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
   chainId,
 }) => {
-  const [averageVarData, setAverageVarData] = useState<BlockVarViewModel[]>([])
-  const [viewMode, setViewMode] = useState<ViewMode>('by_contract')
+  const [averageVarData, setAverageVarData] =
+    useState<AverageDetailsViewModel | null>(null)
+  const [viewMode, setViewMode] = useState<ViewMode>('all')
   const [showExample, setShowExample] = useState(false)
   const [loading, setLoading] = useState<boolean>(true)
   const [selectedDays, setSelectedDays] = useState<number>(3)
@@ -43,15 +49,15 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       try {
         const toDate = new Date()
         const fromDate = new Date(
-          toDate.getTime() - selectedDays * 24 * 60 * 60 * 1000 * 0.2
+          toDate.getTime() - selectedDays * 24 * 60 * 60 * 1000
         )
-        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(
+        const averageData = await syncStatusApi.getAverageVaR(
           chainId,
           fromDate,
           toDate,
           undefined
         )
-        setAverageVarData(syncStatusHistoryVar.data)
+        setAverageVarData(averageData.data)
       } catch (error) {
         console.error('Error fetching average VaR data:', error)
       } finally {
@@ -61,6 +67,174 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
 
     fetchData()
   }, [chainId, selectedDays])
+
+  const generateChartData = () => {
+    if (!averageVarData || !Array.isArray(averageVarData.values)) {
+      return {
+        labels: [],
+        datasets: [],
+      }
+    }
+
+    const labels = averageVarData.values.map((data) => {
+      const minutes = Math.floor(data.timestamp / 60)
+      const seconds = data.timestamp % 60
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    })
+
+    const datasets = []
+
+    if (viewMode === 'all') {
+      const allData = averageVarData.values.map((data) =>
+        data.by_contract.reduce((sum, contract) => sum + contract.var_usd, 0)
+      )
+      datasets.push({
+        label: 'All Contracts',
+        data: allData,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+        fill: true,
+        pointRadius: 0,
+        pointHitRadius: 0,
+        pointHoverRadius: 0,
+      })
+    } else if (viewMode === 'by_contract') {
+      const contractData: { [key: string]: number[] } = {}
+      averageVarData.values.forEach((data) => {
+        data.by_contract.forEach((contract) => {
+          if (!contractData[contract.address]) {
+            contractData[contract.address] = []
+          }
+          contractData[contract.address].push(contract.var_usd)
+        })
+      })
+
+      Object.entries(contractData).forEach(([contractAddress, data], index) => {
+        datasets.push({
+          label: contractAddress,
+          data,
+          backgroundColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 0.2)`,
+          borderColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 1)`,
+          borderWidth: 1,
+          fill: true,
+          pointRadius: 0,
+          pointHitRadius: 0,
+          pointHoverRadius: 0,
+        })
+      })
+    } else if (viewMode === 'by_type') {
+      const typeData: { [key: string]: number[] } = {}
+      averageVarData.values.forEach((data) => {
+        data.by_type.forEach((type) => {
+          if (!typeData[type.type]) {
+            typeData[type.type] = []
+          }
+          typeData[type.type].push(type.var_usd)
+        })
+      })
+
+      Object.entries(typeData).forEach(([typeName, data], index) => {
+        datasets.push({
+          label: typeName,
+          data,
+          backgroundColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 0.2)`,
+          borderColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 1)`,
+          borderWidth: 1,
+          fill: true,
+          pointRadius: 0,
+          pointHitRadius: 0,
+          pointHoverRadius: 0,
+        })
+      })
+    }
+
+    if (averageVarData.values.length > 0) {
+      datasets.push(
+        {
+          label: 'Min VaR USD',
+          data: averageVarData.values.map((data) => data.min_var_usd),
+          borderColor: 'rgba(255, 0, 0, 1)',
+          borderWidth: 2,
+          fill: false,
+          pointRadius: 0,
+        },
+        {
+          label: 'Max VaR USD',
+          data: averageVarData.values.map((data) => data.max_var_usd),
+          borderColor: 'rgba(255, 0, 0, 1)',
+          borderWidth: 2,
+          fill: false,
+          pointRadius: 0,
+        }
+      )
+    }
+
+    return {
+      labels,
+      datasets,
+    }
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      title: {
+        display: true,
+        text: 'Average VaR Over Time',
+      },
+      tooltip: {
+        enabled: true,
+        mode: 'nearest',
+        intersect: false,
+        callbacks: {
+          label: (context: any) => {
+            const label = context.dataset.label || ''
+            const value = context.parsed.y
+            return `${label}: ${value.toLocaleString()}`
+          },
+        },
+      },
+      datalabels: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Timestamp',
+        },
+        ticks: {
+          display: true,
+        },
+        grid: {
+          display: false,
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'VaR (USD)',
+        },
+        ticks: {
+          display: true,
+        },
+        grid: {
+          display: true,
+        },
+      },
+    },
+    elements: {
+      point: {
+        radius: 0,
+        hoverRadius: 5,
+      },
+    },
+  }
 
   return (
     <Paper
@@ -156,22 +330,14 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10, mb: 10 }}>
           <CircularProgress />
         </Box>
-      ) : averageVarData.length === 0 ? (
+      ) : averageVarData === null || averageVarData.values.length === 0 ? (
         <Typography variant="body1" align="center" sx={{ mt: 10, mb: 10 }}>
           No data available for this range.
         </Typography>
       ) : (
-        // Render your chart component here
-        // Example:
-        // <Line
-        //   data={{ labels: chartData.labels, datasets: chartData.datasets }}
-        //   options={options as ChartOptions<'line'>}
-        // />
         <>
-          <Typography variant="body1" align="center" sx={{ mt: 4 }}>
-            Chart goes here.
-          </Typography>
-          <Card variant="outlined" sx={{ mb: 2 }}>
+          <Line data={generateChartData()} options={options} />
+          <Card variant="outlined">
             <CardContent>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 This chart presents the average value at risk (VaR) for Layer 2
@@ -191,7 +357,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
                   color: 'text.secondary',
                   fontWeight: 'bold',
                   textTransform: 'none',
-                  fontSize: '1.0rem',
+                  fontSize: '0.8rem',
                 }}
               >
                 See example

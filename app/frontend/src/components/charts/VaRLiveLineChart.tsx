@@ -35,9 +35,8 @@ const VaRLiveLineChart: React.FC<VaRLiveLineChartProps> = ({ liveVarData }) => {
         }}
       >
         <Typography variant="body1" align="center" margin={10}>
-          Loading...
+          <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
         </Typography>
-        <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
       </Paper>
     )
   }
