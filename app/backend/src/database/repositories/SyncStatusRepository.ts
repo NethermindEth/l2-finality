@@ -35,15 +35,15 @@ export interface SubmissionInterval {
 }
 
 export interface AverageVarViewModel {
-  timestamp: Date;
+  timestamp: number;
+  min_var_usd: number;
+  max_var_usd: number;
   by_contract: VarByContractViewModel[];
   by_type: VarByTypeViewModel[];
 }
 
 export interface AverageDetailsViewModel {
   values: AverageVarViewModel[];
-  min_var_usd: number;
-  max_var_usd: number;
   min_period_sec: number;
   max_period_sec: number;
 }
@@ -206,51 +206,47 @@ export class SyncStatusRepository {
   ): Promise<AverageDetailsViewModel> {
     precision ??= 60;
 
-    const result = {
-      values: [] as AverageVarViewModel[],
-      min_var_usd: 0,
-      max_var_usd: 0,
-      min_period_sec: -1,
-      max_period_sec: -1,
-    };
-
     const history = await this.getVarHistoryDetails(
       chainId,
       submission_type,
       from,
       to,
       undefined,
-      true,
+      false,
     );
+
+    if (history.blocks.length == 0)
+      return { values: [], min_period_sec: 0, max_period_sec: 0 };
 
     const aggregate = new Map<number, BlockVarViewModel[]>();
 
+    let startTime = 0;
     for (const block of history.blocks) {
       const time = block.timestamp.getTime() / 1000;
       const sliceTime = time - (time % precision);
 
+      if (!startTime || sliceTime < startTime) startTime = sliceTime;
+
       if (!aggregate.get(sliceTime)) aggregate.set(sliceTime, []);
       aggregate.get(sliceTime)!.push(block);
-
-      const blockVar = this.getTotalVarUsd(block);
-      if (result.max_var_usd == -1 || blockVar > result.max_var_usd)
-        result.max_var_usd = blockVar;
-      if (result.min_var_usd == -1 || blockVar < result.min_var_usd)
-        result.min_var_usd = blockVar;
     }
 
     const times = Array.from(aggregate.keys());
     times.sort();
 
-    result.values = times.map((time) =>
+    const values = times.map((time) =>
       this.getAverageVarViewModel(
         chainId,
-        new Date(time * 1000),
+        time - startTime,
         aggregate.get(time)!,
       ),
     );
 
-    return result;
+    return {
+      values: values,
+      min_period_sec: 0,
+      max_period_sec: 0,
+    };
   }
 
   getTotalVarUsd(block: BlockVarViewModel): number {
@@ -391,7 +387,7 @@ export class SyncStatusRepository {
 
   getAverageVarViewModel(
     chainId: number,
-    timestamp: Date,
+    time: number,
     blocks: BlockVarViewModel[],
   ): AverageVarViewModel {
     const totals: {
@@ -399,7 +395,15 @@ export class SyncStatusRepository {
       by_type: ValueByType;
     } = { by_contract: {}, by_type: {} };
 
+    let minUsd = -1;
+    let maxUsd = -1;
+
     for (const block of blocks) {
+      const blockUsd = this.getTotalVarUsd(block);
+
+      if (minUsd == -1 || blockUsd < minUsd) minUsd = blockUsd;
+      if (maxUsd == -1 || blockUsd > maxUsd) maxUsd = blockUsd;
+
       if (block.by_contract) {
         for (const entry of block.by_contract) {
           const contract = entry.address;
@@ -434,7 +438,9 @@ export class SyncStatusRepository {
     }
 
     return {
-      timestamp: timestamp,
+      timestamp: time,
+      min_var_usd: Math.max(minUsd, 0),
+      max_var_usd: Math.max(maxUsd, 0),
       by_contract: this.getVarByContractViewModels(chainId, totals.by_contract),
       by_type: this.getVarByTypeViewModels(totals.by_type),
     };
