@@ -19,6 +19,7 @@ import { blocksApi } from '@/api/blocksApi'
 import { LatestBlockViewModel } from '@/shared/api/viewModels/BlocksEndpoint'
 import IndexerStatus from '@/components/ui/IndexerStatus'
 import VaRLiveLineChart from '@/components/charts/VaRLiveLineChart'
+import VaRAverageLineChart from '@/components/charts/VaRAverageLineChart'
 
 const pageTitle: string = 'L2 Finality Dashboard'
 const pageDescription: string =
@@ -114,6 +115,11 @@ const Index = () => {
           {/* LiveVaR Bar Section */}
           <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
             <VaRLiveSection chainId={chainId} />
+          </Grid>
+
+          {/* Average VaR Line Section */}
+          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <VaRAverageLineChart chainId={chainId} />
           </Grid>
 
           {/* History VaR Section */}
