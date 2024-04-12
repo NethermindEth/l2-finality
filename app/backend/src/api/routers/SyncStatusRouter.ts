@@ -23,5 +23,10 @@ export function createSyncStatusRouter(
     syncStatusController.getVarHistory.bind(syncStatusController),
   );
 
+  router.get(
+    "/var/average",
+    syncStatusController.getVarAverage.bind(syncStatusController),
+  );
+
   return router;
 }

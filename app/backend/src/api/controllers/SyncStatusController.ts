@@ -91,6 +91,26 @@ export class SyncStatusController {
     }
   }
 
+  async getVarAverage(req: Request, res: Response): Promise<void> {
+    try {
+      const params = this.extractParams(req, res);
+      if (!params) return;
+
+      const result = await this.syncStatusRepository.getVarAverage(
+        params.chainId,
+        undefined,
+        params.from,
+        params.to,
+        params.precision,
+      );
+
+      sendSuccessResponse(res, result);
+    } catch (error) {
+      this.logger.error("Error getting VaR average:", error);
+      sendErrorResponse(res, 500, "Internal error getting VaR average");
+    }
+  }
+
   extractParams(
     req: Request,
     res: Response,

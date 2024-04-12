@@ -7,8 +7,8 @@ import {
 } from "@/database/repositories/BlockValueRepository";
 import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 import {
-  mergeValues,
   getValue,
+  mergeValues,
   ValueByContract,
   ValueByType,
   ValueMapping,
@@ -32,6 +32,20 @@ export interface SubmissionInterval {
   timestamp: Date;
   timeDiff: UnixTime;
   blockDiff: number;
+}
+
+export interface AverageVarViewModel {
+  timestamp: Date;
+  by_contract: VarByContractViewModel[];
+  by_type: VarByTypeViewModel[];
+}
+
+export interface AverageDetailsViewModel {
+  values: AverageVarViewModel[];
+  min_var_usd: number;
+  max_var_usd: number;
+  min_period_sec: number;
+  max_period_sec: number;
 }
 
 interface SubmissionIntervalRow {
@@ -173,8 +187,92 @@ export class SyncStatusRepository {
     to?: Date,
     precision?: number,
   ): Promise<BlockVarViewModel[]> {
+    const details = await this.getVarHistoryDetails(
+      chainId,
+      submission_type,
+      from,
+      to,
+      precision,
+    );
+    return details.blocks;
+  }
+
+  async getVarAverage(
+    chainId: number,
+    submission_type?: SubmissionType,
+    from?: Date,
+    to?: Date,
+    precision?: number,
+  ): Promise<AverageDetailsViewModel> {
+    precision ??= 60;
+
+    const result = {
+      values: [] as AverageVarViewModel[],
+      min_var_usd: 0,
+      max_var_usd: 0,
+      min_period_sec: -1,
+      max_period_sec: -1,
+    };
+
+    const history = await this.getVarHistoryDetails(
+      chainId,
+      submission_type,
+      from,
+      to,
+      undefined,
+      true,
+    );
+
+    const aggregate = new Map<number, BlockVarViewModel[]>();
+
+    for (const block of history.blocks) {
+      const time = block.timestamp.getTime() / 1000;
+      const sliceTime = time - (time % precision);
+
+      if (!aggregate.get(sliceTime)) aggregate.set(sliceTime, []);
+      aggregate.get(sliceTime)!.push(block);
+
+      const blockVar = this.getTotalVarUsd(block);
+      if (result.max_var_usd == -1 || blockVar > result.max_var_usd)
+        result.max_var_usd = blockVar;
+      if (result.min_var_usd == -1 || blockVar < result.min_var_usd)
+        result.min_var_usd = blockVar;
+    }
+
+    const times = Array.from(aggregate.keys());
+    times.sort();
+
+    result.values = times.map((time) =>
+      this.getAverageVarViewModel(
+        chainId,
+        new Date(time * 1000),
+        aggregate.get(time)!,
+      ),
+    );
+
+    return result;
+  }
+
+  getTotalVarUsd(block: BlockVarViewModel): number {
+    let total = 0;
+    for (const entry of block.by_type) {
+      if (entry.type == ValueType.block_reward) continue;
+      total += entry.var_usd;
+    }
+    return total;
+  }
+
+  async getVarHistoryDetails(
+    chainId: number,
+    submission_type?: SubmissionType,
+    from?: Date,
+    to?: Date,
+    precision?: number,
+    includeStart: boolean = false,
+  ): Promise<{ blocks: BlockVarViewModel[]; subNums: Set<number> }> {
     let preBlocks: BlockValueRecord[] | null = null;
     let blocksQuery = this.knex(chainTableMapping[chainId]);
+    const defaultValue = { blocks: [], subNums: new Set<number>() };
 
     submission_type ??= this.getDefaultSubmissionType(chainId);
 
@@ -189,7 +287,7 @@ export class SyncStatusRepository {
         .select<{ l2_block_number: string }[]>("l2_block_number")
         .first();
 
-      if (!lastSubmission) return [];
+      if (!lastSubmission) return defaultValue;
 
       preBlocks = [];
       blocksQuery = blocksQuery.where(
@@ -207,7 +305,7 @@ export class SyncStatusRepository {
       .orderBy("l2_block_number")
       .select<BlockValueRecord[]>();
 
-    if (!blocks.length) return [];
+    if (!blocks.length) return defaultValue;
 
     const blockNumbers = {
       min: Number(blocks[0].l2_block_number),
@@ -236,7 +334,7 @@ export class SyncStatusRepository {
       .orderBy("l2_block_number", "asc")
       .select<{ l2_block_number: string }[]>("l2_block_number");
 
-    if (!submissions.length) return [];
+    if (!submissions.length) return defaultValue;
 
     if (!preBlocks) {
       const preBlockNumbers = {
@@ -255,19 +353,21 @@ export class SyncStatusRepository {
       submissions.map((s) => Number(s.l2_block_number)),
     );
 
-    let currentVar: ValueMapping = { byType: {}, byContract: {} };
-    for (const block of preBlocks) {
-      if (submissionNumbers.has(Number(block.l2_block_number)))
-        currentVar = { byType: {}, byContract: {} };
-      currentVar = mergeValues([currentVar, getValue(block)], true);
-    }
+    const entries = preBlocks
+      .map((b) => ({ block: b, include: includeStart }))
+      .concat(blocks.map((b) => ({ block: b, include: true })));
 
-    const result: BlockVarViewModel[] = [];
     let lastTime = 0;
-    for (const block of blocks) {
+    const result: BlockVarViewModel[] = [];
+    let currentVar: ValueMapping = { byType: {}, byContract: {} };
+    for (const entry of entries) {
+      const block = entry.block;
+
       if (submissionNumbers.has(Number(block.l2_block_number)))
         currentVar = { byType: {}, byContract: {} };
       currentVar = mergeValues([currentVar, getValue(block)], true);
+
+      if (!entry.include) continue;
 
       if (precision) {
         const blockTime = block.l2_block_timestamp.getTime();
@@ -286,7 +386,58 @@ export class SyncStatusRepository {
       });
     }
 
-    return result;
+    return { blocks: result, subNums: submissionNumbers };
+  }
+
+  getAverageVarViewModel(
+    chainId: number,
+    timestamp: Date,
+    blocks: BlockVarViewModel[],
+  ): AverageVarViewModel {
+    const totals: {
+      by_contract: ValueByContract;
+      by_type: ValueByType;
+    } = { by_contract: {}, by_type: {} };
+
+    for (const block of blocks) {
+      if (block.by_contract) {
+        for (const entry of block.by_contract) {
+          const contract = entry.address;
+          const totalVar =
+            totals.by_contract[contract] ??
+            (totals.by_contract[contract] = { value_asset: 0, value_usd: 0 });
+          totalVar.value_asset += entry.var;
+          totalVar.value_usd += entry.var_usd;
+        }
+      }
+
+      if (block.by_type) {
+        for (const entry of block.by_type) {
+          const type = entry.type;
+          const totalVar =
+            totals.by_type[type] ??
+            (totals.by_type[type] = { value_asset: 0, value_usd: 0 });
+          totalVar.value_asset += entry.var;
+          totalVar.value_usd += entry.var_usd;
+        }
+      }
+    }
+
+    for (const total of Object.values(totals.by_contract)) {
+      total!.value_asset /= blocks.length;
+      total!.value_usd /= blocks.length;
+    }
+
+    for (const total of Object.values(totals.by_type)) {
+      total!.value_asset /= blocks.length;
+      total!.value_usd /= blocks.length;
+    }
+
+    return {
+      timestamp: timestamp,
+      by_contract: this.getVarByContractViewModels(chainId, totals.by_contract),
+      by_type: this.getVarByTypeViewModels(totals.by_type),
+    };
   }
 
   getVarByContractViewModels(
