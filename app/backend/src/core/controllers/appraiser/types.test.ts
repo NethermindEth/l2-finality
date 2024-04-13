@@ -1,6 +1,6 @@
 import { expect } from "earl";
 import { mergeValues, ValueMapping } from "@/core/controllers/appraiser/types";
-import { ValueType } from "@/database/repositories/BlockValueRepository";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 describe(mergeValues.name, () => {
   it("Sums identical contracts", async () => {

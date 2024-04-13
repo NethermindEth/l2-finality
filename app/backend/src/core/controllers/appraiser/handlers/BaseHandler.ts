@@ -5,10 +5,7 @@ import {
   Transaction,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
-import {
-  ValueByContract,
-  ValueMapping,
-} from "@/core/controllers/appraiser/types";
+import { ValueMapping } from "@/core/controllers/appraiser/types";
 
 export interface AppraisalSummary {
   contractAddress: string;

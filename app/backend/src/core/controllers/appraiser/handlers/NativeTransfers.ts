@@ -9,10 +9,8 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import { ValueMapping } from "@/core/controllers/appraiser/types";
-import {
-  ValueRecord,
-  ValueType,
-} from "@/database/repositories/BlockValueRepository";
+import { ValueRecord } from "@/database/repositories/BlockValueRepository";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export class NativeTransferHandler extends BaseHandler {
   private readonly priceService: PriceService;

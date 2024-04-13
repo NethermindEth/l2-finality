@@ -16,14 +16,6 @@ export interface ValueRecord {
   value_usd: number;
 }
 
-export enum ValueType {
-  gas_fees = "gas_fees",
-  block_reward = "block_reward",
-  native_transfer = "native_transfer",
-  token_transfer = "token_transfer",
-  token_swap = "token_swap",
-}
-
 export interface BlockValueRecord {
   l2_block_number: bigint;
   l2_block_hash: string;

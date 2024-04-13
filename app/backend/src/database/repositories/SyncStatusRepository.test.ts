@@ -6,7 +6,6 @@ import {
   TABLE_NAME,
 } from "./SyncStatusRepository";
 import { getTestDatabase } from "@/database/getTestDatabase";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 describe(SyncStatusRepository.name, () => {
   let repository: SyncStatusRepository;

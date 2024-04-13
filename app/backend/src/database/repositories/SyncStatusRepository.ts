@@ -3,9 +3,16 @@ import { UnixTime } from "@/core/types/UnixTime";
 import {
   BlockValueRecord,
   chainTableMapping,
-  ValueType,
 } from "@/database/repositories/BlockValueRepository";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import {
+  AverageDetailsViewModel,
+  AverageVarViewModel,
+  BlockVarViewModel,
+  SubmissionType,
+  ValueType,
+  VarByContractViewModel,
+  VarByTypeViewModel,
+} from "@/shared/api/viewModels/SyncStatusEndpoint";
 import {
   getValue,
   mergeValues,
@@ -38,45 +45,11 @@ export interface SubmissionInterval {
   blockDiff: number;
 }
 
-export interface AverageVarViewModel {
-  timestamp: number;
-  min_var_usd: number;
-  max_var_usd: number;
-  by_contract: VarByContractViewModel[];
-  by_type: VarByTypeViewModel[];
-}
-
-export interface AverageDetailsViewModel {
-  values: AverageVarViewModel[];
-  min_period_sec: number;
-  max_period_sec: number;
-}
-
 interface SubmissionIntervalRow {
   submission_type: SubmissionType;
   timestamp: Date;
   time_diff: UnixTime;
   block_diff: number;
-}
-
-interface VarByContractViewModel {
-  symbol?: string;
-  address: string;
-  var: number;
-  var_usd: number;
-}
-
-interface VarByTypeViewModel {
-  type: ValueType;
-  var: number;
-  var_usd: number;
-}
-
-interface BlockVarViewModel {
-  block_number: number;
-  timestamp: Date;
-  by_contract: VarByContractViewModel[];
-  by_type: VarByTypeViewModel[];
 }
 
 export type GroupRange = "hour" | "day" | "week" | "month" | "quarter" | "year";

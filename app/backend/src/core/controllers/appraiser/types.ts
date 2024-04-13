@@ -1,8 +1,8 @@
 import {
   BlockValueRecord,
   ValueRecord,
-  ValueType,
 } from "@/database/repositories/BlockValueRepository";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export type ValueByType = {
   [type in ValueType]?: ValueRecord;

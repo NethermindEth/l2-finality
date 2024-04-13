@@ -1,4 +1,3 @@
-
 export enum SubmissionType {
   DataSubmission = "data_submission",
   L2Finalization = "l2_finalization",
@@ -16,7 +15,7 @@ export interface SyncStatusViewModel {
     l1_block_hash: string | null;
     timestamp: Date;
     submission_type: SubmissionType;
-  }
+  }[]
 }
 
 export interface FinalityTimeRecord {
@@ -35,20 +34,33 @@ export interface AverageFinalityTimeViewModel {
   }
 }
 
-export interface LiveVaREntry {
-  [key: string]: number;
+export enum ValueType {
+  gas_fees = "gas_fees",
+  block_reward = "block_reward",
+  native_transfer = "native_transfer",
+  token_transfer = "token_transfer",
+  token_swap = "token_swap",
 }
 
-export interface VaRLiveDataViewModel {
-  success: boolean;
-  data: {
-    data_submission: LiveVaREntry;
-    l2_finalization: LiveVaREntry;
-    proof_submission: LiveVaREntry;
-    state_updates: LiveVaREntry;
-  };
+export interface VarByContractViewModel {
+  symbol?: string;
+  address: string;
+  var: number;
+  var_usd: number;
 }
 
+export interface VarByTypeViewModel {
+  type: ValueType;
+  var: number;
+  var_usd: number;
+}
+
+export interface BlockVarViewModel {
+  block_number: number;
+  timestamp: Date;
+  by_contract: VarByContractViewModel[];
+  by_type: VarByTypeViewModel[];
+}
 
 export interface HistoryVaREntry {
   timestamp: string;
@@ -61,10 +73,25 @@ export type AvgVarHistoryMap = {
 
 export interface VaRHistoryDataViewModel {
   success: boolean;
-  data: {
-    data_submission: AvgVarHistoryMap;
-    l2_finalization: AvgVarHistoryMap;
-    proof_submission: AvgVarHistoryMap;
-    state_updates: AvgVarHistoryMap;
-  };
+  data: BlockVarViewModel[]
+}
+
+
+export interface AverageVarViewModel {
+  timestamp: number;
+  min_var_usd: number;
+  max_var_usd: number;
+  by_contract: VarByContractViewModel[];
+  by_type: VarByTypeViewModel[];
+}
+
+export interface AverageDetailsViewModel {
+  values: AverageVarViewModel[];
+  min_period_sec: number;
+  max_period_sec: number;
+}
+
+export interface VaRAverageDataViewModel {
+  success: boolean;
+  data: AverageDetailsViewModel
 }

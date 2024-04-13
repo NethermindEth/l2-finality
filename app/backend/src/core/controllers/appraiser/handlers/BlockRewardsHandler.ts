@@ -5,9 +5,10 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import chains from "@/shared/chains.json";
-import { mergeValues, ValueMapping } from "@/core/controllers/appraiser/types";
-import { ValueType } from "@/database/repositories/BlockValueRepository";
+import { mergeValues } from "@/core/controllers/appraiser/types";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import { ValueMapping } from "@/core/controllers/appraiser/types";
 
 export class BlockRewardsHandler {
   private readonly chainId: number;
