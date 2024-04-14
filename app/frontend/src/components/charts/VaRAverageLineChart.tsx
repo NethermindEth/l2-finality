@@ -352,22 +352,22 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
             </Button>
             <Button
               variant="outlined"
-              onClick={() => setSelectedDays(30)}
+              onClick={() => setSelectedDays(7)}
               sx={{
                 backgroundColor:
-                  selectedDays === 30 ? 'primary.main' : 'transparent',
-                color: selectedDays === 30 ? 'primary.main' : 'text.primary',
+                  selectedDays === 7 ? 'primary.main' : 'transparent',
+                color: selectedDays === 7 ? 'primary.main' : 'text.primary',
                 borderColor:
-                  selectedDays === 30 ? 'primary.main' : 'text.primary',
+                  selectedDays === 7 ? 'primary.main' : 'text.primary',
                 '&:hover': {
                   backgroundColor:
-                    selectedDays === 30 ? 'lightgray' : 'rgba(0, 0, 0, 0.04)',
+                    selectedDays === 7 ? 'lightgray' : 'rgba(0, 0, 0, 0.04)',
                   borderColor:
-                    selectedDays === 30 ? 'primary.dark' : 'text.primary',
+                    selectedDays === 7 ? 'primary.dark' : 'text.primary',
                 },
               }}
             >
-              30D
+              7D
             </Button>
           </Box>
         </Grid>
