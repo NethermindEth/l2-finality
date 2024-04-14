@@ -24,10 +24,18 @@ import {
   AverageDetailsViewModel,
 } from '../../../../shared/api/viewModels/SyncStatusEndpoint'
 import { syncStatusApi } from '@/api/syncStatusApi'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
+import annotationPlugin from 'chartjs-plugin-annotation'
+import {
+  AccessTime,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+} from '@mui/icons-material'
 import { Line } from 'react-chartjs-2'
-import { VaRAverageDataViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
+import { calculatePrecision } from '@/components/charts/utils/shared'
+import { Chart, ChartOptions, registerables } from 'chart.js'
+import moment from 'moment'
+
+Chart.register(...registerables, annotationPlugin)
 
 interface VaRAverageLineChartProps {
   chainId: number
@@ -51,11 +59,12 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         const fromDate = new Date(
           toDate.getTime() - selectedDays * 24 * 60 * 60 * 1000
         )
+        const precision = calculatePrecision(fromDate, toDate)
         const averageData = await syncStatusApi.getAverageVaR(
           chainId,
           fromDate,
           toDate,
-          undefined
+          precision || undefined
         )
         setAverageVarData(averageData.data)
       } catch (error) {
@@ -76,11 +85,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       }
     }
 
-    const labels = averageVarData.values.map((data) => {
-      const minutes = Math.floor(data.timestamp / 60)
-      const seconds = data.timestamp % 60
-      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-    })
+    const labels = averageVarData.values.map((data) => data.timestamp)
 
     const datasets = []
 
@@ -89,7 +94,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         data.by_contract.reduce((sum, contract) => sum + contract.var_usd, 0)
       )
       datasets.push({
-        label: 'All Contracts',
+        label: 'Total VaR USD',
         data: allData,
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
@@ -99,49 +104,28 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         pointHitRadius: 0,
         pointHoverRadius: 0,
       })
-    } else if (viewMode === 'by_contract') {
-      const contractData: { [key: string]: number[] } = {}
-      averageVarData.values.forEach((data) => {
-        data.by_contract.forEach((contract) => {
-          if (!contractData[contract.address]) {
-            contractData[contract.address] = []
+    } else if (viewMode === 'by_contract' || viewMode === 'by_type') {
+      const dataKey = viewMode === 'by_contract' ? 'by_contract' : 'by_type'
+      const stackedData: { [key: string]: number[] } = {}
+
+      averageVarData.values.forEach((data: AverageVarViewModel) => {
+        data[dataKey].forEach((entry) => {
+          const key = viewMode === 'by_contract' ? entry.symbol : entry.type
+          if (!stackedData[key]) {
+            stackedData[key] = new Array(data.timestamp).fill(0)
           }
-          contractData[contract.address].push(contract.var_usd)
+          stackedData[key].push(entry.var_usd)
         })
       })
 
-      Object.entries(contractData).forEach(([contractAddress, data], index) => {
+      Object.entries(stackedData).forEach(([key, data], index) => {
         datasets.push({
-          label: contractAddress,
+          label: key,
           data,
           backgroundColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 0.2)`,
           borderColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 1)`,
           borderWidth: 1,
-          fill: true,
-          pointRadius: 0,
-          pointHitRadius: 0,
-          pointHoverRadius: 0,
-        })
-      })
-    } else if (viewMode === 'by_type') {
-      const typeData: { [key: string]: number[] } = {}
-      averageVarData.values.forEach((data) => {
-        data.by_type.forEach((type) => {
-          if (!typeData[type.type]) {
-            typeData[type.type] = []
-          }
-          typeData[type.type].push(type.var_usd)
-        })
-      })
-
-      Object.entries(typeData).forEach(([typeName, data], index) => {
-        datasets.push({
-          label: typeName,
-          data,
-          backgroundColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 0.2)`,
-          borderColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 1)`,
-          borderWidth: 1,
-          fill: true,
+          fill: 'stack',
           pointRadius: 0,
           pointHitRadius: 0,
           pointHoverRadius: 0,
@@ -154,18 +138,22 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         {
           label: 'Min VaR USD',
           data: averageVarData.values.map((data) => data.min_var_usd),
-          borderColor: 'rgba(255, 0, 0, 1)',
-          borderWidth: 2,
+          borderColor: 'rgb(43,106,241)',
+          borderWidth: 5,
           fill: false,
           pointRadius: 0,
+          stack: 'no_stack_min',
+          borderDash: [5, 5],
         },
         {
           label: 'Max VaR USD',
           data: averageVarData.values.map((data) => data.max_var_usd),
-          borderColor: 'rgba(255, 0, 0, 1)',
-          borderWidth: 2,
+          borderColor: 'rgb(239,123,7)',
+          borderWidth: 5,
           fill: false,
           pointRadius: 0,
+          stack: 'no_stack_max',
+          borderDash: [10, 5],
         }
       )
     }
@@ -176,27 +164,94 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
     }
   }
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     plugins: {
       legend: {
-        display: false,
+        display: true,
       },
       title: {
         display: true,
         text: 'Average VaR Over Time',
       },
-      tooltip: {
-        enabled: true,
-        mode: 'nearest',
-        intersect: false,
-        callbacks: {
-          label: (context: any) => {
-            const label = context.dataset.label || ''
-            const value = context.parsed.y
-            return `${label}: ${value.toLocaleString()}`
+      annotation: {
+        annotations: {
+          minLine: {
+            type: 'line',
+            xMin: averageVarData?.min_period_sec,
+            xMax: averageVarData?.min_period_sec,
+            borderColor: 'green',
+            borderWidth: 2,
+            label: {
+              content: 'Min observed finality time',
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'green',
+              color: '#ffffff',
+              font: {
+                size: 12,
+              },
+            },
+          },
+          maxLine: {
+            type: 'line',
+            xMin: averageVarData?.max_period_sec,
+            xMax: averageVarData?.max_period_sec,
+            borderColor: 'red',
+            borderWidth: 2,
+            label: {
+              content: 'Max observed finality time',
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'red',
+              color: '#ffffff',
+              font: {
+                size: 12,
+              },
+            },
+          },
+          avgLine: {
+            type: 'line',
+            xMin: averageVarData?.avg_period_sec,
+            xMax: averageVarData?.avg_period_sec,
+            borderColor: 'blue',
+            borderWidth: 2,
+            label: {
+              content: 'Average finality time',
+              enabled: true,
+              position: 'end',
+              backgroundColor: 'blue',
+              color: '#ffffff',
+              font: {
+                size: 12,
+              },
+            },
           },
         },
+      },
+      tooltip: {
+        callbacks: {
+          title: function (tooltipItems) {
+            return `${tooltipItems[0].parsed.x} s`
+          },
+          label: function (context) {
+            let label = context.dataset.label || ''
+            if (label) {
+              label += ': '
+            }
+            if (context.parsed.y !== null && context.parsed.y !== 0) {
+              label +=
+                '$' +
+                context.parsed.y.toLocaleString(undefined, {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                })
+            }
+            return label
+          },
+        },
+        mode: viewMode !== 'all' ? 'index' : 'nearest',
+        intersect: false,
       },
       datalabels: {
         display: false,
@@ -204,18 +259,23 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
     },
     scales: {
       x: {
+        type: 'timeseries',
         title: {
           display: true,
-          text: 'Timestamp',
+          text: 'Time (seconds)',
         },
         ticks: {
-          display: true,
+          autoSkip: true,
+          callback: function (value) {
+            return `${value}s`
+          },
         },
         grid: {
           display: false,
         },
       },
       y: {
+        stacked: viewMode !== 'all',
         title: {
           display: true,
           text: 'VaR (USD)',
@@ -254,6 +314,25 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant="outlined"
+              onClick={() => setSelectedDays(1)}
+              sx={{
+                backgroundColor:
+                  selectedDays === 1 ? 'primary.main' : 'transparent',
+                color: selectedDays === 1 ? 'primary.main' : 'text.primary',
+                borderColor:
+                  selectedDays === 1 ? 'primary.main' : 'text.primary',
+                '&:hover': {
+                  backgroundColor:
+                    selectedDays === 1 ? 'lightgray' : 'rgba(0, 0, 0, 0.04)',
+                  borderColor:
+                    selectedDays === 1 ? 'primary.dark' : 'text.primary',
+                },
+              }}
+            >
+              1D
+            </Button>
+            <Button
+              variant="outlined"
               onClick={() => setSelectedDays(3)}
               sx={{
                 backgroundColor:
@@ -270,25 +349,6 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               }}
             >
               3D
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setSelectedDays(15)}
-              sx={{
-                backgroundColor:
-                  selectedDays === 15 ? 'primary.main' : 'transparent',
-                color: selectedDays === 15 ? 'primary.main' : 'text.primary',
-                borderColor:
-                  selectedDays === 15 ? 'primary.main' : 'text.primary',
-                '&:hover': {
-                  backgroundColor:
-                    selectedDays === 15 ? 'lightgray' : 'rgba(0, 0, 0, 0.04)',
-                  borderColor:
-                    selectedDays === 15 ? 'primary.dark' : 'text.primary',
-                },
-              }}
-            >
-              15D
             </Button>
             <Button
               variant="outlined"
@@ -337,7 +397,48 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       ) : (
         <>
           <Line data={generateChartData()} options={options} />
-          <Card variant="outlined">
+          <Box sx={{ mt: 2 }}>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center' }}
+            >
+              <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Average finality
+              time for period:
+              {averageVarData
+                ? moment
+                    .duration(averageVarData.avg_period_sec, 'seconds')
+                    .humanize()
+                : 'N/A'}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center' }}
+            >
+              <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Max finalisation
+              time for period:
+              {averageVarData
+                ? moment
+                    .duration(averageVarData.max_period_sec, 'seconds')
+                    .humanize()
+                : 'N/A'}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{ display: 'flex', alignItems: 'center' }}
+            >
+              <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Min finalisation
+              time for period:
+              {averageVarData
+                ? moment
+                    .duration(averageVarData.min_period_sec, 'seconds')
+                    .humanize()
+                : 'N/A'}
+            </Typography>
+          </Box>
+          <Card variant="outlined" sx={{ mt: 2 }}>
             <CardContent>
               <Typography variant="body2" sx={{ mb: 2 }}>
                 This chart presents the average value at risk (VaR) for Layer 2
