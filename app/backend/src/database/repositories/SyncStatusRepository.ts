@@ -190,47 +190,69 @@ export class SyncStatusRepository {
   ): Promise<AverageDetailsViewModel> {
     precision ??= 60;
 
+    const result: AverageDetailsViewModel = {
+      values: [],
+      min_period_sec: 0,
+      avg_period_sec: 0,
+      max_period_sec: 0,
+    };
+
     const history = await this.getVarHistoryDetails(
       chainId,
       submission_type,
       from,
       to,
       undefined,
-      false,
+      true,
     );
 
-    if (history.blocks.length == 0)
-      return { values: [], min_period_sec: 0, max_period_sec: 0 };
+    if (history.blocks.length == 0) return result;
 
-    const aggregate = new Map<number, BlockVarViewModel[]>();
+    const periods: number[] = [];
+    const varsMap = new Map<number, BlockVarViewModel[]>();
 
-    let startTime = 0;
+    let sliceStartTime = 0;
     for (const block of history.blocks) {
-      const time = block.timestamp.getTime() / 1000;
-      const sliceTime = time - (time % precision);
+      const blockTime = block.timestamp.getTime() / 1000;
+      if (history.subNums.has(block.block_number)) {
+        if (sliceStartTime != 0) periods.push(blockTime - sliceStartTime);
 
-      if (!startTime || sliceTime < startTime) startTime = sliceTime;
+        sliceStartTime = blockTime;
+      }
 
-      if (!aggregate.get(sliceTime)) aggregate.set(sliceTime, []);
-      aggregate.get(sliceTime)!.push(block);
+      let sliceTime = blockTime - sliceStartTime;
+      sliceTime = sliceTime - (sliceTime % precision);
+
+      if (block.timestamp < (from ?? block.timestamp)) continue;
+      if (block.timestamp > (to ?? block.timestamp)) continue;
+
+      if (!varsMap.get(sliceTime)) varsMap.set(sliceTime, []);
+      varsMap.get(sliceTime)!.push(block);
     }
 
-    const times = Array.from(aggregate.keys());
-    times.sort();
+    const lastBlockTime =
+      history.blocks.slice(-1)[0].timestamp.getTime() / 1000;
+    if (sliceStartTime != lastBlockTime)
+      periods.push(lastBlockTime - sliceStartTime);
 
-    const values = times.map((time) =>
-      this.getAverageVarViewModel(
-        chainId,
-        time - startTime,
-        aggregate.get(time)!,
-      ),
+    for (const period of periods) {
+      if (!result.min_period_sec || period < result.min_period_sec)
+        result.min_period_sec = period;
+      if (!result.max_period_sec || period > result.max_period_sec)
+        result.max_period_sec = period;
+      result.avg_period_sec += period;
+    }
+
+    result.avg_period_sec /= periods.length;
+
+    const times = Array.from(varsMap.keys());
+    times.sort((a, b) => a - b);
+
+    result.values = times.map((time) =>
+      this.getAverageVarViewModel(chainId, time, varsMap.get(time)!),
     );
 
-    return {
-      values: values,
-      min_period_sec: 0,
-      max_period_sec: 0,
-    };
+    return result;
   }
 
   getTotalVarUsd(block: BlockVarViewModel): number {

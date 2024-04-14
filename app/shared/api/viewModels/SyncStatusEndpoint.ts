@@ -88,6 +88,7 @@ export interface AverageVarViewModel {
 export interface AverageDetailsViewModel {
   values: AverageVarViewModel[];
   min_period_sec: number;
+  avg_period_sec: number;
   max_period_sec: number;
 }
 
