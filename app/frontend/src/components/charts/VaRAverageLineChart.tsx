@@ -466,7 +466,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               <Collapse in={showExample} sx={{ mt: 2 }}>
                 <Box>
                   <Typography variant="body2">
-                    For example, let's say the maximum finalization time for the
+                    For example, let`s say the maximum finalization time for the
                     selected period is 10 minutes. The chart will show the
                     average VaR at different points in time, such as:
                   </Typography>
@@ -498,7 +498,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
                   </Typography>{' '}
                   <Typography variant="body2">
                     {' '}
-                    In this scenario, "At 2 minutes" indicates that 2 minutes
+                    In this scenario, `At 2 minutes` indicates that 2 minutes
                     after the latest event, the average VaR is $50,000. This
                     suggests that based on historical data, it would take
                     approximately 8 more minutes for the block to be fully
