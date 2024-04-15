@@ -191,7 +191,7 @@ const VaRHistoryChart: React.FC<VaRHistoryChartProps> = ({ chainId }) => {
               label="View Mode"
             >
               <MenuItem value="all">All</MenuItem>
-              <MenuItem value="by_contract">By Contract</MenuItem>
+              <MenuItem value="by_contract">By token</MenuItem>
               <MenuItem value="by_type">By Type</MenuItem>
             </Select>
           </FormControl>

@@ -7,6 +7,7 @@ import {
   Collapse,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   List,
   ListItem,
@@ -31,9 +32,13 @@ import {
   KeyboardArrowUp,
 } from '@mui/icons-material'
 import { Line } from 'react-chartjs-2'
-import { calculatePrecision } from '@/components/charts/utils/shared'
+import {
+  calculatePrecision,
+  calculatePrecisionForVaRAverage,
+} from '@/components/charts/utils/shared'
 import { Chart, ChartOptions, registerables } from 'chart.js'
 import moment from 'moment'
+import InfoIcon from '@mui/icons-material/Info'
 
 Chart.register(...registerables, annotationPlugin)
 
@@ -59,7 +64,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         const fromDate = new Date(
           toDate.getTime() - selectedDays * 24 * 60 * 60 * 1000
         )
-        const precision = calculatePrecision(fromDate, toDate)
+        const precision = calculatePrecisionForVaRAverage(fromDate, toDate)
         const averageData = await syncStatusApi.getAverageVaR(
           chainId,
           fromDate,
@@ -94,7 +99,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         data.by_contract.reduce((sum, contract) => sum + contract.var_usd, 0)
       )
       datasets.push({
-        label: 'Total VaR USD',
+        label: 'Average VaR USD',
         data: allData,
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
         borderColor: 'rgba(75, 192, 192, 1)',
@@ -118,12 +123,17 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         })
       })
 
+      const getColor = (index: number) => {
+        const hue = (index * 137.5) % 360
+        return `hsl(${hue}, 50%, 60%, 0.7)`
+      }
+
       Object.entries(stackedData).forEach(([key, data], index) => {
         datasets.push({
           label: key,
           data,
-          backgroundColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 0.2)`,
-          borderColor: `rgba(${(index * 50) % 255}, ${((index + 1) * 50) % 255}, ${((index + 2) * 50) % 255}, 1)`,
+          backgroundColor: getColor(index),
+          borderColor: getColor(index),
           borderWidth: 1,
           fill: 'stack',
           pointRadius: 0,
@@ -193,23 +203,6 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               },
             },
           },
-          maxLine: {
-            type: 'line',
-            xMin: averageVarData?.max_period_sec,
-            xMax: averageVarData?.max_period_sec,
-            borderColor: 'red',
-            borderWidth: 2,
-            label: {
-              content: 'Max observed finality time',
-              enabled: true,
-              position: 'end',
-              backgroundColor: 'red',
-              color: '#ffffff',
-              font: {
-                size: 12,
-              },
-            },
-          },
           avgLine: {
             type: 'line',
             xMin: averageVarData?.avg_period_sec,
@@ -266,8 +259,13 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         },
         ticks: {
           autoSkip: true,
-          callback: function (value) {
-            return `${value}s`
+          callback: function (value: any) {
+            if (chainId === -1) {
+              const minutes = Math.floor(value / 60)
+              return `${minutes} min`
+            } else {
+              return `${value}s`
+            }
           },
         },
         grid: {
@@ -311,7 +309,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
 
       <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} sm={6}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Button
               variant="outlined"
               onClick={() => setSelectedDays(1)}
@@ -369,6 +367,14 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
             >
               7D
             </Button>
+            <Tooltip
+              title="Calculates the average from now and looking back for the specified length in the button"
+              placement="top"
+            >
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -380,7 +386,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               label="View Mode"
             >
               <MenuItem value="all">All</MenuItem>
-              <MenuItem value="by_contract">By Contract</MenuItem>
+              <MenuItem value="by_contract">By token</MenuItem>
               <MenuItem value="by_type">By Type</MenuItem>
             </Select>
           </FormControl>
@@ -401,7 +407,28 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
             <Typography
               variant="subtitle1"
               gutterBottom
-              sx={{ display: 'flex', alignItems: 'center' }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                color: 'success.main',
+              }}
+            >
+              <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Min finalisation
+              time for period:
+              {averageVarData
+                ? moment
+                    .duration(averageVarData.min_period_sec, 'seconds')
+                    .humanize()
+                : 'N/A'}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              gutterBottom
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                color: 'primary.main',
+              }}
             >
               <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Average finality
               time for period:
@@ -421,19 +448,6 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               {averageVarData
                 ? moment
                     .duration(averageVarData.max_period_sec, 'seconds')
-                    .humanize()
-                : 'N/A'}
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              gutterBottom
-              sx={{ display: 'flex', alignItems: 'center' }}
-            >
-              <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Min finalisation
-              time for period:
-              {averageVarData
-                ? moment
-                    .duration(averageVarData.min_period_sec, 'seconds')
                     .humanize()
                 : 'N/A'}
             </Typography>
@@ -487,7 +501,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
                       <ListItemText primary="At 10 minutes (fully finalized): Average VaR of $120,000" />
                     </ListItem>
                   </List>
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ mt: 1 }}>
                     {' '}
                     This example illustrates how the potential financial
                     exposure, represented by the Value at Risk (VaR), changes as
@@ -496,7 +510,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
                     the chain can finalize earlier or slightly later than
                     expected.{' '}
                   </Typography>{' '}
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ mt: 1 }}>
                     {' '}
                     In this scenario, `At 2 minutes` indicates that 2 minutes
                     after the latest event, the average VaR is $50,000. This
@@ -505,7 +519,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
                     finalized, assuming an average finalization time of 10
                     minutes.{' '}
                   </Typography>{' '}
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ mt: 1 }}>
                     {' '}
                     The chart enables users to assess the risk associated with
                     chain reorganizations at different stages of the
