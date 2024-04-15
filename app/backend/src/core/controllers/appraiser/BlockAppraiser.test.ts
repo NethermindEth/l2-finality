@@ -76,17 +76,17 @@ describe(`${BlockAppraiser.name} on Starknet`, () => {
     const value = await blockAppraiser.value(block!);
 
     expect(value).toEqual({
-      transferSummary: {
-        mapped: [
-          // Fee:
-          {
-            contractAddress: assets["STRK"].address!,
-            usdTotalValue: 0.359736409417677808 * fakePrice.priceUsd,
-          },
-        ],
-        unmapped: [],
+      // Fees
+      byType: {
+        block_reward: {
+          value_asset: 0.3597364094176778,
+          value_usd: 3.597364094176778,
+        },
+        gas_fees: {
+          value_asset: 0.3597364094176778,
+          value_usd: 3.597364094176778,
+        },
       },
-      blockRewardSummary: noBlockRewards,
     });
   });
 
@@ -100,22 +100,28 @@ describe(`${BlockAppraiser.name} on Starknet`, () => {
     const value = await blockAppraiser.value(block!);
 
     expect(value).toEqual({
-      transferSummary: {
-        mapped: [
-          // Transfer:
-          {
-            contractAddress: assets["STRK"].address!,
-            usdTotalValue: 470.72 * fakePrice.priceUsd,
-          },
-          // Fee:
-          {
-            contractAddress: assets["ETH"].address!,
-            usdTotalValue: 0.00025715858141008 * fakePrice.priceUsd,
-          },
-        ],
-        unmapped: [],
+      // Transfer
+      byContract: {
+        [assets["STRK"].address!]: {
+          value_usd: 470.72 * fakePrice.priceUsd,
+          value_asset: 470.72,
+        },
       },
-      blockRewardSummary: noBlockRewards,
+      byType: {
+        token_transfer: {
+          value_asset: 470.72,
+          value_usd: 4707.200000000001,
+        },
+        // Fees
+        block_reward: {
+          value_asset: 0.00025715858141008,
+          value_usd: 0.0025715858141008,
+        },
+        gas_fees: {
+          value_asset: 0.00025715858141008,
+          value_usd: 0.0025715858141008,
+        },
+      },
     });
   });
 
@@ -129,22 +135,28 @@ describe(`${BlockAppraiser.name} on Starknet`, () => {
     const value = await blockAppraiser.value(block!);
 
     expect(value).toEqual({
-      transferSummary: {
-        mapped: [
-          // Max of transfers:
-          {
-            contractAddress: assets["STRK"].address!,
-            usdTotalValue: 20.0 * fakePrice.priceUsd,
-          },
-          // Fee: TODO: enable once swap fees are properly handled by StarknetClient
-          // {
-          //   contractAddress: assets["STRK"].address!,
-          //   usdTotalValue: 0.978754939960334552 * fakePrice.priceUsd,
-          // },
-        ],
-        unmapped: [],
+      // Swap
+      byContract: {
+        [assets["STRK"].address!]: {
+          value_asset: 20.0,
+          value_usd: 20.0 * fakePrice.priceUsd,
+        },
       },
-      blockRewardSummary: noBlockRewards,
+      byType: {
+        token_swap: {
+          value_asset: 20,
+          value_usd: 20.0 * fakePrice.priceUsd,
+        },
+        // Fees
+        block_reward: {
+          value_asset: 0.978754939960334552,
+          value_usd: 0.978754939960334552 * fakePrice.priceUsd,
+        },
+        gas_fees: {
+          value_asset: 0.978754939960334552,
+          value_usd: 0.978754939960334552 * fakePrice.priceUsd,
+        },
+      },
     });
   });
 
@@ -158,23 +170,26 @@ describe(`${BlockAppraiser.name} on Starknet`, () => {
     const value = await blockAppraiser.value(block!);
 
     expect(value).toEqual({
-      transferSummary: {
-        mapped: [
-          // Max of transfers:
-          {
-            contractAddress: assets["DAI"].address!,
-            // TODO: improve precision, should be 68.156400247938_186314_
-            usdTotalValue: 68.1564002479382 * fakePrice.priceUsd,
-          },
-          // Fee: TODO: enable once swap fees are properly handled by StarknetClient
-          // {
-          //   contractAddress: assets["ETH"].address!,
-          //   usdTotalValue: 0.00000353393256644 * fakePrice.priceUsd,
-          // },
-        ],
-        unmapped: [],
+      byContract: {
+        [assets["DAI"].address!]: {
+          value_asset: 68.1564002479382,
+          value_usd: 68.1564002479382 * fakePrice.priceUsd,
+        },
       },
-      blockRewardSummary: noBlockRewards,
+      byType: {
+        block_reward: {
+          value_asset: 0.00000353393256644,
+          value_usd: 0.00000353393256644 * fakePrice.priceUsd,
+        },
+        gas_fees: {
+          value_asset: 0.00000353393256644,
+          value_usd: 0.00000353393256644 * fakePrice.priceUsd,
+        },
+        token_swap: {
+          value_asset: 68.1564002479382,
+          value_usd: 68.1564002479382 * fakePrice.priceUsd,
+        },
+      },
     });
   });
 

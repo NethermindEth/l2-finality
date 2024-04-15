@@ -15,10 +15,10 @@ function revertBlockValueColumns(table: any) {
   table.dropColumn("value_by_contract");
   table.dropColumn("value_by_type");
 
-  table.jsonb("value").notNullable();
-  table.bigInteger("gas_fees").notNullable();
+  table.jsonb("value").notNullable().defaultTo({});
+  table.bigInteger("gas_fees").defaultTo(0).notNullable();
   table.decimal("gas_fees_usd", 18, 4).notNullable().defaultTo(0);
-  table.bigInteger("block_reward").notNullable();
+  table.bigInteger("block_reward").defaultTo(0).notNullable();
   table.decimal("block_reward_usd", 18, 4).notNullable().defaultTo(0);
 }
 

@@ -87,20 +87,19 @@ describe(TokenTransferHandler.name, () => {
     const receipts = await mockProvider.getBlockTransactionReceipts(
       1 as unknown as Block,
     );
-    const appraisals = await handler.handleTransferEvents(
+    const values = await handler.handleTransferEvents(
       mockTxResponse,
       receipts,
       timestamp,
     );
-    const totalUsdValue = appraisals.reduce(
-      (sum, appraisal) => sum + (appraisal.usdValue || 0),
+    const totalUsdValue = Object.values(values.byContract!).reduce(
+      (sum, v) => sum + (v?.value_usd || 0),
       0,
     );
 
     const expectedUsdValue =
       (Number("0x1000") * 5 * 2) / Math.pow(10, monitoredAssets[0].decimals);
 
-    expect(appraisals).toHaveLength(mockTransactionReceiptLogs.logs.length);
     expect(totalUsdValue).toEqual(expectedUsdValue);
   });
 
@@ -159,20 +158,24 @@ describe(TokenTransferHandler.name, () => {
     const adjustedAmount =
       Number("0x1000") / Math.pow(10, monitoredAssets[0].decimals);
 
-    const expectedAppraisals = [
-      {
-        contractAddress: monitoredAssets[0].address!,
-        rawAmount: 4096n,
-        adjustedAmount: adjustedAmount,
-        usdValue: adjustedAmount * 5,
+    const expectedAppraisals = {
+      byContract: {
+        [unknownAddress]: {
+          value_asset: 0,
+          value_usd: 0,
+        },
+        [monitoredAssets[0].address!]: {
+          value_asset: adjustedAmount,
+          value_usd: adjustedAmount * 5,
+        },
       },
-      {
-        contractAddress: unknownAddress,
-        rawAmount: 4096n,
-        adjustedAmount: undefined,
-        usdValue: undefined,
+      byType: {
+        token_transfer: {
+          value_asset: adjustedAmount,
+          value_usd: adjustedAmount * 5,
+        },
       },
-    ];
+    };
 
     expect(appraisals).toEqual(expectedAppraisals);
   });
@@ -231,16 +234,21 @@ describe(TokenTransferHandler.name, () => {
     const adjustedAmount =
       Number("0x1000") / Math.pow(10, monitoredAssets[0].decimals);
 
-    const expectedAppraisals: AppraisalSummary[] = [
-      {
-        contractAddress: monitoredAssets[0].address!,
-        rawAmount: 4096n,
-        adjustedAmount: adjustedAmount,
-        usdValue: adjustedAmount * 5,
+    const expectedAppraisals = {
+      byContract: {
+        [monitoredAssets[0].address!]: {
+          value_asset: adjustedAmount,
+          value_usd: adjustedAmount * 5,
+        },
       },
-    ];
+      byType: {
+        token_transfer: {
+          value_asset: adjustedAmount,
+          value_usd: adjustedAmount * 5,
+        },
+      },
+    };
 
-    expect(appraisals).toHaveLength(mockTransactionReceiptLogs.logs.length - 1);
     expect(appraisals).toEqual(expectedAppraisals);
   });
 
@@ -307,23 +315,22 @@ describe(TokenTransferHandler.name, () => {
     const receipts = await mockProvider.getBlockTransactionReceipts(
       1 as unknown as Block,
     );
-    const appraisals = await handler.handleTransferEvents(
+    const values = await handler.handleTransferEvents(
       mockTxResponse,
       receipts,
       timestamp,
     );
+    const appraisalsWithMaxUsdValue = Object.values(values.byContract!).map(
+      (value) => {
+        const tokenAmount = value?.value_asset ?? 0;
+        const usdValue = tokenAmount! * 5;
+        return {
+          maxUsdValue: usdValue,
+        };
+      },
+    );
 
-    const appraisalsWithMaxUsdValue = appraisals.map((appraisal) => {
-      const tokenAmount = appraisal.adjustedAmount;
-      const usdValue = tokenAmount! * 5;
-      return {
-        ...appraisal,
-        maxUsdValue: usdValue,
-      };
-    });
-
-    expect(appraisals).toHaveLength(1);
-    expect(appraisals[0].usdValue).toEqual(
+    expect(values.byContract![monitoredAssets[0].address!]?.value_usd).toEqual(
       appraisalsWithMaxUsdValue[0].maxUsdValue,
     );
   });

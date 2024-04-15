@@ -38,6 +38,8 @@ export class NativeTransferHandler extends BaseHandler {
       timestamp,
     );
 
+    if (adjustedAmount == 0) return {};
+
     const value: ValueRecord = {
       value_asset: adjustedAmount,
       value_usd: priceRecord ? adjustedAmount * priceRecord.priceUsd : 0,

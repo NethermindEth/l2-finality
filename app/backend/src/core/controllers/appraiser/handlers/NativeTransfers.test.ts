@@ -64,15 +64,14 @@ describe(NativeTransferHandler.name, () => {
       value: BigInt(mockTransactionData.value),
     } as Transaction;
 
-    const appraisals = await handler.handleTransferEvents(
+    const values = await handler.handleTransferEvents(
       mockTxResponse,
       [] as TransactionReceipt[],
       timestamp,
     );
     const expectedValue = (mockTransactionData.value / 1e18) * 5;
 
-    expect(appraisals).toHaveLength(1);
-    expect(appraisals[0].usdValue).toEqual(expectedValue);
+    expect(values.byType!.native_transfer!.value_usd).toEqual(expectedValue);
   });
 
   it("handles a transaction with zero value", async () => {
@@ -106,8 +105,7 @@ describe(NativeTransferHandler.name, () => {
       timestamp,
     );
 
-    expect(appraisals).toHaveLength(1);
-    expect(appraisals[0].usdValue).toEqual(0);
+    expect(appraisals).toEqual({});
   });
 });
 

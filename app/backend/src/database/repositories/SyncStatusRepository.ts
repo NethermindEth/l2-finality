@@ -95,7 +95,7 @@ export class SyncStatusRepository {
         "l2.l2_block_timestamp",
       )
       .where("chain_id", chainId)
-      .join(
+      .leftJoin(
         { l2: chainTableMapping[chainId] },
         "s.l2_block_number",
         "=",
