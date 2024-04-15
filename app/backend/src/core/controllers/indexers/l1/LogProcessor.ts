@@ -11,8 +11,8 @@ import {
 import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 import EthereumClient from "@/core/clients/blockchain/ethereum/EthereumClient";
 import chains from "@/shared/chains.json";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 import Logger from "@/tools/Logger";
+import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 type CallbackFunction = (...args: any[]) => any;
 

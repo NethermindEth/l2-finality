@@ -1,4 +1,5 @@
 import express from "express";
+import compression from "compression";
 import Logger from "@/tools/Logger";
 import { apiLogger } from "@/api/middleware/apiLogger";
 import { Database } from "@/database/Database";
@@ -32,6 +33,7 @@ export class Api {
     this.logger = this.logger.for("Api");
     this.app = express();
 
+    this.app.use(compression());
     this.app.use(
       cors({
         origin: "*",

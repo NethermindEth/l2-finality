@@ -5,7 +5,7 @@ import fs from "fs";
 import { ethers } from "ethers";
 import assets from "@/core/clients/coingecko/assets/whitelisted.json";
 import { getChecksumAddress } from "starknet";
-import { getAddress } from "@/core/clients/blockchain/IBlockchainClient";
+import { getAnyAddress } from "@/core/clients/blockchain/IBlockchainClient";
 
 describe("ABI Files Check", () => {
   it("should have an ABI file for each contract in contracts.json", () => {
@@ -25,7 +25,7 @@ describe("ABI Files Check", () => {
         expect(asset.coingeckoId).toEqual("ethereum");
       } else {
         try {
-          const checksummedAddress: string = getAddress(asset.address);
+          const checksummedAddress: string = getAnyAddress(asset.address);
           expect(checksummedAddress).toEqual(asset.address);
         } catch (error) {
           throw new Error(

@@ -1,5 +1,4 @@
 import {
-  AppraisalSummary,
   BaseHandler,
   PricedTransferLogEvent,
   TransferLogEvent,
@@ -14,6 +13,9 @@ import {
   Transaction,
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
+import { mergeValues, ValueMapping } from "@/core/controllers/appraiser/types";
+import { ValueRecord } from "@/database/repositories/BlockValueRepository";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export class TokenTransferHandler extends BaseHandler {
   private readonly priceService: PriceService;
@@ -31,11 +33,11 @@ export class TokenTransferHandler extends BaseHandler {
     tx: Transaction,
     txReceipts: TransactionReceipt[] | undefined,
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]> {
-    if (!txReceipts) return [];
+  ): Promise<ValueMapping> {
+    if (!txReceipts) return {};
 
     const receipt = txReceipts.find((rcpt) => rcpt.hash === tx.hash);
-    if (!receipt) return [];
+    if (!receipt) return {};
     const transferEvents: TransferLogEvent[] = this.extractTransferEvents(
       receipt.logs,
     );
@@ -59,7 +61,7 @@ export class TokenTransferHandler extends BaseHandler {
   private async handleSwapLikeTransfers(
     transferEvents: TransferLogEvent[],
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]> {
+  ): Promise<ValueMapping> {
     const pricedTransferLogEvents: PricedTransferLogEvent[] =
       await this.priceTransferLogEvents(transferEvents, timestamp);
     const maxTransferEvent = pricedTransferLogEvents.reduce(
@@ -68,29 +70,37 @@ export class TokenTransferHandler extends BaseHandler {
       pricedTransferLogEvents[0],
     );
 
-    return [
-      {
-        contractAddress: maxTransferEvent.contractAddress,
-        rawAmount: maxTransferEvent.rawAmount,
-        adjustedAmount: maxTransferEvent.adjustedAmount,
-        usdValue: maxTransferEvent.usdValue,
-      },
-    ];
+    const value: ValueRecord = {
+      value_asset: maxTransferEvent.adjustedAmount ?? 0,
+      value_usd: maxTransferEvent.usdValue ?? 0,
+    };
+
+    return {
+      byContract: { [maxTransferEvent.contractAddress]: value },
+      byType: { [ValueType.token_swap]: value },
+    };
   }
 
   private async handleDistributionLikeTransfers(
     transferEvents: TransferLogEvent[],
     timestamp: UnixTime,
-  ): Promise<AppraisalSummary[]> {
-    const pricedTransferLogEvents: PricedTransferLogEvent[] =
+  ): Promise<ValueMapping> {
+    const pricedEvents: PricedTransferLogEvent[] =
       await this.priceTransferLogEvents(transferEvents, timestamp);
 
-    return pricedTransferLogEvents.map((event) => ({
-      contractAddress: event.contractAddress,
-      rawAmount: event.rawAmount,
-      adjustedAmount: event.adjustedAmount,
-      usdValue: event.usdValue,
-    }));
+    return mergeValues(
+      pricedEvents.map((e) => {
+        const value: ValueRecord = {
+          value_asset: e.adjustedAmount ?? 0,
+          value_usd: e.usdValue ?? 0,
+        };
+
+        return {
+          byContract: { [e.contractAddress]: value },
+          byType: { [ValueType.token_transfer]: value },
+        };
+      }),
+    );
   }
 
   private hasReciprocalTransfers(transferEvents: TransferLogEvent[]): boolean {

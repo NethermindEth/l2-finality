@@ -68,7 +68,7 @@ describe(SyncStatusRepository.name, () => {
       const testData: SyncStatusRecord[] = [];
       for (let i = 0; i < 20; i++) {
         testData.push({
-          chain_id: 1,
+          chain_id: 10,
           l2_block_number: BigInt(100 + i),
           l2_block_hash: `0x${i}`,
           l1_block_number: null,
@@ -81,7 +81,11 @@ describe(SyncStatusRepository.name, () => {
 
       const page = 1;
       const pageSize = 10;
-      const result = await repository.getPaginatedSyncStatus(1, page, pageSize);
+      const result = await repository.getPaginatedSyncStatus(
+        10,
+        page,
+        pageSize,
+      );
 
       expect(result).toHaveLength(pageSize);
 
@@ -91,7 +95,7 @@ describe(SyncStatusRepository.name, () => {
     });
 
     it("returns empty array when no records found", async () => {
-      const result = await repository.getPaginatedSyncStatus(9999);
+      const result = await repository.getPaginatedSyncStatus(1101);
 
       expect(result).toBeEmpty();
     });

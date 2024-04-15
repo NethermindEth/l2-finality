@@ -1,6 +1,11 @@
 import { Logger } from "@/tools/Logger";
 import { Database } from "@/database/Database";
-import BlockValueRepository from "@/database/repositories/BlockValueRepository";
+import BlockValueRepository, {
+  BlockValueRecord,
+} from "@/database/repositories/BlockValueRepository";
+import { ValueMapping } from "@/core/controllers/appraiser/types";
+import { BlockAppraiser } from "@/core/controllers/appraiser/BlockAppraiser";
+import { IBlockchainClient } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface BlockIndexerConfig {
   chainId: number;
@@ -8,24 +13,27 @@ export interface BlockIndexerConfig {
   startBlockEnvVar: number;
 }
 
-class BlockIndexerController {
+abstract class BlockIndexerController {
   protected logger: Logger;
   protected indexerConfig: BlockIndexerConfig;
   protected database: Database;
 
-  protected client: any;
+  protected client: IBlockchainClient;
+  private blockAppraiser: BlockAppraiser;
   protected chainId: number;
   protected blockValueRepository: BlockValueRepository;
 
   protected readonly timeoutMs = 1000;
 
-  constructor(
-    client: any,
+  protected constructor(
+    client: IBlockchainClient,
+    blockAppraiser: BlockAppraiser,
     indexerConfig: BlockIndexerConfig,
     database: Database,
     logger: Logger,
   ) {
     this.client = client;
+    this.blockAppraiser = blockAppraiser;
     this.chainId = indexerConfig.chainId;
     this.logger = logger;
     this.indexerConfig = indexerConfig;
@@ -67,8 +75,27 @@ class BlockIndexerController {
     fromBlock: number,
     toBlock: number,
   ): Promise<void> {
-    // Implement block fetching logic in child classes
-    return;
+    const recordsToAdd: BlockValueRecord[] = [];
+    this.logger.debug(
+      `Fetching blocks for range: ${fromBlock} to block ${toBlock}`,
+    );
+    for (let startBlock = fromBlock; startBlock <= toBlock; startBlock++) {
+      const block = await this.client.getBlock(startBlock);
+      if (!block) break;
+
+      const valueMapping: ValueMapping = await this.blockAppraiser.value(block);
+
+      const record: BlockValueRecord = {
+        l2_block_number: BigInt(startBlock),
+        l2_block_hash: block.hash.toString(),
+        l2_block_timestamp: new Date(block.timestamp * 1000),
+        value_by_contract: valueMapping.byContract ?? {},
+        value_by_type: valueMapping.byType ?? {},
+      };
+      recordsToAdd.push(record);
+    }
+
+    await this.blockValueRepository.upsertMany(this.chainId, recordsToAdd);
   }
 
   protected async startFrom(): Promise<number> {

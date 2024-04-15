@@ -4,6 +4,7 @@ import { getChecksumAddress } from "starknet";
 
 export interface IBlockchainClient {
   chainId: number;
+  getCurrentHeight(): Promise<number>;
   getBlock(blockNumberOrHash: string | number): Promise<Block | undefined>;
   getTransaction?(txHash: string): Promise<Transaction | undefined>;
   getBlockTransactionReceipts(
@@ -24,6 +25,7 @@ export interface Block {
   miner?: string;
   extraData?: string;
   baseFeePerGas: bigint;
+  sequencerAddress?: string;
   transactions: Transaction[];
 }
 
@@ -65,7 +67,8 @@ export interface TransactionReceipt {
   blockNumber?: number;
   logsBloom?: string;
   gasUsed: bigint;
-  gasPrice: bigint;
+  gasPrice?: bigint;
+  gasAsset?: string;
   type?: number;
   status?: number | null;
   root?: null | string;
@@ -123,6 +126,7 @@ export function ethersToTransactionReceipt(
   ethersReceipt: ethers.TransactionReceipt,
   hash?: string,
   gasPrice?: bigint,
+  gasAsset?: string,
 ): TransactionReceipt {
   return {
     to: ethersReceipt.to,
@@ -135,6 +139,7 @@ export function ethersToTransactionReceipt(
     logsBloom: ethersReceipt.logsBloom,
     gasUsed: ethersReceipt.gasUsed,
     gasPrice: gasPrice ? gasPrice : ethersReceipt.gasPrice,
+    gasAsset: gasAsset ?? ethers.ZeroAddress,
     type: ethersReceipt.type,
     status: ethersReceipt.status,
     root: ethersReceipt.root || null,
@@ -171,11 +176,16 @@ export function getEvmTransferEvent(log: Log): TransferLogEvent | undefined {
   }
 }
 
+// Converts Starknet address to checksummed format
+export function getStarknetAddress(address: string): string {
+  if (address == "0x0" || address == "0x1")
+    // Starknet special addresses
+    return address;
+  else return getChecksumAddress(address);
+}
+
 // Converts Starknet or EVM address to checksummed format
-export function getAddress(address: string): string {
-  if (address.length > 42) {
-    return getChecksumAddress(address);
-  } else {
-    return ethers.getAddress(address);
-  }
+export function getAnyAddress(address: string): string {
+  if (address.length > 42) return getStarknetAddress(address);
+  else return ethers.getAddress(address);
 }

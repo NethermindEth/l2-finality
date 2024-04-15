@@ -1,7 +1,7 @@
 import Logger from "@/tools/Logger";
 import { BlockRewardsHandler } from "@/core/controllers/appraiser/handlers/BlockRewardsHandler";
 import { PriceService } from "@/core/controllers/appraiser/services/PriceService";
-import { getConfig } from "@/config";
+import { Config, getConfig } from "@/config";
 import PricingRepository from "@/database/repositories/PricingRepository";
 import { UnixTime } from "@/core/types/UnixTime";
 import { expect, mockFn } from "earl";
@@ -16,6 +16,8 @@ import {
 } from "@/core/clients/blockchain/IBlockchainClient";
 import OptimismClient from "@/core/clients/blockchain/optimism/OptimismClient";
 import chains from "@/shared/chains.json";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import PolygonZkEvmClient from "@/core/clients/blockchain/polygonzk/PolygonZkEvmClient";
 
 interface MockTransactionData {
   hash: string;
@@ -31,17 +33,17 @@ interface MockTransactionData {
 describe(BlockRewardsHandler.name, () => {
   let blockRewardsHandler: BlockRewardsHandler;
   let knexInstance: Knex;
-  let ethersProvider: IBlockchainClient;
   let priceService: PriceService;
+  let logger: Logger;
+  let config: Config;
 
   beforeEach(async () => {
-    const logger = new Logger();
-    const config = getConfig();
     const priceRepository = new PricingRepository(knexInstance);
 
+    logger = new Logger();
+    config = getConfig();
     knexInstance = await getTestDatabase();
     priceService = new PriceService(priceRepository, logger, false);
-    ethersProvider = new OptimismClient(config, logger);
   });
 
   afterEach(async () => {
@@ -50,7 +52,6 @@ describe(BlockRewardsHandler.name, () => {
 
   describe(BlockRewardsHandler.prototype.handleBlockRewards.name, () => {
     it("calculates gas fees and block rewards correctly for one zkEVM transfer", async () => {
-      const timestamp = UnixTime.now();
       const mockTransactionData: MockTransactionData[] = [
         {
           hash: "0xe591c36ad35c3ee602d065691a4f9dff4cd997e34a81cfa222e6fcd2c9c1ea73",
@@ -65,7 +66,7 @@ describe(BlockRewardsHandler.name, () => {
       ];
 
       const { mockProvider, mockPriceService } = setUpMockProvider(
-        ethersProvider,
+        new PolygonZkEvmClient(config, logger),
         priceService,
         mockTransactionData,
       );
@@ -73,13 +74,6 @@ describe(BlockRewardsHandler.name, () => {
         chains.zkEVM.chainId,
         mockPriceService,
       );
-
-      const txs = mockTransactionData.map((txData) => ({
-        hash: txData.hash,
-        maxPriorityFeePerGas: txData.priorityFeePerGas,
-        maxFeePerGas: txData.maxFeePerGas,
-        gasPrice: txData.gasPrice,
-      })) as Transaction[];
 
       const block = (await mockProvider.getBlock(
         mockTransactionData[0].blockNumber,
@@ -103,17 +97,22 @@ describe(BlockRewardsHandler.name, () => {
       const expectedTips = expectedGasFees;
 
       const expected = {
-        gasFees: expectedGasFees,
-        gasFeesUsd: (Number(expectedGasFees) / 1e18) * 5,
-        blockReward: expectedTips,
-        blockRewardUsd: (Number(expectedTips) / 1e18) * 5,
+        byType: {
+          block_reward: {
+            value_asset: Number(expectedGasFees) / 1e18,
+            value_usd: (Number(expectedGasFees) / 1e18) * 5,
+          },
+          gas_fees: {
+            value_asset: Number(expectedTips) / 1e18,
+            value_usd: (Number(expectedTips) / 1e18) * 5,
+          },
+        },
       };
 
       expect(result).toEqual(expected);
     });
 
     it("calculates gas fees and block rewards correctly for one Optimism transfer", async () => {
-      const timestamp = UnixTime.now();
       const mockTransactionData: MockTransactionData[] = [
         {
           hash: "0xe591c36ad35c3ee602d065691a4f9dff4cd997e34a81cfa222e6fcd2c9c1ea73",
@@ -128,7 +127,7 @@ describe(BlockRewardsHandler.name, () => {
       ];
 
       const { mockProvider, mockPriceService } = setUpMockProvider(
-        ethersProvider,
+        new OptimismClient(config, logger),
         priceService,
         mockTransactionData,
       );
@@ -169,10 +168,16 @@ describe(BlockRewardsHandler.name, () => {
       const expectedTips = expectedGasFees;
 
       const expected = {
-        gasFees: expectedGasFees,
-        gasFeesUsd: (Number(expectedGasFees) / 1e18) * 5,
-        blockReward: expectedTips,
-        blockRewardUsd: (Number(expectedTips) / 1e18) * 5,
+        byType: {
+          block_reward: {
+            value_asset: Number(expectedGasFees) / 1e18,
+            value_usd: (Number(expectedGasFees) / 1e18) * 5,
+          },
+          gas_fees: {
+            value_asset: Number(expectedTips) / 1e18,
+            value_usd: (Number(expectedTips) / 1e18) * 5,
+          },
+        },
       };
 
       expect(result).toEqual(expected);
@@ -234,7 +239,7 @@ describe(BlockRewardsHandler.name, () => {
       ];
 
       const { mockProvider, mockPriceService } = setUpMockProvider(
-        ethersProvider,
+        new OptimismClient(config, logger),
         priceService,
         mockTransactionData,
       );
@@ -261,10 +266,16 @@ describe(BlockRewardsHandler.name, () => {
         return acc + transactionFees;
       }, BigInt(0));
       const expected = {
-        gasFees: sumGasFees,
-        gasFeesUsd: (Number(sumGasFees) / 1e18) * 5,
-        blockReward: sumGasFees,
-        blockRewardUsd: (Number(sumGasFees) / 1e18) * 5,
+        byType: {
+          block_reward: {
+            value_asset: Number(sumGasFees) / 1e18,
+            value_usd: (Number(sumGasFees) / 1e18) * 5,
+          },
+          gas_fees: {
+            value_asset: Number(sumGasFees) / 1e18,
+            value_usd: (Number(sumGasFees) / 1e18) * 5,
+          },
+        },
       };
 
       expect(result).toEqual(expected);
@@ -286,6 +297,8 @@ function setUpMockProvider(
       mockTransactionData.map((txData) => ({
         hash: txData.hash,
         gasUsed: txData.gasUsed ? BigInt(txData.gasUsed) : BigInt(0),
+        gasAsset: whitelistedMap.getAssetBySymbol(mockProvider.chainId, "ETH")!
+          .address,
       })),
     );
   });

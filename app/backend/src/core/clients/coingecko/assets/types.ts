@@ -1,6 +1,6 @@
 import whitelisted from "@/core/clients/coingecko/assets/whitelisted.json";
-import { ZeroAddress } from "ethers";
-import { getAddress } from "@/core/clients/blockchain/IBlockchainClient";
+import { ethers, ZeroAddress } from "ethers";
+import { getAnyAddress } from "@/core/clients/blockchain/IBlockchainClient";
 
 export interface WhitelistedAsset {
   name: string;
@@ -14,6 +14,9 @@ export interface WhitelistedAsset {
 }
 
 export class WhitelistedMap {
+  // Cache address -> checksummed address mapping for whitelisted assets as SHA is slow
+  private readonly cache: { [address: string]: string | undefined } = {};
+
   [chainId: number]: { [symbol: string]: WhitelistedAsset };
 
   constructor(assets: WhitelistedAsset[]) {
@@ -39,16 +42,36 @@ export class WhitelistedMap {
     chainId: number,
     address: string,
   ): WhitelistedAsset | undefined {
+    const cachedAddress = this.cache[address];
+
     const chainMap = this[chainId];
     if (!chainMap) return undefined;
 
-    return chainMap[getAddress(address)];
+    const checksumAddress = cachedAddress ?? getAnyAddress(address);
+    const result = chainMap[checksumAddress];
+
+    if (result && !cachedAddress) {
+      this.cache[address] = checksumAddress;
+    }
+
+    return result;
   }
 
   getSymbolByAddress(chainId: number, address: string): string | undefined {
     if (address == ZeroAddress) return "ETH";
 
     return this.getAssetByAddress(chainId, address)?.symbol;
+  }
+
+  adjustValue(
+    chainId: number,
+    address: string,
+    value: bigint,
+  ): number | undefined {
+    const asset = this.getAssetByAddress(chainId, address);
+    if (!asset) return undefined;
+
+    return parseFloat(ethers.formatUnits(value.toString(), asset.decimals));
   }
 }
 

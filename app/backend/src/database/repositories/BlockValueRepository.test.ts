@@ -36,14 +36,22 @@ describe(BlockValueRepository.name, () => {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: {
-          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
-          unmapped: [],
+        value_by_contract: {
+          ["0xABC"]: {
+            value_asset: 10,
+            value_usd: 10,
+          },
         },
-        gas_fees: 100n,
-        gas_fees_usd: 10,
-        block_reward: 100n,
-        block_reward_usd: 10,
+        value_by_type: {
+          gas_fees: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+          block_reward: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+        },
       };
 
       await repository.upsertRecord(chainId, blockValueRecord);
@@ -52,13 +60,7 @@ describe(BlockValueRepository.name, () => {
         .first();
       const formattedResult = {
         ...result,
-        value: result.value,
-        gas_fees_usd: parseFloat(result.gas_fees_usd),
-        block_reward_usd: parseFloat(result.block_reward_usd),
-        gas_fees: BigInt(result.gas_fees),
-        block_reward: BigInt(result.block_reward),
         l2_block_number: BigInt(result.l2_block_number),
-        l2_block_timestamp: new Date(result.l2_block_timestamp),
       };
 
       expect(formattedResult).toEqual(blockValueRecord);
@@ -93,14 +95,26 @@ describe(BlockValueRepository.name, () => {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: {
-          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
-          unmapped: ["xxx"],
+        value_by_contract: {
+          ["0xABC"]: {
+            value_asset: 10,
+            value_usd: 10,
+          },
+          ["xxx"]: {
+            value_asset: 0,
+            value_usd: 0,
+          },
         },
-        gas_fees: 100n,
-        gas_fees_usd: 10,
-        block_reward: 100n,
-        block_reward_usd: 10,
+        value_by_type: {
+          gas_fees: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+          block_reward: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+        },
       };
       await repository.upsertRecord(chainId, record);
 
@@ -119,14 +133,22 @@ describe(BlockValueRepository.name, () => {
         l2_block_number: 100n,
         l2_block_hash: "0x123",
         l2_block_timestamp: new Date(),
-        value: {
-          mapped: [{ contractAddress: "0xABC", usdTotalValue: 10 }],
-          unmapped: [],
+        value_by_contract: {
+          ["0xABC"]: {
+            value_asset: 10,
+            value_usd: 10,
+          },
         },
-        gas_fees: 100n,
-        gas_fees_usd: 10,
-        block_reward: 100n,
-        block_reward_usd: 10,
+        value_by_type: {
+          gas_fees: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+          block_reward: {
+            value_asset: 100,
+            value_usd: 10,
+          },
+        },
       };
       await repository.upsertRecord(chainId, record);
 

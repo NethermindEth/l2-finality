@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { UnixTime } from "@/core/types/UnixTime";
 import { PriceService } from "../services/PriceService";
 import {
@@ -6,17 +5,14 @@ import {
   TransactionReceipt,
 } from "@/core/clients/blockchain/IBlockchainClient";
 import chains from "@/shared/chains.json";
-
-export interface BlockRewardSummary {
-  gasFees: bigint;
-  gasFeesUsd: number;
-  blockReward: bigint;
-  blockRewardUsd: number;
-}
+import { mergeValues } from "@/core/controllers/appraiser/types";
+import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import { ValueMapping } from "@/core/controllers/appraiser/types";
 
 export class BlockRewardsHandler {
-  private chainId: number;
-  private priceService: PriceService;
+  private readonly chainId: number;
+  private readonly priceService: PriceService;
 
   constructor(chainId: number, priceService: PriceService) {
     this.chainId = chainId;
@@ -26,27 +22,24 @@ export class BlockRewardsHandler {
   async handleBlockRewards(
     block: Block,
     blockTransactionReceipts: TransactionReceipt[] | undefined,
-  ): Promise<BlockRewardSummary> {
-    let totalGasFees = BigInt(0);
-    let totalTips = BigInt(0);
-
+  ): Promise<ValueMapping> {
     if (!blockTransactionReceipts) {
-      return {
-        gasFees: totalGasFees,
-        gasFeesUsd: 0,
-        blockReward: totalTips,
-        blockRewardUsd: 0,
-      };
+      return {};
     }
 
+    const totalByAsset: { [asset: string]: { fees: 0n; tips: 0n } } = {};
     for (const receipt of blockTransactionReceipts) {
-      if (!receipt) continue;
-      const gasUsed = receipt.gasUsed ? BigInt(receipt.gasUsed) : BigInt(0);
+      if (!receipt || !receipt.gasAsset) continue;
 
       const transaction = block.transactions.find(
         (tx) => tx.hash === receipt.hash,
       );
       if (!transaction) continue;
+
+      const gasUsed = receipt.gasUsed ? BigInt(receipt.gasUsed) : 0n;
+      const gasPrice = receipt.gasPrice
+        ? receipt.gasPrice
+        : transaction.gasPrice;
 
       const baseFeePerGas = block.baseFeePerGas
         ? BigInt(block.baseFeePerGas)
@@ -60,33 +53,49 @@ export class BlockRewardsHandler {
 
       const { gasFees, tips } = this.calculateBlockRewardByChainId(
         gasUsed,
-        transaction.gasPrice,
+        gasPrice,
         baseFeePerGas,
         priorityFeePerGas,
         maxFeePerGas,
       );
 
-      totalGasFees += gasFees;
-      totalTips += tips;
+      totalByAsset[receipt.gasAsset] ??= { fees: 0n, tips: 0n };
+      totalByAsset[receipt.gasAsset].fees += gasFees;
+      totalByAsset[receipt.gasAsset].tips += tips;
     }
 
-    const priceRecord = await this.priceService.getPriceForContract(
-      ethers.ZeroAddress,
-      UnixTime.fromDate(new Date(block.timestamp * 1000)),
+    const values: ValueMapping[] = await Promise.all(
+      Object.keys(totalByAsset).map(async (asset) => {
+        const priceRecord = await this.priceService.getPriceForContract(
+          asset,
+          new UnixTime(block.timestamp),
+        );
+        const priceUsd = priceRecord ? priceRecord.priceUsd : 0;
+
+        const total = totalByAsset[asset];
+        const gasFeesAdjusted =
+          whitelistedMap.adjustValue(this.chainId, asset, total.fees) ?? 0;
+        const gasFeesUsd = gasFeesAdjusted * priceUsd;
+        const tipsAdjusted =
+          whitelistedMap.adjustValue(this.chainId, asset, total.tips) ?? 0;
+        const tipsUsd = tipsAdjusted * priceUsd;
+
+        return {
+          byType: {
+            [ValueType.gas_fees]: {
+              value_asset: gasFeesAdjusted,
+              value_usd: gasFeesUsd,
+            },
+            [ValueType.block_reward]: {
+              value_asset: tipsAdjusted,
+              value_usd: tipsUsd,
+            },
+          },
+        };
+      }),
     );
-    const priceUsd = priceRecord ? priceRecord.priceUsd : 0;
 
-    const gasFeesUsd =
-      parseFloat(ethers.formatEther(totalGasFees.toString())) * priceUsd;
-    const tipsUsd =
-      parseFloat(ethers.formatEther(totalTips.toString())) * priceUsd;
-
-    return {
-      gasFees: totalGasFees,
-      gasFeesUsd: gasFeesUsd,
-      blockReward: totalTips,
-      blockRewardUsd: tipsUsd,
-    };
+    return mergeValues(values);
   }
 
   calculateBlockRewardByChainId(
@@ -118,9 +127,9 @@ export class BlockRewardsHandler {
         break;
 
       case chains.Starknet.chainId:
-        // All fees are included as part of the Transfer events in Starknet
-        gasFees = BigInt(0);
-        tips = BigInt(0);
+        // All fees are paid directly to the Sequencer in Starknet
+        gasFees = gasUsed * gasPrice;
+        tips = gasUsed * gasPrice;
         break;
 
       default:

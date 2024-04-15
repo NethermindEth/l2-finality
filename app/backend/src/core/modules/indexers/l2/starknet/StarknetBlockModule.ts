@@ -3,7 +3,7 @@ import { Database } from "@/database/Database";
 import { Config } from "@/config/Config";
 import { TaskScheduler } from "@/core/scheduler/TaskScheduler";
 import { createBlockAppraiser } from "@/core/controllers/appraiser/getAppraiser";
-import StarknetBlockController from "@/core/controllers/indexers/l2/starknet/StarlnetBlockController";
+import StarknetBlockController from "@/core/controllers/indexers/l2/starknet/StarknetBlockController";
 import StarknetClient from "@/core/clients/blockchain/starknet/StarknetClient";
 
 export function createStarknetBlockModule(

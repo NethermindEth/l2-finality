@@ -10,8 +10,6 @@ import {
   sendSuccessResponse,
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
-import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
-import { SubmissionType } from "@/shared/api/viewModels/SyncStatusEndpoint";
 
 export class SyncStatusController {
   private syncStatusRepository: SyncStatusRepository;
@@ -73,42 +71,43 @@ export class SyncStatusController {
     }
   }
 
-  async getAverageVarHistory(req: Request, res: Response): Promise<void> {
+  async getVarHistory(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
 
-      const vars = await this.syncStatusRepository.getAverageValueAtRiskHistory(
+      const result = await this.syncStatusRepository.getVarHistory(
         params.chainId,
-        params.groupRange,
+        undefined,
         params.from,
         params.to,
+        params.precision,
       );
 
-      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
-
-      sendSuccessResponse(res, vars);
+      sendSuccessResponse(res, result);
     } catch (error) {
-      this.logger.error("Error getting average VaR history:", error);
-      sendErrorResponse(res, 500, "Internal error getting average VaR history");
+      this.logger.error("Error getting VaR history:", error);
+      sendErrorResponse(res, 500, "Internal error getting VaR history");
     }
   }
 
-  async getActiveVar(req: Request, res: Response): Promise<void> {
+  async getVarAverage(req: Request, res: Response): Promise<void> {
     try {
       const params = this.extractParams(req, res);
       if (!params) return;
 
-      const vars = await this.syncStatusRepository.getActiveValueAtRisk(
+      const result = await this.syncStatusRepository.getVarAverage(
         params.chainId,
+        undefined,
+        params.from,
+        params.to,
+        params.precision,
       );
 
-      if (params.useNames) this.replaceAddressesWithNames(vars, params.chainId);
-
-      sendSuccessResponse(res, vars);
+      sendSuccessResponse(res, result);
     } catch (error) {
-      this.logger.error("Error getting active VaR:", error);
-      sendErrorResponse(res, 500, "Internal error getting active VaR");
+      this.logger.error("Error getting VaR average:", error);
+      sendErrorResponse(res, 500, "Internal error getting VaR average");
     }
   }
 
@@ -119,19 +118,21 @@ export class SyncStatusController {
     | {
         chainId: number;
         groupRange: GroupRange;
-        useNames: boolean;
         from?: Date;
         to?: Date;
+        precision?: number;
       }
     | undefined {
     const chainId: number = parseInt(req.query.chainId as string);
     const groupRange: GroupRange = (req.query.range as GroupRange) || "day";
-    const useNames: boolean = req.query.useNames === "true";
     const from: Date | undefined = req.query.from
       ? new Date(req.query.from as string)
       : undefined;
     const to: Date | undefined = req.query.to
       ? new Date(req.query.to as string)
+      : undefined;
+    const precision: number | undefined = req.query.precision
+      ? parseInt(req.query.precision as string)
       : undefined;
 
     if (!Object.keys(chainTableMapping).includes(chainId.toString())) {
@@ -139,22 +140,6 @@ export class SyncStatusController {
       return;
     }
 
-    return { chainId, groupRange, useNames, from, to };
-  }
-
-  replaceAddressesWithNames<T>(
-    map: { [sub in SubmissionType]: { [address: string]: T } },
-    chainId: number,
-  ) {
-    for (const entries of Object.values(map)) {
-      for (const address of Object.keys(entries)) {
-        const symbol = whitelistedMap.getSymbolByAddress(chainId, address);
-
-        if (symbol) {
-          entries[symbol] = entries[address];
-          delete entries[address];
-        }
-      }
-    }
+    return { chainId, groupRange, from, to, precision };
   }
 }

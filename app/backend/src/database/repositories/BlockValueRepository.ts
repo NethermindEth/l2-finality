@@ -1,6 +1,9 @@
 import { Knex } from "knex";
-import { AggregatedTransferResults } from "@/core/controllers/appraiser/types";
 import chains from "@/shared/chains.json";
+import {
+  ValueByContract,
+  ValueByType,
+} from "@/core/controllers/appraiser/types";
 
 export const chainTableMapping: Record<number, string> = {
   [chains.Optimism.chainId]: "optimism_blocks",
@@ -8,15 +11,17 @@ export const chainTableMapping: Record<number, string> = {
   [chains.Starknet.chainId]: "starknet_blocks",
 };
 
+export interface ValueRecord {
+  value_asset: number;
+  value_usd: number;
+}
+
 export interface BlockValueRecord {
   l2_block_number: bigint;
   l2_block_hash: string;
   l2_block_timestamp: Date;
-  value: AggregatedTransferResults;
-  gas_fees: bigint;
-  gas_fees_usd: number;
-  block_reward: bigint;
-  block_reward_usd: number;
+  value_by_type: ValueByType;
+  value_by_contract: ValueByContract;
 }
 
 export class BlockValueRepository {
