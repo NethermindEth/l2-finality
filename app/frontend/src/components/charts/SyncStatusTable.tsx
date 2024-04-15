@@ -16,10 +16,10 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import moment from 'moment'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import chains from '@/shared/chains.json'
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
+import { Info, KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
+import moment from 'moment'
 
 interface SyncStatusRecord {
   l2_block_number: string
@@ -32,6 +32,7 @@ interface SyncStatusRecord {
 
 interface TableProps {
   data: SyncStatusRecord[]
+  chainId: number
   page: number
   pageSize: number
   totalRows: number
@@ -93,7 +94,7 @@ const SyncStatusTable: React.FC<TableProps> = ({
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    onRowsPerPageChange(parseInt(event.target.value, 5))
+    onRowsPerPageChange(parseInt(event.target.value))
   }
 
   const getSubmissionTypeName = (submissionType: string) => {
@@ -166,7 +167,22 @@ const SyncStatusTable: React.FC<TableProps> = ({
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
               <TableHead>
                 <TableRow>
-                  <TableCell>Timestamp</TableCell>
+                  <TableCell>
+                    <Box display="flex" alignItems="center">
+                      <Typography variant="body2 bold">
+                        Submission timestamp
+                      </Typography>
+                      <Tooltip
+                        title="The timestamp is the state submission timestamp. This is different from L2 block timestamp, which is usually less."
+                        placement="top"
+                      >
+                        <Info
+                          fontSize="small"
+                          sx={{ ml: 1, color: 'text.secondary' }}
+                        />
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
                   <TableCell>Submission Type</TableCell>
                   <TableCell>L2 Block Number</TableCell>
                   <TableCell>L2 Block Hash</TableCell>
@@ -177,7 +193,13 @@ const SyncStatusTable: React.FC<TableProps> = ({
               <TableBody>
                 {data.map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell>{moment(row.timestamp).fromNow()}</TableCell>
+                    <TableCell>
+                      <Tooltip title={new Date(row.timestamp).toLocaleString()}>
+                        <Typography variant="body2">
+                          {moment(row.timestamp).fromNow()}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell>
                       {getSubmissionTypeName(row.submission_type)}
                     </TableCell>
@@ -226,6 +248,7 @@ const SyncStatusTable: React.FC<TableProps> = ({
               </TableBody>
             </Table>
           </TableContainer>
+
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"

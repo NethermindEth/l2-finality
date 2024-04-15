@@ -1,56 +1,120 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
+  CircularProgress,
   Container,
   Grid,
   Paper,
   Typography,
-  CircularProgress,
 } from '@mui/material'
-import VaRLiveGraph from '@/components/charts/VaRLiveChart'
+import VaRLiveBarChart from '@/components/charts/VaRLiveBarChart'
+import { syncStatusApi } from '@/api/syncStatusApi'
 import {
-  VaRLiveDataViewModel,
-  LiveVaREntry,
+  BlockVarViewModel,
+  VarByContractViewModel,
+  VarByTypeViewModel,
+  VaRHistoryDataViewModel,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
-import chains from '@/shared/chains.json'
+import { FETCH_LIVE_DATA_INTERVAL_MS } from '@/pages/index'
+import VaRLiveLineChart from '@/components/charts/VaRLiveLineChart'
 
-interface FinalitySectionProps {
-  liveVarData: VaRLiveDataViewModel
-  loading: boolean
+interface VaRLiveSectionProps {
   chainId: number
 }
 
 interface DataCategory {
   name: string
-  dataKey: keyof VaRLiveDataViewModel['data']
+  dataKey: keyof BlockVarViewModel
 }
 
-const VaRLiveSection: React.FC<FinalitySectionProps> = ({
-  liveVarData,
-  loading,
-  chainId,
-}) => {
+const VaRLiveSection: React.FC<VaRLiveSectionProps> = ({ chainId }) => {
+  const [historyVarData, setHistoryVarData] =
+    useState<VaRHistoryDataViewModel | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const syncStatusHistoryVar = await syncStatusApi.getHistoryVaR(chainId)
+        setHistoryVarData(syncStatusHistoryVar)
+      } catch (error) {
+        console.error('Error fetching live VaR data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+
+    const intervalId = setInterval(fetchData, FETCH_LIVE_DATA_INTERVAL_MS)
+    return () => {
+      clearInterval(intervalId)
+    }
+  }, [chainId])
+
   const dataCategories: DataCategory[] = [
-    { name: 'Data Submission', dataKey: 'data_submission' },
-    { name: 'L2 Finalization', dataKey: 'l2_finalization' },
-    { name: 'Proof Submission', dataKey: 'proof_submission' },
-    { name: 'State Updates', dataKey: 'state_updates' },
+    { name: 'By contract', dataKey: 'by_contract' },
+    { name: 'By type ', dataKey: 'by_type' },
   ]
 
-  const chainName = Object.keys(chains).find(
-    (name) => chains[name].chainId === chainId
-  )
+  const validDataSections =
+    historyVarData &&
+    historyVarData.success &&
+    historyVarData.data &&
+    historyVarData.data.length > 0
+      ? dataCategories.filter((category) => {
+          const lastDataEntry =
+            historyVarData.data[historyVarData.data.length - 1]
+          const data =
+            lastDataEntry &&
+            lastDataEntry[category.dataKey as keyof BlockVarViewModel]
+          return Array.isArray(data) && data.length > 0
+        })
+      : []
 
-  const enabledSyncStatuses = chains[chainName]?.enabledSyncStatuses || []
+  if (loading) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '200px',
+        }}
+      >
+        <Typography variant="body1" align="center" margin={10}>
+          <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
+        </Typography>
+      </Paper>
+    )
+  }
 
-  const validDataSections = liveVarData
-    ? dataCategories.filter(
-        (category) =>
-          enabledSyncStatuses.includes(category.dataKey) &&
-          liveVarData.data[category.dataKey] &&
-          Object.keys(liveVarData.data[category.dataKey]).length > 0
-      )
-    : []
+  if (!historyVarData || !historyVarData.success) {
+    return (
+      <Paper
+        sx={{
+          p: 2,
+          borderRadius: 4,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '80%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '200px',
+        }}
+      >
+        <Typography variant="body1" align="center" sx={{ mt: 2 }}>
+          No data found. L2 block head may be behind.
+        </Typography>
+      </Paper>
+    )
+  }
 
   return (
     <Paper
@@ -62,25 +126,13 @@ const VaRLiveSection: React.FC<FinalitySectionProps> = ({
       }}
     >
       <Box sx={{ color: 'text.secondary', mb: 2, fontWeight: 'bold' }}>
-        Live, VaR
+        Current L2 value at risk
       </Box>
-
+      <Box sx={{ padding: 2 }}>
+        <VaRLiveLineChart liveVarData={historyVarData.data} />
+      </Box>
       <Container>
-        {loading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '200px',
-            }}
-          >
-            <Typography variant="body1" align="center" margin={10}>
-              Loading...
-            </Typography>
-            <CircularProgress sx={{ display: 'block', margin: '0 auto' }} />
-          </Box>
-        ) : validDataSections.length > 0 ? (
+        {validDataSections.length > 0 ? (
           <Grid container spacing={2}>
             {validDataSections.map((section) => (
               <Grid
@@ -94,12 +146,23 @@ const VaRLiveSection: React.FC<FinalitySectionProps> = ({
                   elevation={0}
                   sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 2 }}
                 >
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      mb: 1,
+                      ml: 1,
+                      mt: 1,
+                      fontWeight: 'bold',
+                      color: 'darkgrey',
+                    }}
+                  >
                     {section.name}
                   </Typography>
-                  <VaRLiveGraph
-                    dataSection={
-                      liveVarData.data[section.dataKey] as LiveVaREntry
+                  <VaRLiveBarChart
+                    data={
+                      historyVarData.data[historyVarData.data.length - 1][
+                        section.dataKey
+                      ] as VarByContractViewModel[] | VarByTypeViewModel[]
                     }
                   />
                 </Paper>
@@ -108,7 +171,7 @@ const VaRLiveSection: React.FC<FinalitySectionProps> = ({
           </Grid>
         ) : (
           <Typography variant="body1" align="center" margin={10}>
-            No data available, L2 head may be behind.
+            No data found. L2 block head may be behind.
           </Typography>
         )}
       </Container>

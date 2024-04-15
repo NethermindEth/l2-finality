@@ -2,8 +2,8 @@ import { ApiClient } from './ApiClient'
 import {
   AverageFinalityTimeViewModel,
   SyncStatusViewModel,
+  VaRAverageDataViewModel,
   VaRHistoryDataViewModel,
-  VaRLiveDataViewModel,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 const apiClient = new ApiClient()
@@ -35,29 +35,41 @@ export const syncStatusApi = {
     return apiClient.get<AverageFinalityTimeViewModel>(url)
   },
 
-  getLiveVaR(
-    chainId: number,
-    useName: boolean = true
-  ): Promise<VaRLiveDataViewModel> {
-    return apiClient.get<VaRLiveDataViewModel>(
-      `/api/state/var/active?chainId=${chainId}&useNames=${useName}`
-    )
-  },
-
   getHistoryVaR(
     chainId: number,
-    range: string,
     from?: Date,
     to?: Date,
-    useName: boolean = true
+    precision?: number
   ): Promise<VaRHistoryDataViewModel> {
-    let url = `/api/state/var/history?chainId=${chainId}&range=${range}&useNames=${useName}`
+    let url = `/api/state/var/history?chainId=${chainId}`
     if (from) {
       url += `&from=${from.toISOString()}`
     }
     if (to) {
       url += `&to=${to.toISOString()}`
     }
+    if (precision) {
+      url += `&precision=${precision}`
+    }
     return apiClient.get<VaRHistoryDataViewModel>(url)
+  },
+
+  getAverageVaR(
+    chainId: number,
+    from?: Date,
+    to?: Date,
+    precision?: number
+  ): Promise<VaRAverageDataViewModel> {
+    let url = `/api/state/var/average?chainId=${chainId}`
+    if (from) {
+      url += `&from=${from.toISOString()}`
+    }
+    if (to) {
+      url += `&to=${to.toISOString()}`
+    }
+    if (precision) {
+      url += `&precision=${precision}`
+    }
+    return apiClient.get<VaRAverageDataViewModel>(url)
   },
 }
