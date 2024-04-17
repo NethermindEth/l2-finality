@@ -9,6 +9,7 @@ import {
   VarByContractViewModel,
   VarByTypeViewModel,
 } from '@/shared/api/viewModels/SyncStatusEndpoint'
+import { getColorForItem } from '@/components/charts/utils/shared'
 
 Chart.register(ChartDataLabels)
 
@@ -152,29 +153,6 @@ const VaRLiveBarChart: React.FC<VaRLiveBarChartGraphProps> = ({ data }) => {
       </Box>
     </>
   )
-}
-
-const getColorForItem = (itemName: string) => {
-  let hash = 0
-  for (let i = 0; i < itemName.length; i++) {
-    hash = (hash << 5) - hash + itemName.charCodeAt(i)
-    hash = hash & hash // Convert to 32bit integer
-    hash = Math.abs(hash)
-  }
-
-  if (itemName === 'Token transfer') {
-    return '#f48c36'
-  } else if (itemName === 'Token swap') {
-    return '#4caf50'
-  } else if (itemName === 'Native transfer') {
-    return '#2196f3'
-  } else if (itemName === 'Block reward') {
-    return '#8c00ff'
-  } else if (itemName === 'Gas fees') {
-    return '#9e9e9e'
-  }
-  const hue = hash % 360
-  return `hsl(${hue}, 80%, 60%)`
 }
 
 export default VaRLiveBarChart

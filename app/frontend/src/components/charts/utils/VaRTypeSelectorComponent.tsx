@@ -47,7 +47,7 @@ const VaRTypeSelectorComponent: React.FC<VaRTypeSelectorProps> = ({
         All
       </ToggleButton>
       <ToggleButton value="by_contract" aria-label="by contract">
-        By Contract
+        By token
       </ToggleButton>
       <ToggleButton value="by_type" aria-label="by type">
         By Type
