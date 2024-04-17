@@ -18,8 +18,8 @@ This project is dedicated to measuring Layer 2 finality, quantifying assets at r
 ## Project Structure
 The L2 Finality project consists of a backend and a frontend component. For more details about each component, please refer to their respective README files:
 
-- [Backend README](app/backend/readme.md)
-- [Frontend README](app/frontend/readme.md)
+- [Backend README](app/backend/README.md)
+- [Frontend README](app/frontend/README.md)
 
 ## Getting Started
 
@@ -33,7 +33,7 @@ The L2 Finality project consists of a backend and a frontend component. For more
    ```bash
    cd l2-finality
    ```
-3. Follow the installation instructions in the [Backend README](app/backend/readme.md) and [Frontend README](app/frontend/readme.md) to set up the respective components.
+3. Follow the installation instructions in the [Backend README](app/backend/README.md) and [Frontend README](app/frontend/README.md) to set up the respective components.
 
 ### Usage
 
