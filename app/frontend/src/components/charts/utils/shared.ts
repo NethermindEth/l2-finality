@@ -22,7 +22,7 @@ export const calculatePrecision = (
 }
 
 export const calculatePrecisionForVaRAverage = (chainId: number) => {
-  if (chainId === 1) {
+  if (chainId === 10) {
     return 6
   } else if (chainId === 1101) {
     return 15
