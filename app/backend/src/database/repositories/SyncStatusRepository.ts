@@ -78,6 +78,20 @@ export class SyncStatusRepository {
       .merge();
   }
 
+  getLastSyncStatus(
+    chainId: number,
+    type?: SubmissionType,
+  ): Promise<SyncStatusRecord | undefined> {
+    type ??= this.getDefaultSubmissionType(chainId);
+
+    return this.knex(TABLE_NAME)
+      .where("chain_id", chainId)
+      .where("submission_type", type)
+      .orderBy("timestamp", "desc")
+      .select<SyncStatusRecord[]>("timestamp")
+      .first();
+  }
+
   async getPaginatedSyncStatus(
     chainId: number,
     page: number = 1,

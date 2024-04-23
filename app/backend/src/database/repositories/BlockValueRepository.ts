@@ -76,12 +76,16 @@ export class BlockValueRepository {
 
   async getLatestBlockNumber(
     chainId: number,
+    before?: Date,
   ): Promise<{ l2_block_number: bigint; l2_block_timestamp: Date } | null> {
     const tableName = this.getTable(chainId);
-    const result = await this.knex(tableName)
+    let query = this.knex(tableName)
       .select("l2_block_number", "l2_block_timestamp")
-      .orderBy("l2_block_number", "desc")
-      .first();
+      .orderBy("l2_block_number", "desc");
+
+    if (before) query = query.where("l2_block_timestamp", "<=", before);
+
+    const result = await query.first();
 
     return result
       ? {

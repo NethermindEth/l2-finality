@@ -8,6 +8,7 @@ export interface Config {
   readonly pricingModule: PricingModuleConfig;
   readonly ethereumMonitorModule: EthereumMonitorConfig;
   readonly optimismModule: OptimismModuleConfig;
+  readonly varModule: VarModuleConfig;
   readonly polygonZkEvmModule: PolygonZkEvmModuleConfig;
   readonly starknetModule: StarknetModuleConfig;
 }
@@ -77,5 +78,11 @@ export interface StarknetModuleConfig {
   readonly chainId: number;
   readonly startBlock: number;
   readonly maxBlockRange: number;
+  readonly pollIntervalMs: number;
+}
+
+export interface VarModuleConfig {
+  readonly enabled: boolean;
+  readonly backfillPeriodDays: number;
   readonly pollIntervalMs: number;
 }
