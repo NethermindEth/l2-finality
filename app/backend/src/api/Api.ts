@@ -20,6 +20,7 @@ import BlockValueRepository from "@/database/repositories/BlockValueRepository";
 import cors from "cors";
 import { authenticateApiKey } from "@/api/middleware/auth";
 import { Config } from "@/config";
+import VarRepository from "@/database/repositories/VarRepository";
 
 export class Api {
   private readonly app: express.Application;
@@ -54,6 +55,7 @@ export class Api {
     );
     const syncStatusController = new SyncStatusController(
       new SyncStatusRepository(this.database.getKnex()),
+      new VarRepository(this.database.getKnex()),
       this.logger,
     );
     const pricingController = new PricingController(

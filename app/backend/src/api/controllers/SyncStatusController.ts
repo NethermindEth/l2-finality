@@ -10,13 +10,20 @@ import {
   sendSuccessResponse,
 } from "@/api/utils/responseUtils";
 import { chainTableMapping } from "@/database/repositories/BlockValueRepository";
+import { VarRepository } from "@/database/repositories/VarRepository";
 
 export class SyncStatusController {
-  private syncStatusRepository: SyncStatusRepository;
-  private logger: Logger;
+  private readonly syncStatusRepository: SyncStatusRepository;
+  private readonly varRepository: VarRepository;
+  private readonly logger: Logger;
 
-  constructor(syncStatusRepository: SyncStatusRepository, logger: Logger) {
+  constructor(
+    syncStatusRepository: SyncStatusRepository,
+    varRepository: VarRepository,
+    logger: Logger,
+  ) {
     this.syncStatusRepository = syncStatusRepository;
+    this.varRepository = varRepository;
     this.logger = logger;
   }
 
@@ -96,9 +103,8 @@ export class SyncStatusController {
       const params = this.extractParams(req, res);
       if (!params) return;
 
-      const result = await this.syncStatusRepository.getVarAverage(
+      const result = await this.varRepository.getVarAverage(
         params.chainId,
-        undefined,
         params.from,
         params.to,
         params.precision,
