@@ -64,7 +64,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         const fromDate = new Date(
           toDate.getTime() - selectedDays * 24 * 60 * 60 * 1000
         )
-        const precision = calculatePrecisionForVaRAverage(fromDate, toDate)
+        const precision = calculatePrecisionForVaRAverage(chainId)
         const averageData = await syncStatusApi.getAverageVaR(
           chainId,
           fromDate,

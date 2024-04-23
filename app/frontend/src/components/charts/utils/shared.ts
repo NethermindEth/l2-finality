@@ -27,7 +27,7 @@ export const calculatePrecisionForVaRAverage = (chainId: number) => {
   } else if (chainId === 1101) {
     return 15
   } else {
-    return 60
+    return 300
   }
 }
 
