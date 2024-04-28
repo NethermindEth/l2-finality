@@ -52,6 +52,8 @@ abstract class BlockIndexerController {
       (currentHeight - fromBlock + 1) / this.indexerConfig.maxBlockRange,
     );
 
+    if (numberOfBatches <= 0) return;
+
     this.logger.info(
       `[chainId ${this.chainId}] Fetching blocks from ${fromBlock} to ${currentHeight} (${numberOfBatches} batches)`,
     );

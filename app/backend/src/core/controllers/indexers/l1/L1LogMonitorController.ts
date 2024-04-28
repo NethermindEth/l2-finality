@@ -57,6 +57,8 @@ class L1LogMonitorController {
       (currentHeight - fromBlock + 1) / this.schedulerConfig.maxBlockLogRange,
     );
 
+    if (numberOfBatches <= 0) return;
+
     this.logger.info(
       `Fetching Ethereum contract logs from ${fromBlock} to ${currentHeight} (${numberOfBatches} batches)`,
     );

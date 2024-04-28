@@ -46,6 +46,7 @@ class VarUpdaterController {
 
     if (newVar) {
       const logDetails = {
+        timestamp: newVar.timestamp,
         blockNumber: newVar.last_l2_block_number,
         syncedAt: newVar.last_sync_at,
         totalUsd: newVar.var_total_usd,
