@@ -32,7 +32,10 @@ class VarUpdaterController {
     this.config = config;
     this.database = database;
 
-    this.varRepository = new VarRepository(this.database.getKnex());
+    this.varRepository = new VarRepository(
+      this.database.getKnex(),
+      this.config,
+    );
     this.blockRepository = new BlockValueRepository(this.database.getKnex());
 
     this.chainId = chainId;

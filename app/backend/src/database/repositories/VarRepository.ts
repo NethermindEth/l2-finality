@@ -19,6 +19,7 @@ import {
   TABLE_NAME as SYNC_TABLE_NAME,
 } from "@/database/repositories/SyncStatusRepository";
 import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
+import { VarModuleConfig } from "@/config/Config";
 
 export const TABLE_NAME = "var_status";
 
@@ -43,11 +44,13 @@ export class VarRepository {
   private readonly knex: Knex;
   private readonly blockRepository: BlockValueRepository;
   private readonly syncRepository: SyncStatusRepository;
+  private readonly config: VarModuleConfig;
 
-  constructor(knex: Knex) {
+  constructor(knex: Knex, config: VarModuleConfig) {
     this.knex = knex;
     this.blockRepository = new BlockValueRepository(knex);
     this.syncRepository = new SyncStatusRepository(knex);
+    this.config = config;
   }
 
   async insertVarStatus(status: VarStatusRecord): Promise<void> {
@@ -185,6 +188,9 @@ export class VarRepository {
     };
 
     precision ??= this.getDefaultPrecision(chainId);
+    const minPrecision = Math.floor(this.config.pollIntervalMs / 1000);
+    precision = Math.max(precision, minPrecision);
+
     const type = this.syncRepository.getDefaultSubmissionType(chainId);
     from ??= await this.getDefaultFrom(chainId, type);
     if (!from) return result;

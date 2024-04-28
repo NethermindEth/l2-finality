@@ -55,7 +55,7 @@ export class Api {
     );
     const syncStatusController = new SyncStatusController(
       new SyncStatusRepository(this.database.getKnex()),
-      new VarRepository(this.database.getKnex()),
+      new VarRepository(this.database.getKnex(), this.config.varModule),
       this.logger,
     );
     const pricingController = new PricingController(
