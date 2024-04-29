@@ -206,7 +206,7 @@ export class VarRepository {
     if (limit) query = query.limit(limit);
 
     const result = await query
-      .orderBy("timestamp")
+      .orderBy("timestamp", "desc")
       .select<{ timestamp: Date }[]>("timestamp");
 
     return result.map((x) => x.timestamp);
