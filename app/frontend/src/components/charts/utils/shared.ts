@@ -42,15 +42,15 @@ const getHash = (str: string) => {
 }
 
 export const getColorForItem = (itemName: string) => {
-  if (itemName === 'Token transfer') {
+  if (itemName === 'Token transfer' || itemName === 'token_transfer') {
     return '#f48c36'
-  } else if (itemName === 'Token swap') {
+  } else if (itemName === 'Token swap' || itemName === 'token_swap') {
     return '#4caf50'
-  } else if (itemName === 'Native transfer') {
+  } else if (itemName === 'Native transfer' || itemName === 'native_transfer') {
     return '#2196f3'
-  } else if (itemName === 'Block reward') {
+  } else if (itemName === 'Block reward' || itemName === 'block_reward') {
     return '#8c00ff'
-  } else if (itemName === 'Gas fees') {
+  } else if (itemName === 'Gas fees' || itemName === 'gas_fees') {
     return '#9e9e9e'
   }
 

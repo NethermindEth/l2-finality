@@ -1,5 +1,8 @@
 import { BlockVarViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
-import { getColorForAsset } from '@/components/charts/utils/shared'
+import {
+  getColorForAsset,
+  getColorForItem,
+} from '@/components/charts/utils/shared'
 
 export type ViewMode = 'all' | 'by_contract' | 'by_type'
 
@@ -40,11 +43,13 @@ export const transformData = (
       )
       if (entry) {
         if (viewMode === 'by_contract') {
+          const color = getColorForAsset(item)
           const contract = entry.by_contract.find(
             (contract) => getContractLabel(contract) === item
           )
           return { x: timestamp, y: contract ? contract.var_usd : 0 }
         } else if (viewMode === 'by_type') {
+          const color = getColorForItem(item)
           const type = entry.by_type.find((type) => type.type === item)
           return { x: timestamp, y: type ? type.var_usd : 0 }
         }
@@ -52,7 +57,8 @@ export const transformData = (
       return { x: timestamp, y: 0 }
     })
 
-    const color = getColorForAsset(item)
+    const color =
+      viewMode == 'by_contract' ? getColorForAsset(item) : getColorForItem(item)
     return {
       label: item,
       data,
