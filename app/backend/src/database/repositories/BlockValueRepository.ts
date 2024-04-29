@@ -81,7 +81,7 @@ export class BlockValueRepository {
     const tableName = this.getTable(chainId);
     let query = this.knex(tableName)
       .select("l2_block_number", "l2_block_timestamp")
-      .orderBy("l2_block_number", "desc");
+      .orderBy("l2_block_timestamp", "desc");
 
     if (before) query = query.where("l2_block_timestamp", "<=", before);
 
