@@ -62,34 +62,20 @@ export interface BlockVarViewModel {
   by_type: VarByTypeViewModel[];
 }
 
-export interface HistoryVaREntry {
-  timestamp: string;
-  avg_var: number;
-}
-
-export type AvgVarHistoryMap = {
-  [contract: string]: HistoryVaREntry[];
-};
-
-export interface VaRHistoryDataViewModel {
-  success: boolean;
-  data: BlockVarViewModel[]
-}
-
-
-export interface AverageVarViewModel {
-  timestamp: number;
-  min_var_usd: number;
-  max_var_usd: number;
-  by_contract: VarByContractViewModel[];
-  by_type: VarByTypeViewModel[];
-}
-
 export interface AverageDetailsViewModel {
-  values: AverageVarViewModel[];
   min_period_sec: number;
   avg_period_sec: number;
   max_period_sec: number;
+  timestamps: number[];
+  min_usd: number[];
+  avg_usd: number[];
+  max_usd: number[];
+  by_contract: {
+    [symbol: string]: number[];
+  };
+  by_type: {
+    [type in ValueType]?: number[];
+  };
 }
 
 export interface VaRAverageDataViewModel {

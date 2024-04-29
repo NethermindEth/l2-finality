@@ -1,4 +1,5 @@
 import { BlockVarViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
+import { getColorForAsset } from '@/components/charts/utils/shared'
 
 export type ViewMode = 'all' | 'by_contract' | 'by_type'
 
@@ -51,7 +52,7 @@ export const transformData = (
       return { x: timestamp, y: 0 }
     })
 
-    const color = getColorForAsset(item, 0.5)
+    const color = getColorForAsset(item)
     return {
       label: item,
       data,
@@ -98,15 +99,4 @@ const getContractLabel = (contract: any): string => {
   } else {
     return 'Unknown Contract'
   }
-}
-
-const getColorForAsset = (assetName: string, alpha: number) => {
-  let hash = 0
-  for (let i = 0; i < assetName.length; i++) {
-    hash = assetName.charCodeAt(i) + ((hash << 5) - hash)
-  }
-
-  const hue = Math.abs(hash) % 360
-
-  return `hsla(${hue}, 80%, 60%, ${alpha})`
 }

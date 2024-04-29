@@ -5,8 +5,6 @@ import {
   chainTableMapping,
 } from "@/database/repositories/BlockValueRepository";
 import {
-  AverageDetailsViewModel,
-  AverageVarViewModel,
   BlockVarViewModel,
   SubmissionType,
   ValueType,

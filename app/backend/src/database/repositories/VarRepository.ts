@@ -2,7 +2,6 @@ import { Knex } from "knex";
 import { BlockValueRepository } from "@/database/repositories/BlockValueRepository";
 import {
   AverageDetailsViewModel,
-  AverageVarViewModel,
   BlockVarViewModel,
   SubmissionType,
   ValueType,
@@ -39,6 +38,14 @@ export interface BlockSyncStatus {
   l2_block_at: Date;
   last_sync_at: Date;
   last_sync_block_number: bigint;
+}
+
+interface AggregateVarDto {
+  min_var_usd: number;
+  avg_var_usd: number;
+  max_var_usd: number;
+  by_contract: ValueByContract;
+  by_type: ValueByType;
 }
 
 export class VarRepository {
@@ -182,10 +189,15 @@ export class VarRepository {
     precision?: number,
   ): Promise<AverageDetailsViewModel> {
     const result: AverageDetailsViewModel = {
-      values: [],
       min_period_sec: 0,
       avg_period_sec: 0,
       max_period_sec: 0,
+      timestamps: [],
+      min_usd: [],
+      avg_usd: [],
+      max_usd: [],
+      by_contract: {},
+      by_type: {},
     };
 
     precision ??= this.getDefaultPrecision(chainId);
@@ -214,15 +226,45 @@ export class VarRepository {
       diff -= diff % precision;
       if (!varsMap.get(diff)) varsMap.set(diff, []);
       varsMap.get(diff)!.push(entry);
+
+      Object.keys(entry.var_by_contract).forEach((c) => {
+        if (!result.by_contract[c]) result.by_contract[c] = [];
+      });
     }
 
     result.avg_period_sec /= entries.length;
 
+    for (const t of Object.keys(ValueType)) {
+      result.by_type[t as ValueType] ??= [];
+    }
+
     const times = Array.from(varsMap.keys());
     times.sort((a, b) => a - b);
 
-    result.values = times.map((t) =>
-      this.getAverageVarViewModel(chainId, t, varsMap.get(t)!),
+    for (let i = 0; i < times.length; i++) {
+      const time = times[i];
+      const aggregate = this.aggregate(varsMap.get(time)!);
+
+      result.timestamps.push(time);
+      result.min_usd.push(aggregate.min_var_usd);
+      result.avg_usd.push(aggregate.avg_var_usd);
+      result.max_usd.push(aggregate.max_var_usd);
+
+      for (const c of Object.keys(result.by_contract)) {
+        result.by_contract[c]!.push(aggregate.by_contract[c]?.value_usd ?? 0);
+      }
+
+      for (const ts of Object.keys(ValueType)) {
+        const t = ts as ValueType;
+        result.by_type[t]!.push(aggregate.by_type[t]?.value_usd ?? 0);
+      }
+    }
+
+    result.by_contract = Object.fromEntries(
+      Object.entries(result.by_contract).map(([c, d]) => [
+        whitelistedMap.getSymbolByAddress(chainId, c),
+        d,
+      ]),
     );
 
     return result;
@@ -236,14 +278,11 @@ export class VarRepository {
     return lastSync?.timestamp;
   }
 
-  private getAverageVarViewModel(
-    chainId: number,
-    time: number,
-    values: VarStatusRecord[],
-  ): AverageVarViewModel {
+  private aggregate(values: VarStatusRecord[]): AggregateVarDto {
     const totals: ValueMapping = { byContract: {}, byType: {} };
 
     let minUsd = -1;
+    let avgUsd = 0;
     let maxUsd = -1;
 
     for (const value of values) {
@@ -251,6 +290,7 @@ export class VarRepository {
 
       if (minUsd == -1 || entryUsd < minUsd) minUsd = entryUsd;
       if (maxUsd == -1 || entryUsd > maxUsd) maxUsd = entryUsd;
+      avgUsd += entryUsd;
 
       if (value.var_by_contract) {
         for (const entry of Object.entries(value.var_by_contract)) {
@@ -290,12 +330,14 @@ export class VarRepository {
       total!.value_usd /= values.length;
     }
 
+    avgUsd /= values.length;
+
     return {
-      timestamp: time,
-      min_var_usd: Math.max(minUsd, 0),
-      max_var_usd: Math.max(maxUsd, 0),
-      by_contract: this.getVarByContractViewModels(chainId, totals.byContract),
-      by_type: this.getVarByTypeViewModels(totals.byType),
+      by_contract: totals.byContract!,
+      by_type: totals.byType!,
+      min_var_usd: minUsd,
+      avg_var_usd: avgUsd,
+      max_var_usd: maxUsd,
     };
   }
 

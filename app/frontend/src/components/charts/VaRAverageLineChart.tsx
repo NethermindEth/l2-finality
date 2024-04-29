@@ -20,10 +20,6 @@ import {
 } from '@mui/material'
 import { ViewMode } from '@/components/charts/dataFormatters/var'
 import React, { useEffect, useState } from 'react'
-import {
-  AverageVarViewModel,
-  AverageDetailsViewModel,
-} from '../../../../shared/api/viewModels/SyncStatusEndpoint'
 import { syncStatusApi } from '@/api/syncStatusApi'
 import annotationPlugin from 'chartjs-plugin-annotation'
 import {
@@ -33,12 +29,14 @@ import {
 } from '@mui/icons-material'
 import { Line } from 'react-chartjs-2'
 import {
-  calculatePrecision,
   calculatePrecisionForVaRAverage,
+  getColorForAsset,
+  getColorForItem,
 } from '@/components/charts/utils/shared'
 import { Chart, ChartOptions, registerables } from 'chart.js'
 import moment from 'moment'
 import InfoIcon from '@mui/icons-material/Info'
+import { AverageDetailsViewModel } from '@/shared/api/viewModels/SyncStatusEndpoint'
 
 Chart.register(...registerables, annotationPlugin)
 
@@ -83,21 +81,19 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
   }, [chainId, selectedDays])
 
   const generateChartData = () => {
-    if (!averageVarData || !Array.isArray(averageVarData.values)) {
+    if (!averageVarData || !Array.isArray(averageVarData.timestamps)) {
       return {
         labels: [],
         datasets: [],
       }
     }
 
-    const labels = averageVarData.values.map((data) => data.timestamp)
+    const labels = averageVarData.timestamps
 
     const datasets = []
 
     if (viewMode === 'all') {
-      const allData = averageVarData.values.map((data) =>
-        data.by_contract.reduce((sum, contract) => sum + contract.var_usd, 0)
-      )
+      const allData = averageVarData.avg_usd
       datasets.push({
         label: 'Average VaR USD',
         data: allData,
@@ -111,29 +107,16 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       })
     } else if (viewMode === 'by_contract' || viewMode === 'by_type') {
       const dataKey = viewMode === 'by_contract' ? 'by_contract' : 'by_type'
-      const stackedData: { [key: string]: number[] } = {}
-
-      averageVarData.values.forEach((data: AverageVarViewModel) => {
-        data[dataKey].forEach((entry) => {
-          const key = viewMode === 'by_contract' ? entry.symbol : entry.type
-          if (!stackedData[key]) {
-            stackedData[key] = new Array(data.timestamp).fill(0)
-          }
-          stackedData[key].push(entry.var_usd)
-        })
-      })
-
-      const getColor = (index: number) => {
-        const hue = (index * 137.5) % 360
-        return `hsl(${hue}, 50%, 60%, 0.7)`
-      }
-
-      Object.entries(stackedData).forEach(([key, data], index) => {
+      const getColor =
+        viewMode === 'by_contract' ? getColorForAsset : getColorForItem
+      Object.entries(averageVarData[dataKey]).forEach(([key, data]) => {
+        console.log(key)
+        console.log(data)
         datasets.push({
           label: key,
           data,
-          backgroundColor: getColor(index),
-          borderColor: getColor(index),
+          backgroundColor: getColor(key),
+          borderColor: getColor(key),
           borderWidth: 1,
           fill: 'stack',
           pointRadius: 0,
@@ -143,11 +126,11 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       })
     }
 
-    if (averageVarData.values.length > 0) {
+    if (averageVarData.timestamps.length > 0) {
       datasets.push(
         {
           label: 'Min VaR USD',
-          data: averageVarData.values.map((data) => data.min_var_usd),
+          data: averageVarData.min_usd,
           borderColor: 'rgb(43,106,241)',
           borderWidth: 5,
           fill: false,
@@ -157,7 +140,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         },
         {
           label: 'Max VaR USD',
-          data: averageVarData.values.map((data) => data.max_var_usd),
+          data: averageVarData.max_usd,
           borderColor: 'rgb(239,123,7)',
           borderWidth: 5,
           fill: false,
@@ -396,7 +379,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10, mb: 10 }}>
           <CircularProgress />
         </Box>
-      ) : averageVarData === null || averageVarData.values.length === 0 ? (
+      ) : averageVarData === null || averageVarData.timestamps.length === 0 ? (
         <Typography variant="body1" align="center" sx={{ mt: 10, mb: 10 }}>
           No data available for this range.
         </Typography>
