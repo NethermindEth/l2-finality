@@ -20,6 +20,7 @@ import {
 } from "@/database/repositories/SyncStatusRepository";
 import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 import { VarModuleConfig } from "@/config/Config";
+import chains from "@/shared/chains.json";
 
 export const TABLE_NAME = "var_status";
 
@@ -188,8 +189,7 @@ export class VarRepository {
     };
 
     precision ??= this.getDefaultPrecision(chainId);
-    const minPrecision = Math.floor(this.config.pollIntervalMs / 1000);
-    precision = Math.max(precision, minPrecision);
+    precision = this.normalizePrecision(chainId, precision);
 
     const type = this.syncRepository.getDefaultSubmissionType(chainId);
     from ??= await this.getDefaultFrom(chainId, type);
@@ -326,13 +326,23 @@ export class VarRepository {
   }
 
   private getDefaultPrecision = (chainId: number) => {
-    if (chainId === 10) {
+    if (chainId === chains.Optimism.chainId) {
       return 6;
-    } else if (chainId === 1101) {
+    } else if (chainId === chains.zkEVM.chainId) {
       return 15;
-    } else {
+    } else if (chainId === chains.Starknet.chainId) {
       return 300;
+    } else {
+      return 60;
     }
+  };
+
+  private normalizePrecision = (chainId: number, precision: number) => {
+    const minPrecision = Math.floor(this.config.pollIntervalMs / 1000);
+    precision = Math.max(precision, minPrecision);
+    if (chainId == chains.Starknet.chainId)
+      precision = Math.max(precision, 600);
+    return precision;
   };
 }
 
