@@ -396,11 +396,17 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               }}
             >
               <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Min finalisation
-              time for period:
+              time for period:{' '}
               {averageVarData
-                ? moment
-                    .duration(averageVarData.min_period_sec, 'seconds')
-                    .humanize()
+                ? `${
+                    moment
+                      .duration(averageVarData.min_period_sec, 'seconds')
+                      .asSeconds() <= 60
+                      ? `${averageVarData.min_period_sec} seconds`
+                      : moment
+                          .duration(averageVarData.min_period_sec, 'seconds')
+                          .humanize()
+                  }`
                 : 'N/A'}
             </Typography>
             <Typography
@@ -413,11 +419,17 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               }}
             >
               <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Average finality
-              time for period:
+              time for period:{' '}
               {averageVarData
-                ? moment
-                    .duration(averageVarData.avg_period_sec, 'seconds')
-                    .humanize()
+                ? `${
+                    moment
+                      .duration(averageVarData.avg_period_sec, 'seconds')
+                      .asSeconds() <= 60
+                      ? `${averageVarData.avg_period_sec} seconds`
+                      : moment
+                          .duration(averageVarData.avg_period_sec, 'seconds')
+                          .humanize()
+                  }`
                 : 'N/A'}
             </Typography>
             <Typography
@@ -426,11 +438,17 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
               sx={{ display: 'flex', alignItems: 'center' }}
             >
               <AccessTime sx={{ fontSize: 20, mr: 0.5 }} /> Max finalisation
-              time for period:
+              time for period:{' '}
               {averageVarData
-                ? moment
-                    .duration(averageVarData.max_period_sec, 'seconds')
-                    .humanize()
+                ? `${
+                    moment
+                      .duration(averageVarData.max_period_sec, 'seconds')
+                      .asSeconds() <= 60
+                      ? `${averageVarData.max_period_sec} seconds`
+                      : moment
+                          .duration(averageVarData.max_period_sec, 'seconds')
+                          .humanize()
+                  }`
                 : 'N/A'}
             </Typography>
           </Box>
