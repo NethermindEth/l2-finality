@@ -383,7 +383,7 @@ export class VarRepository {
     const minPrecision = Math.floor(this.config.pollIntervalMs / 1000);
     precision = Math.max(precision, minPrecision);
     if (chainId == chains.Starknet.chainId)
-      precision = Math.max(precision, 600);
+      precision = Math.max(precision, 900);
     return precision;
   };
 }
