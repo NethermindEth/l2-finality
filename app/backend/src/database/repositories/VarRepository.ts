@@ -223,7 +223,7 @@ export class VarRepository {
         result.max_period_sec = diff;
       result.avg_period_sec += diff;
 
-      diff -= diff % precision;
+      diff = Math.round(diff / precision) * precision;
       if (!varsMap.get(diff)) varsMap.set(diff, []);
       varsMap.get(diff)!.push(entry);
 
