@@ -79,12 +79,17 @@ export class SyncStatusRepository {
   getLastSyncStatus(
     chainId: number,
     type?: SubmissionType,
+    before?: Date,
   ): Promise<SyncStatusRecord | undefined> {
     type ??= this.getDefaultSubmissionType(chainId);
 
-    return this.knex(TABLE_NAME)
+    let query = this.knex(TABLE_NAME)
       .where("chain_id", chainId)
-      .where("submission_type", type)
+      .where("submission_type", type);
+
+    if (before) query = query.where("timestamp", "<=", before);
+
+    return query
       .orderBy("timestamp", "desc")
       .select<SyncStatusRecord[]>("timestamp")
       .first();
