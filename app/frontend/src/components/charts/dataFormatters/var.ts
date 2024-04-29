@@ -43,13 +43,11 @@ export const transformData = (
       )
       if (entry) {
         if (viewMode === 'by_contract') {
-          const color = getColorForAsset(item)
           const contract = entry.by_contract.find(
             (contract) => getContractLabel(contract) === item
           )
           return { x: timestamp, y: contract ? contract.var_usd : 0 }
         } else if (viewMode === 'by_type') {
-          const color = getColorForItem(item)
           const type = entry.by_type.find((type) => type.type === item)
           return { x: timestamp, y: type ? type.var_usd : 0 }
         }

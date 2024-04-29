@@ -110,8 +110,6 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
       const getColor =
         viewMode === 'by_contract' ? getColorForAsset : getColorForItem
       Object.entries(averageVarData[dataKey]).forEach(([key, data]) => {
-        console.log(key)
-        console.log(data)
         datasets.push({
           label: key,
           data,
