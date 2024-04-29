@@ -11,7 +11,6 @@ import {
 } from "@/core/controllers/appraiser/types";
 import { VarModuleConfig } from "@/config/Config";
 import { ValueType } from "@/shared/api/viewModels/SyncStatusEndpoint";
-import SyncStatusRepository from "@/database/repositories/SyncStatusRepository";
 
 class VarUpdaterController {
   private readonly logger: Logger;
@@ -54,16 +53,12 @@ class VarUpdaterController {
 
       this.logger.info(`Updated latest VaR: ${JSON.stringify(logDetails)}`);
     }
+
+    await this.fixHistory();
   }
 
   public async backfill(): Promise<void> {
-    const dayMs = 24 * 60 * 60 * 1000;
-    const startTime = new Date();
-    const endTime = new Date(
-      startTime.getTime() - dayMs * this.config.backfillPeriodDays,
-    );
-
-    let logFrom = startTime;
+    const [startTime, endTime] = this.getBackfillStartEnd();
 
     let timestamp: Date | undefined =
       (await this.varRepository.getFirstVarStatus(this.chainId))?.timestamp ??
@@ -73,19 +68,34 @@ class VarUpdaterController {
       timestamp = new Date(timestamp.getTime() - this.config.pollIntervalMs);
       const newVar = await this.updateVarAt(timestamp);
       timestamp = newVar?.timestamp;
-
-      if (!timestamp || logFrom.getTime() - timestamp.getTime() > dayMs) {
-        this.logger.info(
-          `Backfilled VaR history from ${timestamp} to ${logFrom}`,
-        );
-        logFrom = timestamp ?? new Date();
-      }
     }
 
     const duration = Math.round(
       (new Date().getTime() - startTime.getTime()) / 1000,
     );
     this.logger.info(`Backfilled VaR history in ${duration}s`);
+  }
+
+  private async fixHistory() {
+    const [startTime, endTime] = this.getBackfillStartEnd();
+    const fixTimes = await this.varRepository.getOutdatedVarTimestamps(
+      this.chainId,
+      endTime,
+      100,
+    );
+
+    if (!fixTimes.length) return;
+
+    this.logger.warn(`Found ${fixTimes.length} outdated VaR entries`);
+
+    for (const time of fixTimes) await this.updateVarAt(time);
+
+    const duration = Math.round(
+      (new Date().getTime() - startTime.getTime()) / 1000,
+    );
+    this.logger.info(
+      `Fixed ${fixTimes.length} outdated VaR entries in ${duration}s`,
+    );
   }
 
   private async updateLastVar(): Promise<VarStatusRecord | undefined> {
@@ -142,6 +152,17 @@ class VarUpdaterController {
 
     await this.varRepository.insertVarStatus(newVar);
     return newVar;
+  }
+
+  private getBackfillStartEnd(): [Date, Date] {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const from = new Date();
+
+    let to = new Date(from.getTime());
+    to.setUTCHours(0, 0, 0, 0);
+    to = new Date(to.getTime() - dayMs * this.config.backfillPeriodDays);
+
+    return [from, to];
   }
 
   private getTotalUsd(value: ValueMapping): number {

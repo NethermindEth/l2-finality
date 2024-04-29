@@ -182,6 +182,36 @@ export class VarRepository {
     return result;
   }
 
+  async getOutdatedVarTimestamps(
+    chainId: number,
+    from?: Date,
+    limit?: number,
+  ): Promise<Date[]> {
+    const type = this.syncRepository.getDefaultSubmissionType(chainId);
+
+    let query = this.knex({ v: TABLE_NAME })
+      .where("chain_id", chainId)
+      .where(
+        "last_sync_at",
+        "!=",
+        this.knex(SYNC_TABLE_NAME)
+          .where("submission_type", type)
+          .where("chain_id", chainId)
+          .where("timestamp", "<=", this.knex.raw("v.timestamp"))
+          .max("timestamp"),
+      );
+
+    if (from) query = query.where("timestamp", ">=", from);
+
+    if (limit) query = query.limit(limit);
+
+    const result = await query
+      .orderBy("timestamp")
+      .select<{ timestamp: Date }[]>("timestamp");
+
+    return result.map((x) => x.timestamp);
+  }
+
   async getVarAverage(
     chainId: number,
     from?: Date,
