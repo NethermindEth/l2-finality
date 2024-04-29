@@ -81,7 +81,7 @@ class VarUpdaterController {
     const fixTimes = await this.varRepository.getOutdatedVarTimestamps(
       this.chainId,
       endTime,
-      200,
+      100,
     );
 
     if (!fixTimes.length) return;
