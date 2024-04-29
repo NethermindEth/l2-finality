@@ -253,7 +253,7 @@ export class VarRepository {
         result.max_period_sec = diff;
       result.avg_period_sec += diff;
 
-      diff = Math.round(diff / precision) * precision;
+      diff = this.roundTimestamp(chainId, diff, precision);
       if (!varsMap.get(diff)) varsMap.set(diff, []);
       varsMap.get(diff)!.push(entry);
 
@@ -416,6 +416,12 @@ export class VarRepository {
       precision = Math.max(precision, 900);
     return precision;
   };
+
+  private roundTimestamp(chainId: number, seconds: number, precision: number) {
+    return chainId == chains.Starknet.chainId
+      ? Math.round(seconds / precision) * precision
+      : seconds - (seconds % precision);
+  }
 }
 
 export default VarRepository;
