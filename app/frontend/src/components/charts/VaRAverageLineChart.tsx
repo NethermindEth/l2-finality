@@ -141,6 +141,7 @@ const VaRAverageLineChart: React.FC<VaRAverageLineChartProps> = ({
         {
           label: 'Max VaR USD',
           data: averageVarData.max_usd,
+          hidden: true,
           borderColor: 'rgb(239,123,7)',
           borderWidth: 5,
           fill: false,
