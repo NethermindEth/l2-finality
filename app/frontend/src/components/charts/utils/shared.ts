@@ -27,29 +27,38 @@ export const calculatePrecisionForVaRAverage = (chainId: number) => {
   } else if (chainId === 1101) {
     return 15
   } else {
-    return 60
+    return 300
   }
 }
 
-export const getColorForItem = (itemName: string) => {
+const getHash = (str: string) => {
   let hash = 0
-  for (let i = 0; i < itemName.length; i++) {
-    hash = (hash << 5) - hash + itemName.charCodeAt(i)
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i)
     hash = hash & hash // Convert to 32bit integer
     hash = Math.abs(hash)
   }
+  return hash
+}
 
-  if (itemName === 'Token transfer') {
+export const getColorForItem = (itemName: string) => {
+  if (itemName === 'Token transfer' || itemName === 'token_transfer') {
     return '#f48c36'
-  } else if (itemName === 'Token swap') {
+  } else if (itemName === 'Token swap' || itemName === 'token_swap') {
     return '#4caf50'
-  } else if (itemName === 'Native transfer') {
+  } else if (itemName === 'Native transfer' || itemName === 'native_transfer') {
     return '#2196f3'
-  } else if (itemName === 'Block reward') {
+  } else if (itemName === 'Block reward' || itemName === 'block_reward') {
     return '#8c00ff'
-  } else if (itemName === 'Gas fees') {
+  } else if (itemName === 'Gas fees' || itemName === 'gas_fees') {
     return '#9e9e9e'
   }
-  const hue = hash % 360
+
+  const hue = getHash(itemName) % 360
   return `hsl(${hue}, 80%, 60%)`
+}
+
+export const getColorForAsset = (asset: string) => {
+  const hue = (getHash(asset) * 137.5) % 360
+  return `hsla(${hue}, 80%, 60%, 0.5)`
 }

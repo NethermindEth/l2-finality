@@ -5,8 +5,6 @@ import {
   chainTableMapping,
 } from "@/database/repositories/BlockValueRepository";
 import {
-  AverageDetailsViewModel,
-  AverageVarViewModel,
   BlockVarViewModel,
   SubmissionType,
   ValueType,
@@ -20,8 +18,8 @@ import {
   ValueByType,
   ValueMapping,
 } from "@/core/controllers/appraiser/types";
-import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 import chains from "@/shared/chains.json";
+import { whitelistedMap } from "@/core/clients/coingecko/assets/types";
 
 export const TABLE_NAME = "sync_status";
 
@@ -76,6 +74,25 @@ export class SyncStatusRepository {
       .insert(syncStatus)
       .onConflict(["chain_id", "l2_block_number", "submission_type"])
       .merge();
+  }
+
+  getLastSyncStatus(
+    chainId: number,
+    type?: SubmissionType,
+    before?: Date,
+  ): Promise<SyncStatusRecord | undefined> {
+    type ??= this.getDefaultSubmissionType(chainId);
+
+    let query = this.knex(TABLE_NAME)
+      .where("chain_id", chainId)
+      .where("submission_type", type);
+
+    if (before) query = query.where("timestamp", "<=", before);
+
+    return query
+      .orderBy("timestamp", "desc")
+      .select<SyncStatusRecord[]>("timestamp")
+      .first();
   }
 
   async getPaginatedSyncStatus(
@@ -181,90 +198,15 @@ export class SyncStatusRepository {
     return details.blocks;
   }
 
-  async getVarAverage(
-    chainId: number,
-    submission_type?: SubmissionType,
-    from?: Date,
-    to?: Date,
-    precision?: number,
-  ): Promise<AverageDetailsViewModel> {
-    precision ??= 60;
-
-    const result: AverageDetailsViewModel = {
-      values: [],
-      min_period_sec: 0,
-      avg_period_sec: 0,
-      max_period_sec: 0,
-    };
-
-    const history = await this.getVarHistoryDetails(
-      chainId,
-      submission_type,
-      from,
-      to,
-      undefined,
-      true,
-    );
-
-    if (history.blocks.length == 0) return result;
-
-    const periods: number[] = [];
-    const varsMap = new Map<number, BlockVarViewModel[]>();
-
-    let sliceStartTime = 0;
-    for (const block of history.blocks) {
-      const blockTime = block.timestamp.getTime() / 1000;
-      if (history.subNums.has(block.block_number)) {
-        if (sliceStartTime != 0) periods.push(blockTime - sliceStartTime);
-
-        sliceStartTime = blockTime;
-      }
-
-      let sliceTime = blockTime - sliceStartTime;
-      sliceTime = sliceTime - (sliceTime % precision);
-
-      if (block.timestamp < (from ?? block.timestamp)) continue;
-      if (block.timestamp > (to ?? block.timestamp)) continue;
-
-      if (!varsMap.get(sliceTime)) varsMap.set(sliceTime, []);
-      varsMap.get(sliceTime)!.push(block);
-    }
-
-    const lastBlockTime =
-      history.blocks.slice(-1)[0].timestamp.getTime() / 1000;
-    if (sliceStartTime != lastBlockTime)
-      periods.push(lastBlockTime - sliceStartTime);
-
-    for (const period of periods) {
-      if (!result.min_period_sec || period < result.min_period_sec)
-        result.min_period_sec = period;
-      if (!result.max_period_sec || period > result.max_period_sec)
-        result.max_period_sec = period;
-      result.avg_period_sec += period;
-    }
-
-    result.avg_period_sec /= periods.length;
-
-    const times = Array.from(varsMap.keys());
-    times.sort((a, b) => a - b);
-
-    result.values = times.map((time) =>
-      this.getAverageVarViewModel(chainId, time, varsMap.get(time)!),
-    );
-
-    return result;
+  getDefaultSubmissionType(chainId: number): SubmissionType {
+    return (
+      Object.values(chains).filter(
+        (c) => c.chainId == chainId && "defaultSyncStatus" in c,
+      )[0] as any
+    )["defaultSyncStatus"] as SubmissionType;
   }
 
-  getTotalVarUsd(block: BlockVarViewModel): number {
-    let total = 0;
-    for (const entry of block.by_type) {
-      if (entry.type == ValueType.block_reward) continue;
-      total += entry.var_usd;
-    }
-    return total;
-  }
-
-  async getVarHistoryDetails(
+  private async getVarHistoryDetails(
     chainId: number,
     submission_type?: SubmissionType,
     from?: Date,
@@ -391,68 +333,7 @@ export class SyncStatusRepository {
     return { blocks: result, subNums: submissionNumbers };
   }
 
-  getAverageVarViewModel(
-    chainId: number,
-    time: number,
-    blocks: BlockVarViewModel[],
-  ): AverageVarViewModel {
-    const totals: {
-      by_contract: ValueByContract;
-      by_type: ValueByType;
-    } = { by_contract: {}, by_type: {} };
-
-    let minUsd = -1;
-    let maxUsd = -1;
-
-    for (const block of blocks) {
-      const blockUsd = this.getTotalVarUsd(block);
-
-      if (minUsd == -1 || blockUsd < minUsd) minUsd = blockUsd;
-      if (maxUsd == -1 || blockUsd > maxUsd) maxUsd = blockUsd;
-
-      if (block.by_contract) {
-        for (const entry of block.by_contract) {
-          const contract = entry.address;
-          const totalVar =
-            totals.by_contract[contract] ??
-            (totals.by_contract[contract] = { value_asset: 0, value_usd: 0 });
-          totalVar.value_asset += entry.var;
-          totalVar.value_usd += entry.var_usd;
-        }
-      }
-
-      if (block.by_type) {
-        for (const entry of block.by_type) {
-          const type = entry.type;
-          const totalVar =
-            totals.by_type[type] ??
-            (totals.by_type[type] = { value_asset: 0, value_usd: 0 });
-          totalVar.value_asset += entry.var;
-          totalVar.value_usd += entry.var_usd;
-        }
-      }
-    }
-
-    for (const total of Object.values(totals.by_contract)) {
-      total!.value_asset /= blocks.length;
-      total!.value_usd /= blocks.length;
-    }
-
-    for (const total of Object.values(totals.by_type)) {
-      total!.value_asset /= blocks.length;
-      total!.value_usd /= blocks.length;
-    }
-
-    return {
-      timestamp: time,
-      min_var_usd: Math.max(minUsd, 0),
-      max_var_usd: Math.max(maxUsd, 0),
-      by_contract: this.getVarByContractViewModels(chainId, totals.by_contract),
-      by_type: this.getVarByTypeViewModels(totals.by_type),
-    };
-  }
-
-  getVarByContractViewModels(
+  private getVarByContractViewModels(
     chainId: number,
     value: ValueByContract | undefined,
   ): VarByContractViewModel[] {
@@ -466,7 +347,9 @@ export class SyncStatusRepository {
     }));
   }
 
-  getVarByTypeViewModels(value: ValueByType | undefined): VarByTypeViewModel[] {
+  private getVarByTypeViewModels(
+    value: ValueByType | undefined,
+  ): VarByTypeViewModel[] {
     if (!value) return [];
 
     return Object.entries(value).map((x) => ({
@@ -474,14 +357,6 @@ export class SyncStatusRepository {
       var: x[1]?.value_asset,
       var_usd: x[1]?.value_usd,
     }));
-  }
-
-  private getDefaultSubmissionType(chainId: number): SubmissionType {
-    return (
-      Object.values(chains).filter(
-        (c) => c.chainId == chainId && "defaultSyncStatus" in c,
-      )[0] as any
-    )["defaultSyncStatus"] as SubmissionType;
   }
 }
 

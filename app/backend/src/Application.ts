@@ -14,6 +14,7 @@ import { createPriceUpdaterModule } from "@/core/modules/pricing/PriceUpdaterMod
 import { createProxyModule } from "@/core/modules/proxy/ProxyModule";
 import { createStarknetBlockModule } from "@/core/modules/indexers/l2/starknet/StarknetBlockModule";
 import StarknetClient from "@/core/clients/blockchain/starknet/StarknetClient";
+import { createVarUpdaterModule } from "@/core/modules/var/VarUpdaterModule";
 
 export class Application {
   constructor(config: Config) {
@@ -67,6 +68,7 @@ export class Application {
           polygonZkEvmClient,
         ),
         createStarknetBlockModule(config, logger, database, starknetClient),
+        createVarUpdaterModule(config, logger, database),
       ];
 
       for (const module of modules) {

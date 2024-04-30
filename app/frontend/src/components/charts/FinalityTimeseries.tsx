@@ -4,7 +4,6 @@ import {
   LinearScale,
   CategoryScale,
   BarElement,
-  Tooltip,
   Legend,
   ChartOptions,
 } from 'chart.js'
@@ -14,11 +13,13 @@ import {
   CircularProgress,
   FormControl,
   Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Typography,
+  Tooltip,
 } from '@mui/material'
 import moment from 'moment'
 import {
@@ -31,15 +32,9 @@ import { syncStatusApi } from '@/api/syncStatusApi'
 import RangeSelectorComponent from '@/components/charts/utils/RangeSelectorComponent'
 import DatePickerComponent from '@/components/charts/utils/DatePickerComponent'
 import chains from '@/shared/chains.json'
+import InfoIcon from '@mui/icons-material/Info'
 
-Chart.register(
-  ChartDataLabels,
-  LinearScale,
-  CategoryScale,
-  BarElement,
-  Tooltip,
-  Legend
-)
+Chart.register(ChartDataLabels, LinearScale, CategoryScale, BarElement, Legend)
 
 interface FinalityTimeseriesProps {
   chainId: number
@@ -114,7 +109,7 @@ const transformData = (
     }
   } else {
     dataset = {
-      label: 'Ratio (Time/Blocks)',
+      label: 'Block time',
       data: ratios,
       backgroundColor: 'rgba(239,144,57,0.6)',
     }
@@ -278,8 +273,8 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
             selectedMetric === 'blockDiff'
               ? 'Average number of L2 blocks'
               : selectedMetric === 'ratio'
-                ? 'L2 blocks per second'
-                : 'Average time to finality (s)',
+                ? 'Average L2 blocks time'
+                : 'Average time to inclusion (s)',
         },
         ticks: {
           callback: function (value: number) {
@@ -334,8 +329,25 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
         width: '80%',
       }}
     >
-      <Box sx={{ color: 'text.secondary', mb: 2, fontWeight: 'bold' }}>
-        History, time to finality
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Typography
+          sx={{
+            color: 'text.secondary',
+            mb: 2,
+            fontWeight: 'bold',
+            marginRight: 1,
+          }}
+        >
+          History, time to inclusion
+        </Typography>
+        <Tooltip
+          title="Please note, the values on the page do not reflect the time to finality (the time it would take for your L2 transaction to be finalized on the L1 after it has been submitted)."
+          placement="top"
+        >
+          <IconButton sx={{ marginBottom: 2 }}>
+            <InfoIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
       <Grid container spacing={3}>
         <Grid item xs={6} sm={4}>
@@ -388,7 +400,7 @@ const FinalityTimeseries: React.FC<FinalityTimeseriesProps> = ({ chainId }) => {
             >
               <MenuItem value="blockDiff">Average L2 Block difference</MenuItem>
               <MenuItem value="timeDiff">Average Time difference (s)</MenuItem>
-              <MenuItem value="ratio">Ratio (Time/Blocks)</MenuItem>
+              <MenuItem value="ratio">Block time</MenuItem>
             </Select>
           </FormControl>
         </Grid>

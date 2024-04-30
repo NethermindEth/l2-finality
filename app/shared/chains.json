@@ -13,8 +13,7 @@
     "explorerUri": "https://optimistic.etherscan.io",
     "defaultSyncStatus": "data_submission",
     "enabledSyncStatuses": [
-      "data_submission",
-      "l2_finalization"
+      "data_submission"
     ]
   },
   "zkEVM": {

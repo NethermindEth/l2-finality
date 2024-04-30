@@ -8,6 +8,7 @@ import {
   PolygonZkEvmModuleConfig,
   PricingModuleConfig,
   StarknetModuleConfig,
+  VarModuleConfig,
 } from "./Config";
 import { Env } from "@/tools/Env";
 import { LogLevel } from "@/tools/Logger";
@@ -97,6 +98,12 @@ export function getTestConfig(env: Env): Config {
     pollIntervalMs: env.integer("STARKNET_POLL_INTERVAL_MS", 60000),
   };
 
+  const varModuleConfig: VarModuleConfig = {
+    enabled: env.boolean("VAR_MODULE_ENABLED", true),
+    pollIntervalMs: env.integer("VAR_POLL_INTERVAL_MS", 60000),
+    backfillPeriodDays: env.integer("VAR_BACKFILL_PERIOD_DAYS", 7),
+  };
+
   return {
     database: databaseConfig,
     api: apiConfig,
@@ -106,5 +113,6 @@ export function getTestConfig(env: Env): Config {
     optimismModule: optimismModuleConfig,
     polygonZkEvmModule: polygonZkEvmModuleConfig,
     starknetModule: starknetModuleConfig,
+    varModule: varModuleConfig,
   };
 }

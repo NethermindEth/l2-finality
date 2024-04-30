@@ -25,17 +25,6 @@ export function getValue(
     : { byContract: {}, byType: {} };
 }
 
-// export function getVar(block: BlockValueRecord | undefined | null): ValueMapping {
-//   return block
-//     ? {byContract: block.var_by_contract, byType: block.var_by_type}
-//     : {byContract: {}, byType: {}};
-// }
-
-// export function setVar(block: BlockValueRecord, value: ValueMapping) {
-//   block.var_by_type = value.byType ?? {};
-//   block.var_by_contract = value.byContract ?? {};
-// }
-
 export function mergeValues(
   mappings: ValueMapping[],
   ignoreZero: boolean = false,
@@ -87,4 +76,11 @@ export function mergeValues(
   }
 
   return result;
+}
+
+export function mergeBlockValues(
+  blocks: BlockValueRecord[],
+  ignoreZero: boolean = false,
+) {
+  return mergeValues(blocks.map(getValue), ignoreZero);
 }
